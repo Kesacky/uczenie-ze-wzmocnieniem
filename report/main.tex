@@ -1,0 +1,98 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\newcommand{\doUzupelnienia}[1]{\textbf{Do uzupełnienia:} #1}
+\title{Uczenie się ze wzmocnieniem\\Sprawozdanie z projektu}
+\author{Autor: do uzupełnienia przez studenta}
+\date{Wersja robocza: 21 października 2026}
+\begin{document}
+\maketitle
+\textbf{Status dokumentu.} To szablon rozwijany równolegle z projektem.
+Temat nie został jeszcze wybrany. Nie zaimplementowano środowiska ani agentów
+i nie przeprowadzono eksperymentów. Opisy planowane nie są wynikami wykonanych prac.
+\tableofcontents
+
+\section{Opis problemu}
+\doUzupelnienia{temat, cel agenta, zastosowanie oraz zakres projektu.
+Opisać wymagane uzgodnienia z prowadzącym i ich rzeczywisty status.}
+
+\section{Uzasadnienie zastosowania RL}
+\doUzupelnienia{wyjaśnić sekwencyjność decyzji, ich wpływ na przyszły stan
+oraz rolę długoterminowych konsekwencji, niepewności lub konfliktu celów.}
+
+\section{Formalizacja RL/MDP}
+\doUzupelnienia{agent, środowisko, przestrzeń stanów lub obserwacji,
+przestrzeń akcji, dynamika przejść, nagroda, warunki końca epizodu,
+ograniczenia, pojedynczy krok interakcji i mierzalna definicja sukcesu.
+Uzasadnić składniki nagrody i wskazać założenia wymagające sprawdzenia.}
+
+\section{Środowisko}
+\doUzupelnienia{opis implementacji i interfejsu inicjalizacji oraz kroku,
+legalnych akcji, map lub scenariuszy i zdarzeń dynamicznych.
+Udokumentować rzeczywiście wykonane testy przypadków brzegowych.}
+
+\section{Agent bazowy}
+\doUzupelnienia{adekwatny agent losowy, heurystyczny lub inny baseline,
+jego założenia i wyniki. Porównanie musi wykorzystywać uczciwe warunki.}
+
+\section{Algorytm uczący się}
+\doUzupelnienia{wybrany algorytm RL lub DRL i uzasadnienie wyboru,
+hiperparametry, reprezentacja wartości lub architektura sieci,
+przebieg uczenia oraz odrębna procedura ewaluacji.}
+
+\section{Plan eksperymentów}
+\doUzupelnienia{warianty i hipotezy, parametry, budżet treningu,
+metryki, baseline, scenariusze, ziarna losowe, kilka uruchomień lub uzasadnienie
+odstępstwa oraz planowane tabele i wykresy.}
+
+\section{Wyniki}
+Nie przeprowadzono jeszcze eksperymentów. Nie ma wyników liczbowych do przedstawienia.
+\doUzupelnienia{wyniki odtwarzalne z kodu lub danych, przebieg uczenia,
+porównania, zmienność wyników i przypadki niepowodzeń.
+Wykresy muszą mieć opisane osie, jednostki i legendy.}
+
+\section{Analiza i wnioski}
+\doUzupelnienia{interpretacja faktycznych wyników, odpowiedzi na hipotezy,
+co poprawia lub pogarsza wyniki oraz własne wnioski studenta.}
+
+\section{Ograniczenia rozwiązania}
+Na obecnym etapie ograniczeniem jest brak ustalonego tematu i implementacji.
+\doUzupelnienia{ograniczenia modelu, obserwacji, funkcji nagrody, eksperymentów
+i możliwości uogólniania, zgodne z rzeczywistym stanem rozwiązania.}
+
+\section{Instrukcja uruchomienia}
+Repozytorium:
+\url{https://github.com/Kesacky/uczenie-ze-wzmocnieniem}.
+
+Nie ma jeszcze programu RL do uruchomienia.
+Dokumentację można kompilować poleceniem \texttt{pdflatex main.tex}
+z katalogu \texttt{report}; kompilację należy wykonać dwukrotnie,
+aby uaktualnić spis treści.
+\doUzupelnienia{wymagania środowiska programu, instalacja zależności,
+polecenia uruchomienia, treningu, ewaluacji i odtworzenia wyników
+z czystej kopii repozytorium.}
+
+\section{Wsparcie AI}
+\input{sections/ai.tex}
+
+\begin{thebibliography}{9}
+\bibitem{zasady}
+Materiały kursowe WEiI PRz,
+\emph{Uczenie się ze wzmocnieniem. Zasady realizacji projektu},
+rok akademicki 2026/2027, w szczególności sekcje 2, 4, 8 i 9.
+Materiał źródłowy przechowywany lokalnie.
+\bibitem{checklista}
+Materiały kursowe WEiI PRz,
+\emph{Uczenie się ze wzmocnieniem. Lista kontrolna projektu},
+rok akademicki 2026/2027, w szczególności sekcje 2--6.
+Materiał źródłowy przechowywany lokalnie.
+\end{thebibliography}
+\end{document}

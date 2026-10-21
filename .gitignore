@@ -1,0 +1,38 @@
+# Instrukcje agentów i pełne prywatne transkrypty pozostają lokalne.
+AGENTS.md
+/private/
+
+# Materiały kursowe: brak potwierdzenia prawa do publikacji.
+/P00_zasady_realizacji_projektu.pdf
+/P01_checklista_projektu.pdf
+
+# Sekrety i lokalne środowisko.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+
+# Dane robocze, ciężkie artefakty i pliki generowane.
+/tmp/
+/data/local/
+/results/raw/
+/models/
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+/report/main.pdf
