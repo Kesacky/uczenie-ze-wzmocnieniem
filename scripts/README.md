@@ -10,8 +10,8 @@ Przykład w PowerShellu, z katalogu głównego projektu:
 
 ```powershell
 python scripts/log_ai.py `
-  --prompt-file private/prompt.txt `
-  --response-file private/response.txt `
+  --prompt-file tmp/prompt.txt `
+  --response-file tmp/response.txt `
   --model "Rzeczywista nazwa modelu" `
   --date 2026-10-21 `
   --purpose "Omówienie formalizacji MDP" `
@@ -29,22 +29,22 @@ Bez tego parametru wpis wyraźnie oznacza ją jako niepotwierdzoną. Podanie
 kursu dodatkowy link dotyczy rozmowy poza narzędziami programistycznymi, o ile
 użyte narzędzie umożliwia jej udostępnienie.
 
-Dane trafiają do `private/ai-journal/entries/<data>-<id>/`:
+Dane trafiają do `ai-journal/entries/<data>-<id>/`:
 
 - `prompt.txt` i `response.txt`: dokładne oryginalne bajty UTF-8, łącznie z białymi
   znakami i końcami linii;
 - `metadata.json`: dane wpisu i sumy SHA-256 oryginałów;
 - `entry.tex`: metadane oraz wczytanie obu tekstów przez `\VerbatimInput`.
 
-Skrypt przebudowuje indeks `private/ai-journal/entries.tex`. Nie tworzy ani nie
+Skrypt przebudowuje indeks `ai-journal/entries.tex`. Nie tworzy ani nie
 modyfikuje `main.tex`. Główny dokument powinien używać kodowania UTF-8, polskich
 fontów (dla XeLaTeX/LuaLaTeX przez `fontspec`, dla pdfLaTeX przez `fontenc`
 i `inputenc`) oraz pakietu `fvextra` (zawijanie długich wierszy),
 a następnie dołączać `\input{entries.tex}`. Kompilację wykonuj z katalogu
-`private/ai-journal/`. Nie jest potrzebne `shell-escape`.
+`ai-journal/`. Nie jest potrzebne `shell-escape`.
 
-Surowe rozmowy przechowuj lokalnie zgodnie z `.gitignore`; przed przekazaniem
-prowadzącemu przygotuj ich kopię. Skrypt **nie wykrywa ani nie usuwa sekretów**.
+Dziennik jest publikowany w repozytorium, więc przed każdym commitem sprawdź
+treść nowych wpisów. Skrypt **nie wykrywa ani nie usuwa sekretów**.
 Nigdy nie podawaj modelowi haseł lub tokenów. Jeżeli transkrypt już zawiera sekret
 albo dane wymagające ochrony, sporządź do udostępnienia kopię z jawnym oznaczeniem
 redakcji i wyjaśnieniem jej zakresu; nie ukrywaj użycia AI ani jego istotnego

@@ -1,0 +1,1 @@
+czyli jaki powinien byc nasz nastepny krok, stworzenie tego agenta i jego srodowiska w ktorym bedzie sie uczyl ?

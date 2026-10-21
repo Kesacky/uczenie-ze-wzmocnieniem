@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Codex CLI, generator obrazów image_gen.imagegen",
+  "model": "gpt-6.1-sol (Codex); wariant modelu generatora nieudostępniony",
+  "purpose": "Gra: prompty przekazane do generatora obrazów (tekstury)",
+  "scope": "Prompty sformułował Codex na podstawie opisów arkuszy przygotowanych przez Claude; zapis dosłowny z assets/_raw/prompts_log.txt (10 prób, 8 przyjętych). Odpowiedzią są obrazy; opis plików przygotował Claude.",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "a068b5b2e1a093f1d18d9ae7491cf970222c8aa5758b4d2b9f5b908f9bd436b7",
+  "response_sha256": "40de9dfb8e355c6251fe3faf49062c436270342a4ee465bfbe495f2e174ea39f",
+  "recorded_at_utc": "2026-10-21T17:00:00.303471+00:00"
+}

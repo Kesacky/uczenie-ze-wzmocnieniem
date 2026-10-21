@@ -1,4 +1,4 @@
-# Instrukcje agentów i pełne prywatne transkrypty pozostają lokalne.
+# Instrukcje agentów i prywatne notatki pozostają lokalne (dziennik AI w ai-journal/ jest publiczny).
 AGENTS.md
 /private/
 
@@ -36,3 +36,9 @@ Thumbs.db
 *.fdb_latexmk
 *.synctex.gz
 /report/main.pdf
+/ai-journal/main.pdf
+/ai-journal/.append.lock
+/Claude outputs/
+
+# Surowe arkusze z generatora grafik (zachowywane lokalnie, opis w assets/README.md).
+/assets/_raw/

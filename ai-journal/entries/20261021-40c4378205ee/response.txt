@@ -1,0 +1,14 @@
+Utworzone pliki:
+
+- `miner_rl/render/{__init__,assets,renderer}.py`
+- `miner_rl/agents/loader.py`
+- `scripts/{_render_common,play,watch,record}.py`
+- `tests/test_render.py`
+
+Gotowe: renderer, zastępniki tekstur, animacje, HUD, loader agentów, gra człowieka, podgląd agenta i zapis GIF.
+
+Sprawdzenie: `python -m pytest -q` — **71 testów zaliczonych**. Jedno ostrzeżenie pochodzi z pygame (`pkg_resources`).
+
+Ograniczenia: testy wykonano bez okna; obsługa klawiatury wymaga ręcznego sprawdzenia. Generator tekstur pozostawiono na osobne zadanie.
+
+Plików objętych zakazem nie zmieniono. README i raport są nieaktualne; dziennik AI pozostał bez nowego wpisu zgodnie z zakazem jego modyfikacji.

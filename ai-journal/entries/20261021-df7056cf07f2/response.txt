@@ -1,0 +1,11 @@
+Generowanie zadziałało. Sprawdzono Pythonem (Pillow):
+
+- Plik: [rock_test.png](/home/claude/texlab/rock_test.png)
+- Rozmiar: **1254 × 1254 px**
+- Tryb: **RGB**, format PNG
+
+Dokładny prompt przekazany do narzędzia:
+
+```text
+Generate ONE square, seamless tileable texture for a 2D game: solid rock in an underground mine, side view. Low-resolution pixel art with the appearance of a 32×32 grid of large, crisp square pixels. Limited dark palette: dark gray-brown stones, subtle cracks, and a few lighter edges illuminated by warm lamplight. Flat lighting, no vignette. Rock fills the entire frame. Opposite edges must tile seamlessly horizontally and vertically. No text, no characters, no frame, no watermark.
+```

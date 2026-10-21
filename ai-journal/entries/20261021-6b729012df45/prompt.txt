@@ -1,0 +1,70 @@
+Arkusz: tiles_rock.png
+Próba: 1
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet tiles_rock.png: exactly 2 columns x 2 rows of equal square cells, edge-to-edge, no gaps or divider lines. Full-cell seamless textures. Row-major: (1) solid dark grey-brown rock with small cracks; (2) same rock, different stone arrangement; (3) same rock with a few larger boulders; (4) excavated tunnel background: very dark compacted earth, clearly darker and smoother than the rocks. Square canvas.
+Przyjęty: tak
+
+Arkusz: tiles_ore.png
+Próba: 1
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet tiles_ore.png: exactly 2 columns x 2 rows of equal square cells, no gaps, no divider lines, row-major order. Canvas aspect ratio 2:2. Full-cell textures on the same dark grey-brown cracked rock: (1) coal vein near-black dull grey glints; (2) pale blue-grey silver chunks; (3) warm yellow gold nuggets; (4) large bright cyan crystals.
+Przyjęty: tak
+
+Arkusz: tiles_misc.png
+Próba: 1
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet tiles_misc.png: exactly 2 columns x 2 rows of equal square cells, no gaps, no divider lines, row-major order. Canvas aspect ratio 2:2. Full-cell textures: (1) shallow dark blue underground water in tunnel, warm lamp reflections; (2) very dark smooth compacted earth tunnel background with long cracks and falling gravel; (3) cave-in rubble: chaotic stones and broken beams filling cell; (4) exit vertical shaft with wooden ladder ascending on dark shaft background.
+Przyjęty: tak
+
+Arkusz: tiles_surface.png
+Próba: 1
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet tiles_surface.png: exactly 2 columns x 2 rows of equal square cells, no gaps, no divider lines, row-major order. Canvas aspect ratio 2:2. (1) full-cell soil cross-section with narrow grass strip at top; (2) solid uniform magenta #FF00FF background, wooden mining support: one vertical post and horizontal top beam full cell height; (3) solid uniform magenta #FF00FF background, round bright pickaxe impact flash and sparks; (4) solid uniform magenta #FF00FF background, small burlap sack of ore icon.
+Przyjęty: nie (pas trawy znika po odcięciu marginesu)
+
+Arkusz: miner_walk.png
+Próba: 1
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet miner_walk.png: exactly 4 columns x 2 rows of equal square cells, no gaps, no divider lines, row-major order. Canvas aspect ratio 4:2. Uniform solid magenta #FF00FF background, no shadows. Same original small stocky miner centered in each cell, about 80% cell height, yellow helmet with glowing headlamp, brown work jacket, dark trousers, pickaxe. Row 1: (1) back view walking up step A; (2) back view step B; (3) front view walking down step A; (4) front view step B. Row 2: (5) left-facing profile step A; (6) left-facing profile step B; (7) right-facing profile step A; (8) right-facing profile step B. Keep all limbs and pickaxe inside individual cells.
+Przyjęty: tak
+
+Arkusz: miner_action.png
+Próba: 1
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet miner_action.png: exactly 2 columns x 2 rows of equal square cells, no gaps, no divider lines, row-major order. Canvas aspect ratio 2:2. Uniform solid magenta #FF00FF background. Same original small stocky miner, yellow helmet glowing headlamp, brown work jacket dark trousers, right-facing profile: (1) pickaxe raised overhead; (2) pickaxe striking forward; (3) miner carrying full ore sack on back; (4) icon of mining oil lantern. Center each object inside cell with margin, no background shadows.
+Przyjęty: tak
+
+Arkusz: effects.png
+Próba: 1
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet effects.png: exactly 4 columns x 2 rows of equal square cells, no gaps, no divider lines, row-major order. Canvas aspect ratio 4:2. Uniform solid magenta #FF00FF background. Row 1: (1)(2)(3) three frames of falling dust and small pebbles progressively lower in cell; (4) icon cracked mine ceiling with wooden support representing stability. Row 2: (5)(6)(7)(8) four frames of cave-in from first falling stones to cell almost entirely buried in boulders. All artwork stays inside its cell.
+Przyjęty: tak
+
+Arkusz: ui_frame.png
+Próba: 1
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet ui_frame.png: exactly 1 columns x 1 rows of equal square cells, no gaps, no divider lines, row-major order. Canvas aspect ratio 1:1. Full image: symmetric UI panel frame made of dark wood and metal rivets. Smooth very dark brown center. Frame thickness about one quarter of image width. Square image intended for 9-slice cutting.
+Przyjęty: tak
+
+Arkusz: tiles_surface.png
+Próba: 2
+Prompt:
+Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character.
+Sprite sheet tiles_surface.png: exactly 2 columns x 2 rows of equal square cells, no gaps, no divider lines, row-major order. Canvas aspect ratio 2:2. (1) full-cell soil cross-section with narrow grass strip at top; (2) solid uniform magenta #FF00FF background, wooden mining support: one vertical post and horizontal top beam full cell height; (3) solid uniform magenta #FF00FF background, round bright pickaxe impact flash and sparks; (4) solid uniform magenta #FF00FF background, small burlap sack of ore icon.
+Correction: In cell 1 the grass strip must extend from the very top down through at least 12 percent of the cell height, so grass remains after cropping a 3 percent edge margin. Fill the whole first cell with terrain, absolutely no magenta inside cell 1. In cell 2 center the vertical support post under the horizontal top beam (a T-shaped support). Keep the exact same 2x2 layout.
+Przyjęty: nie (magenta wewnątrz pełnej tekstury powierzchni)
+
+Arkusz: tiles_surface.png
+Próba: 3
+Prompt:
+undefined
+Przyjęty: tak (drobne linie na styku komórek usuwa margines 3%)
+

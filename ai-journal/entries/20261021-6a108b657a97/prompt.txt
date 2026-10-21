@@ -1,0 +1,1 @@
+Przeczytaj `private/PLAN_GRY_CODEX.md` w folderze projektu (oraz `claude/PLAN_GRY_CODEX.md` w projekcie) i zrealizuj go krok po kroku. Używaj Codexa zgodnie z planem.

@@ -66,7 +66,7 @@ Pomoc AI jest dopuszczalna pod warunkiem jawnego dokumentowania. P00 §9 (s. 5) 
 - transkryptów rozmów z datą i nazwą modelu;
 - dodatkowo linku do całej rozmowy poza narzędziami programistycznymi, o ile narzędzie umożliwia udostępnienie.
 
-W tym projekcie pełny dziennik jest przechowywany lokalnie w `private/ai-journal/main.tex` wraz z plikami transkryptów i nie jest wysyłany do publicznego repo. Publiczny raport zawiera jawną sekcję „Wsparcie AI”. **Ignorowanie dziennika w Git nie zwalnia z obowiązku jego zachowania i udostępnienia prowadzącemu w uzgodniony sposób.** P00 nie określa, że pełne transkrypty muszą znajdować się w publicznym repo; sposób dostępu do lokalnego dziennika należy uzgodnić, jeśli prowadzący go nie wskazał.
+W tym projekcie pełny dziennik jest prowadzony w publicznym repozytorium w `ai-journal/main.tex` wraz z plikami transkryptów (`ai-journal/entries/`). Raport zawiera dodatkowo jawną sekcję „Wsparcie AI” z podsumowaniem. Przed każdym commitem należy sprawdzić, czy nowe wpisy nie zawierają sekretów ani danych wrażliwych.
 
 Przechowywać dosłowne dostępne prompty i odpowiedzi; streszczenie może być dodatkiem, lecz nie zastępuje transkryptu. Brakujący fragment oznaczyć jako brak, a nie rekonstruować go jako rzekomo dosłowny zapis. Chronić dane wrażliwe, a konieczne redakcje wyraźnie oznaczać. Nie dokumentować ukrytych procesów rozumowania systemu jako wypowiedzi rozmowy.
 

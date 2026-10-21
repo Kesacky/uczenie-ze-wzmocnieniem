@@ -1,0 +1,11 @@
+Tak, zapisałem. Dziennik ma teraz 4 wpisy: Twoje decyzje do formalizacji, podsumowanie formalizacji, Twoje wybory do planu eksperymentów (z opisem napisanego kodu) i podsumowanie z wiadomością do prowadzącego. Nie widziałeś ich, bo wcześniej wysłałem Ci tylko raport. Aktualny dziennik w PDF jest wyżej. Ta wymiana też trafi do dziennika.
+
+Wysłać na GitHuba sam niestety nie mogę. Na Twoim komputerze terminal i VS Code są dla mnie dostępne tylko w trybie klikania, bez wpisywania tekstu, a w chmurze nie mam dostępu do Twojego konta GitHub.
+
+Z drugą sesją nie będzie konfliktu: jeszcze nie utworzyła żadnych plików, a commit i tak niczego nie zmienia w plikach roboczych. Na wszelki wypadek dodaj tylko konkretne ścieżki. W folderze projektu uruchom w terminalu:
+
+git add .gitignore README.md docs report ai-journal miner_rl tests scripts
+git commit -m "Formalizacja MDP, plan eksperymentów, agenci Q-learning i SARSA, dziennik AI"
+git push
+
+Prywatne pliki (private/, AGENTS.md, PDF-y prowadzącego) są wykluczone przez .gitignore. Hook przed commitem dodatkowo blokuje ich wysłanie. Jeśli coś się nie powiedzie, wklej mi komunikat błędu.

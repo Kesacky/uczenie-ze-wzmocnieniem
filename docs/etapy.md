@@ -78,7 +78,7 @@ Potwierdzenie przekazania linku: **brak**. Temat/akceptacja: **brak**. Wynik wer
 - [ ] Potwierdzić zgodność raportu z aktualnym kodem i wynikami.
 - [ ] Sprawdzić aktualne uruchamianie z czystego repo oraz kompilację LaTeX.
 - [ ] Uzupełnić jawną sekcję „Wsparcie AI” w publicznym raporcie.
-- [ ] Zachować pełne transkrypty AI z datami i nazwami modeli w lokalnym `private/ai-journal`; udostępnić prowadzącemu w uzgodniony sposób.
+- [ ] Zachować pełne transkrypty AI z datami i nazwami modeli w dzienniku `ai-journal/` (część publicznego repozytorium).
 - [ ] Dodać linki do całych rozmów poza narzędziami programistycznymi, jeśli narzędzia umożliwiają udostępnienie.
 - [ ] Student samodzielnie sprawdził i umie wyjaśnić rozwiązanie, wyniki, ograniczenia oraz zakres pomocy AI; zapisać rzeczywisty zakres tej weryfikacji.
 - [ ] Uzupełnić termin kalendarzowy E3 oraz wynik obrony/weryfikacji.
@@ -100,4 +100,4 @@ Potwierdzenie przekazania linku: **brak**. Temat/akceptacja: **brak**. Wynik wer
 
 Odhaczać punkt dopiero po rzeczywistym wykonaniu i sprawdzeniu. Przy ważnych wynikach dopisać dowód: ścieżkę pliku, polecenie i wynik uruchomienia, commit albo potwierdzoną informację od prowadzącego. Działanie agenta nie stanowi automatycznie samodzielnej weryfikacji przez studenta. Przy błędzie ponownie otworzyć punkt i zapisać, co wymaga poprawy.
 
-Nie zmieniać terminów, wymagań ani statusów dla stworzenia pozoru zgodności. Braki należy wykrywać i naprawiać przed oddaniem pracy. Lokalny charakter instrukcji agentów lub dziennika AI nie znosi obowiązków sprawozdawczych opisanych w P00.
+Nie zmieniać terminów, wymagań ani statusów dla stworzenia pozoru zgodności. Braki należy wykrywać i naprawiać przed oddaniem pracy. Lokalny charakter instrukcji agentów nie znosi obowiązków sprawozdawczych opisanych w P00.

@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Publikacja w repozytorium GitHub",
+  "scope": "Kontrola zmian przed commitem; instrukcja commitu i pusha",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "6c4f12e65262d65368550a9ffb49ab1bee8d0f017ab50d72ef1db53df149776c",
+  "response_sha256": "647dc5b308d7456631945fb1e7d85ed353cc4b348e3a464c3ae97a40bf6eb1f6",
+  "recorded_at_utc": "2026-10-21T16:57:37.575053+00:00"
+}

@@ -1,0 +1,16 @@
+Odpowiedzią generatora są obrazy, nie tekst. Zapis faktów o przyjętych obrazach
+(sprawdzone przez Claude po zakończeniu zadania; obrazy przechowywane lokalnie w assets/_raw/,
+ignorowane przez Git; wycięte z nich tekstury 32x32 są w assets/tiles, assets/sprites, assets/ui):
+
+- tiles_rock.png: 1254x1254 px, RGB, siatka 2x2, komórki: tiles/rock_0, tiles/rock_1, tiles/rock_2, tiles/corridor
+- tiles_ore.png: 1254x1254 px, RGB, siatka 2x2, komórki: tiles/coal, tiles/silver, tiles/gold, tiles/crystal
+- tiles_misc.png: 1254x1254 px, RGB, siatka 2x2, komórki: tiles/water, tiles/corridor_cracked, tiles/rubble, tiles/exit
+- tiles_surface.png: 1254x1254 px, RGB, siatka 2x2, komórki: tiles/surface, tiles/prop, sprites/flash, ui/sack
+- miner_walk.png: 1774x887 px, RGB, siatka 4x2, komórki: sprites/miner_up_0, sprites/miner_up_1, sprites/miner_down_0, sprites/miner_down_1, sprites/miner_left_0, sprites/miner_left_1, sprites/miner_right_0, sprites/miner_right_1
+- miner_action.png: 1254x1254 px, RGB, siatka 2x2, komórki: sprites/miner_dig_0, sprites/miner_dig_1, sprites/miner_loaded, ui/oil
+- effects.png: 1774x887 px, RGB, siatka 4x2, komórki: sprites/dust_0, sprites/dust_1, sprites/dust_2, ui/stability, sprites/collapse_0, sprites/collapse_1, sprites/collapse_2, sprites/collapse_3
+- ui_frame.png: 1254x1254 px, RGB, siatka 1x1, komórki: ui/hud_frame
+
+Odrzucone próby (wg assets/_raw/prompts_log.txt) nie zostały zachowane jako pliki;
+ich prompty i powód odrzucenia są w treści promptu tego wpisu.
+Generator: image_gen.imagegen (dokładny wariant modelu nieudostępniony); data: 2026-10-21.

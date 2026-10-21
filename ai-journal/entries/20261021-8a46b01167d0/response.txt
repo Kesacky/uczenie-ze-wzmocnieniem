@@ -1,0 +1,19 @@
+Nie udało mi się wysłać plików samodzielnie: w tej sesji nie mam powłoki na Twoim komputerze, terminal (PowerShell/Git Bash) mogę tylko klikać, bez pisania, a w chmurze nie ma działającego logowania do GitHuba. Push musi więc pójść z Twojego komputera.
+
+Przygotowałem i sprawdziłem wszystko na kopii repozytorium:
+- do commita trafi 25 plików (zmiany w README, raporcie, docs, scripts/log_ai.py oraz nowe: dziennik ai-journal/, docs/koncepcja.md, miner_rl/agents/tabular.py, tests/test_tabular.py);
+- AGENTS.md, private/, PDF-y P00/P01, tmp/ i "Claude outputs/" są ignorowane i nie zostaną wysłane;
+- private/check_publish.py --staged przechodzi, w zmianach nie ma tokenów ani haseł;
+- testy: 6 passed (pytest).
+
+Polecenia do wklejenia w Git Bash otwartym w folderze projektu:
+
+cd "/c/Users/Marcin/Desktop/Uczenie ze wzmocnieniem"
+git add -A
+git status
+git commit -m "Dodaj koncepcję gry, agenta tabelarycznego z testami i dziennik AI"
+git push
+
+Przed commitem sprawdź w wyniku git status, że nie ma na liście AGENTS.md ani private/. Hooki pre-commit i pre-push same zablokują pliki prywatne.
+
+[Działania Claude] Odtworzenie repozytorium w chmurze, git status, kontrola ignorowanych plików i sekretów, uruchomienie testów, dopisanie tego wpisu do dziennika.

@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Formalizacja MDP",
+  "scope": "Claude przedstawił opcje i zalecenia, student wybrał warianty; Claude zredagował sekcje raportu z formalizacją",
+  "verification": "Decyzje projektowe podjął student. Weryfikacja treści raportu: do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "108a94efadbb81eb177475011fb6aef945ae31a66e8958cfd9a5263e32601906",
+  "response_sha256": "aecfcc79770a96fd340b39fff1228eaaf4000001267d440898d797977db08cc8",
+  "recorded_at_utc": "2026-10-21T16:37:22.622822+00:00"
+}

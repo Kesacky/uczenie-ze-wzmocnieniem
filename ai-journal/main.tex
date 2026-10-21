@@ -1,0 +1,38 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+  \setmainfont[BoldFont=lmroman10-bold.otf,ItalicFont=lmroman10-italic.otf,BoldItalicFont=lmroman10-bolditalic.otf]{lmroman10-regular.otf}
+  \setmonofont{lmmono10-regular.otf}
+\fi
+\usepackage[polish]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{fvextra}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+% Treść rozmów: zwykła czcionka, zawijanie wierszy bez symboli strzałek, ramka.
+\fvset{fontfamily=rm,fontsize=\normalsize,breaklines=true,breakanywhere=true,
+  breaksymbolleft={},breaksymbolright={},breakindent=0pt,
+  frame=leftline,framerule=1.5pt,framesep=8pt,rulecolor=\color{gray!60},xleftmargin=4pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+\newcommand{\metawiersz}[2]{\textbf{#1:} #2\par}
+\title{Dziennik wsparcia AI}
+\author{Projekt: Uczenie się ze wzmocnieniem 2026/2027}
+\date{}
+\begin{document}
+\maketitle
+Dziennik zawiera rozmowy z narzędziami AI wykorzystanymi w projekcie
+(zgodnie z P00, sekcja 9): datę, narzędzie i model, cel, zakres pomocy
+oraz pełną treść promptu i odpowiedzi. Daty w strefie Europe/Warsaw.
+
+\tableofcontents
+\clearpage
+\input{entries.tex}
+\end{document}

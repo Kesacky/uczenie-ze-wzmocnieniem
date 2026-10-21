@@ -1,0 +1,60 @@
+Nie, jeszcze nie. Następny krok to etap E1: formalizacja MDP i zgłoszenie tematu prowadzącemu (termin: koniec P2). Środowisko już robi równoległa sesja, a agenta RL robimy dopiero w E3.
+
+Najpierw musimy zamknąć formalizację, bo:
+
+- Punktacja: formalizacja jest warta 10 pkt, najwięcej ze wszystkich elementów.
+- Termin: temat musi zaakceptować prowadzący, więc musi dostać jasny opis problemu, stanu, akcji i nagrody.
+- Równoległa sesja: buduje środowisko na wartościach tymczasowych. Im szybciej je ustalimy, tym mniej przeróbek.
+
+Plan na teraz:
+
+1. Ty podejmujesz kilka kluczowych decyzji (poniżej). Od tego momentu prowadzimy dziennik.
+2. Ja zapisuję w raporcie sekcje: opis problemu, uzasadnienie RL i formalizacja MDP.
+3. Przygotowuję krótką wiadomość do prowadzącego z tematem do akceptacji.
+4. Przekazuję ustalone wartości równoległej sesji.
+
+[Pytania z wyborem odpowiedzi zadane w interfejsie; odpowiedzi użytkownika poniżej]
+
+1. Jak szczegółowo opisać stabilność stropu w stanie?
+   - 6 poziomów (0–5) (zalecane): agent może precyzyjnie ocenić ryzyko. Więcej stanów (tablica Q nadal się mieści), wolniejsze uczenie.
+   - 3 poziomy (niska/średnia/wysoka): mniejsza tablica Q i szybsze uczenie, ale agent gorzej rozróżnia ryzyko.
+   Wybór użytkownika: 6 poziomów (0–5).
+
+2. Jak karać zawał?
+   - Stała kara −20 + utrata ładunku (zalecane): prosta i łatwa do uzasadnienia. W eksperymentach porównamy kilka wartości (np. −5, −20, −50) i zobaczymy, jak zmienia się apetyt na ryzyko.
+   - Tylko utrata ładunku: najbardziej „naturalne” (tracisz to, co niosłeś), ale pusty agent nic nie ryzykuje, więc może zbyt śmiało kopać na początku.
+   - Kara zależna od głębokości: głębszy zawał boli bardziej. Ciekawsze, ale trudniejsze do obrony i do analizy.
+   Wybór użytkownika: stała kara −20 + utrata ładunku.
+
+3. Jak działa ryzyko zawału?
+   - Globalna stabilność kopalni (zalecane): jedna liczba dla całej kopalni, spada przy kopaniu. Mały stan, tablicowe Q-learning działa, łatwo wyjaśnić na obronie.
+   - Lokalna stabilność w okolicy: każdy rejon ma własną stabilność. Realistyczniejsze, ale stan rośnie gwałtownie i wymaga DQN.
+   Wybór użytkownika: globalna stabilność kopalni.
+
+4. Czy agent ma mieć akcję „czekaj”?
+   - Nie (zalecane): w tym modelu stabilność nie odbudowuje się sama, więc czekanie nic nie daje i tylko spala olej. Mniej akcji = szybsze uczenie.
+   - Tak, stabilność powoli rośnie przy czekaniu: dodaje ciekawy kompromis (czas/olej vs bezpieczeństwo), ale komplikuje dynamikę.
+   Wybór użytkownika: nie.
+
+[Działania Claude] Zapisano formalizację MDP w raporcie (sekcje 1–3) i przekazano ustalenia sesji tworzącej grę.
+
+[Odpowiedź końcowa]
+Formalizacja górnika jest w raporcie, a dziennik ma pierwszy wpis z Twoimi decyzjami. Oba PDF-y wysłałem wyżej.
+
+Raport (report/main.tex), sekcje 1–3:
+
+- Opis problemu: wybór „kopać dalej czy wracać?”.
+- Uzasadnienie RL: decyzje są sekwencyjne, zmieniają przyszły stan, zawał jest losowy, a nagroda przychodzi dopiero przy wyjściu. Jest też wyjaśnienie, czemu nie wystarczy zwykłe przeszukiwanie (BFS/A*).
+- Formalizacja MDP: stan, 5 akcji, wzór na prawdopodobieństwo zawału, tabela nagród, warunki końca epizodu i miary sukcesu.
+
+Dziennik: wpis zawiera Twoje pytanie, moją odpowiedź i Twoje 4 wybory. W polu weryfikacji jest: „Decyzje projektowe podjął student”. Tak to wyglądało, więc działa to na Twoją korzyść.
+
+Ustalenia przekazałem też równoległej sesji: plan gry ma teraz te same wartości co raport.
+
+Trzy szczegóły dobrałem sam, bo wynikały z Twoich decyzji. Sprawdź, czy Ci odpowiadają:
+
+1. Ładunek nie jest osobno w stanie. Wynika z tego, które złoża są już wydobyte. Dzięki temu stan jest mniejszy, około 180 tys. kombinacji, i Q-learning na tablicy da radę.
+2. Wejście w złoże oznacza jego wydobycie. Nie ma osobnej akcji „kop”, więc zostaje 5 akcji.
+3. Brak oleju kończy epizod tak samo jak zawał: kara −20 i utrata ładunku.
+
+Jeśli wszystko pasuje, następny krok to krótka wiadomość do prowadzącego z tematem do akceptacji.

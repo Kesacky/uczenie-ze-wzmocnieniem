@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Realizacja planu gry (środowisko, baseline, grafika, tekstury)",
+  "scope": "Claude: logika MineEnv, konfiguracja, mapy, agenci bazowi, ewaluacja baseline, testy środowiska, prompty dla Codexa, przegląd i poprawki jego kodu, przeróbka pod formalizację z raportu, README, raport sesji. Codex: renderer, tryby, tekstury (osobne wpisy).",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "5572d29138383ac5dc32b3017081bd686c569d5b49fb244f909971c00feee6b5",
+  "response_sha256": "c6d053ca1d7eb6c3dc9c6ccddae47d9f134e2031b31338debf94aec2f21ae9e2",
+  "recorded_at_utc": "2026-10-21T17:00:00.354402+00:00"
+}

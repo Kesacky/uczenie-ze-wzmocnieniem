@@ -1,0 +1,10 @@
+Gotowe: 8 arkuszy i 37 tekstur PNG 32×32 RGBA.
+
+- Generator: `image_gen.imagegen`; dokładny model nieudostępniony.
+- Próby: `tiles_surface.png` — 3; każdy pozostały arkusz — 1.
+- Pliki: [skrypt](scripts/gen_textures.py), [test](tests/test_textures.py), [manifest](assets/sheets.json), [instrukcja](assets/README.md), tekstury w `assets/{tiles,sprites,ui}/`; arkusze, log promptów i [podgląd](assets/_raw/preview.png) w `assets/_raw/`.
+- Weryfikacja: **72 testy zaliczone**, jedno ostrzeżenie pygame; `AssetPack`: **37 wczytanych, `missing_names=set()`**. Wspólna paleta: 45 kolorów, alfa 0/255.
+
+Podgląd sprawdzony: brak pustych kafelków i resztek magenty. Drobne detale są uproszczone przy 32×32; bezszwowość i animacje wymagają oceny w grze.
+
+Transkrypt zapisano w `ai-journal/textures-session/`. Główny dziennik, raport i `.gitignore` pozostawiłem bez zmian zgodnie z zakresem zadania.

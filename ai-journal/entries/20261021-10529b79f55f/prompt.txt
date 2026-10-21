@@ -1,0 +1,46 @@
+Jesteś w repozytorium gry „Górnik w niestabilnej kopalni” (Python, pygame). Renderer (`miner_rl/render/assets.py`) wczytuje tekstury PNG 32×32 RGBA o ustalonych nazwach z `assets/`; gdy pliku brak, rysuje zastępnik. Twoje zadanie: wygenerować grafiki swoim narzędziem do generowania obrazów, napisać skrypt `scripts/gen_textures.py`, który tnie wygenerowane arkusze na kafelki, i uruchomić go. Komentarze i komunikaty po polsku. Nie instaluj pakietów (Pillow, numpy, pygame są zainstalowane). Nie zmieniaj żadnych istniejących plików poza tymi wymienionymi niżej; `.gitignore` zostanie uzupełniony osobno.
+
+## 1. Generowanie arkuszy (narzędzie image generation)
+Wygeneruj 8 obrazów (arkuszy). Każdy prompt do generatora = STYL + opis arkusza poniżej (możesz przetłumaczyć/doprecyzować, ale zachowaj treść i układ siatki). Zapisz każdy obraz jako `assets/_raw/<plik>.png`. Po wygenerowaniu obejrzyj każdy obraz: jeśli siatka komórek wyraźnie się nie zgadza (zła liczba komórek, komórki nierówne, tekst na obrazie, tło nie jest jednolicie magentowe tam, gdzie powinno), wygeneruj ten arkusz ponownie (maks. 2 dodatkowe próby na arkusz). Dokładny tekst KAŻDEGO promptu faktycznie przekazanego do generatora (także nieudanych prób) zapisz w `assets/_raw/prompts_log.txt` (format: nazwa arkusza, numer próby, prompt, czy przyjęty).
+
+STYL (wspólny prefiks): "Pixel art for a 2D side-view mining game. Crisp square pixels, no anti-aliasing, no blur, every cell drawn as if on a 32x32 pixel grid. Limited dark palette: warm browns, grey-browns, charcoal and black, with warm orange-yellow lamplight highlights; ore colours: coal near-black with dull grey glints, silver pale blue-grey, gold warm yellow, crystal bright cyan. Flat front lighting, no vignette, no text, no letters, no numbers, no watermark, no outer frame. Original design, not based on any existing game, brand or character."
+
+Arkusze (siatka: kolumny × wiersze, komórki kwadratowe równej wielkości, bez przerw i linii między nimi; kolejność komórek wierszami, od lewej):
+1. `tiles_rock.png`, 2×2, pełne tekstury wypełniające komórkę, każda bezszwowa: (1) lita skała, ciemne szarobrązowe kamienie z drobnymi pęknięciami; (2) ta sama skała, inny układ kamieni; (3) ta sama skała z kilkoma większymi głazami; (4) tło wykopanego tunelu: bardzo ciemna ubita ziemia, wyraźnie ciemniejsza i gładsza niż skała.
+2. `tiles_ore.png`, 2×2, pełne tekstury (ta sama skała co w arkuszu 1 jako tło): (1) skała z żyłą węgla; (2) skała z bryłkami srebra; (3) skała z samorodkami złota; (4) skała z dużymi kryształami cyjanowymi.
+3. `tiles_misc.png`, 2×2, pełne tekstury: (1) płytka ciemnoniebieska woda podziemna w tunelu z refleksami lampy; (2) tło tunelu (jak komórka 4 arkusza 1) z długimi pęknięciami i sypiącym się żwirem; (3) gruz po zawale: chaotyczna sterta kamieni i belek wypełniająca komórkę; (4) wyjście: pionowy szyb z drewnianą drabiną prowadzącą w górę, ciemne tło szybu.
+4. `tiles_surface.png`, 2×2: (1) pełna tekstura: przekrój powierzchni, wąski pas trawy na górze i ziemia pod spodem; (2)–(4) na jednolitym tle magenta #FF00FF: (2) drewniana podpora górnicza (stempel): pionowy słup z poziomą belką na górze, zajmuje całą wysokość komórki; (3) okrągły jasny błysk/iskry uderzenia kilofem; (4) mały worek jutowy z rudą (ikona).
+5. `miner_walk.png`, 4×2, na jednolitym tle magenta #FF00FF, ta sama postać w każdej komórce, wyśrodkowana, zajmuje ok. 80% wysokości komórki, bez cienia na tle: oryginalny mały górnik o krępej sylwetce, żółty kask ze świecącą lampą czołową, brązowa kurtka robocza, ciemne spodnie, kilof. Wiersz 1: (1) tyłem (idzie w górę), krok A; (2) tyłem, krok B; (3) przodem (idzie w dół), krok A; (4) przodem, krok B. Wiersz 2: (5) profil w lewo, krok A; (6) profil w lewo, krok B; (7) profil w prawo, krok A; (8) profil w prawo, krok B.
+6. `miner_action.png`, 2×2, tło magenta #FF00FF, ta sama postać co w arkuszu 5, profil w prawo: (1) kilof uniesiony nad głową; (2) kilof uderza przed siebie; (3) górnik z pełnym workiem rudy na plecach, profil w prawo; (4) ikona: lampa naftowa górnicza (olej).
+7. `effects.png`, 4×2, tło magenta #FF00FF: wiersz 1: (1)–(3) trzy klatki opadającego pyłu i drobnych kamyków (coraz niżej), (4) ikona: pęknięty strop z podporą (stabilność); wiersz 2: (5)–(8) cztery klatki zawału: od pierwszych spadających kamieni do komórki prawie całkiem zasypanej głazami.
+8. `ui_frame.png`, 1×1, pełny obraz: ramka panelu interfejsu z ciemnego drewna i metalowych nitów, środek gładki, bardzo ciemnobrązowy, grubość ramki ok. 1/4 szerokości obrazu, wzór symetryczny (będzie cięta jako 9-slice).
+
+## 2. Manifest `assets/sheets.json` (commitowany, bo `assets/_raw/` będzie ignorowany przez Git)
+Lista arkuszy: `{"file": "tiles_rock.png", "grid": [2, 2], "prompt": "<dokładny przyjęty prompt>", "cells": [{"name": "tiles/rock_0", "key": "none"}, ...]}`. `key`: "none" (pełna tekstura) albo "magenta" (tło do usunięcia). Docelowe nazwy (muszą się zgadzać z rendererem):
+- arkusz 1: tiles/rock_0, tiles/rock_1, tiles/rock_2, tiles/corridor
+- arkusz 2: tiles/coal, tiles/silver, tiles/gold, tiles/crystal
+- arkusz 3: tiles/water, tiles/corridor_cracked, tiles/rubble, tiles/exit
+- arkusz 4: tiles/surface (none), tiles/prop (magenta), sprites/flash (magenta), ui/sack (magenta)
+- arkusz 5: sprites/miner_up_0, sprites/miner_up_1, sprites/miner_down_0, sprites/miner_down_1, sprites/miner_left_0, sprites/miner_left_1, sprites/miner_right_0, sprites/miner_right_1 (magenta)
+- arkusz 6: sprites/miner_dig_0, sprites/miner_dig_1, sprites/miner_loaded, ui/oil (magenta)
+- arkusz 7: sprites/dust_0, sprites/dust_1, sprites/dust_2, ui/stability, sprites/collapse_0, sprites/collapse_1, sprites/collapse_2, sprites/collapse_3 (magenta)
+- arkusz 8: ui/hud_frame (none)
+Dodaj pole `"generated": "<data YYYY-MM-DD>"` i `"tool"` (nazwa narzędzia i model, jeśli znasz).
+
+## 3. `scripts/gen_textures.py`
+`python scripts/gen_textures.py [--raw assets/_raw] [--manifest assets/sheets.json] [--out assets] [--size 32] [--colors 48] [--preview assets/_raw/preview.png]`. Funkcja `main(argv=None)`. Kroki dla każdej komórki:
+1. Podział obrazu na równą siatkę wg `grid`; z każdej komórki odcięcie marginesu 3% (artefakty na stykach komórek).
+2. key == "magenta": maska tła = piksele bliskie #FF00FF (odległość w RGB < progu, np. 110, plus usunięcie różowych obwódek: piksele o wysokim R i B i niskim G względem R/B); przycięcie do obrysu niepustych pikseli; dopełnienie do kwadratu (wyśrodkowanie poziomo, wyrównanie do dołu dla postaci i stempla, do środka dla pozostałych); zmniejszenie do size×size (najpierw BOX/LANCZOS do size, potem alfa progowana do 0/255, bez półprzezroczystych krawędzi; dla flash, dust i collapse dopuszczalna alfa częściowa nie jest wymagana – też progowana).
+   key == "none": zmniejszenie całej komórki do size×size (BOX), alfa 255.
+3. Wspólna paleta: zbierz piksele wszystkich kafelków (nieprzezroczyste), zbuduj paletę `--colors` kolorów (Pillow quantize, median cut lub kmeans) i zmapuj na nią każdy kafelek z zachowaniem alfy (kanał alfa nie podlega kwantyzacji). Dzięki temu wszystkie grafiki mają spójną paletę.
+4. Zapis `assets/<name>.png` (RGBA, 32×32). Utwórz brakujące katalogi.
+5. `--preview`: arkusz podglądu wszystkich wyników powiększonych ×4 (nearest) z podpisami na szachownicy (żeby było widać przezroczystość).
+Skrypt ma być deterministyczny i działać tylko na Pillow + numpy. Wypisuje listę zapisanych plików i ostrzeżenia (np. komórka prawie pusta po usunięciu tła).
+
+## 4. Uruchomienie i sprawdzenie
+- Uruchom skrypt, obejrzyj `assets/_raw/preview.png`. Jeśli jakiś kafelek jest wyraźnie zły (pusty, ucięta postać, resztki magenty), popraw parametry skryptu albo wygeneruj arkusz ponownie.
+- Dodaj test `tests/test_textures.py`: na syntetycznym arkuszu utworzonym w tmp_path (Pillow: 2×1 komórki, jedna pełna, jedna z kształtem na magencie) i tymczasowym manifeście skrypt tworzy pliki 32×32 RGBA, magenta zamienia się w alfa 0, paleta ma nie więcej niż `--colors` kolorów. Test nie może zależeć od plików w assets/_raw.
+- Uruchom `python -m pytest -q` (wszystkie testy muszą przejść) oraz krótko sprawdź, że `miner_rl.render.AssetPack()` wczytuje teraz wszystkie nazwy (pusty `missing_names` po wywołaniu `get` dla wszystkich nazw z `ASSET_NAMES`).
+- Napisz `assets/README.md` (po polsku): skąd pochodzą grafiki (wygenerowane narzędziem AI do generowania obrazów wywołanym przez Codex CLI, data, prompty w `assets/sheets.json`), jak je odtworzyć (`python scripts/gen_textures.py`), kontrakt nazw plików, informacja, że surowe arkusze są w ignorowanym `assets/_raw/`, oraz że gra działa też bez tekstur (zastępniki).
+
+Na końcu odpowiedz krótko po polsku: jak nazywa się narzędzie generowania obrazów i model (jeśli wiesz), ile prób na arkusz, lista plików, wynik pytest, uwagi o jakości grafik.

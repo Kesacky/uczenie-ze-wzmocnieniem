@@ -1,0 +1,11 @@
+; opis = Kusząca głębia: tanie złoża płytko, kryształy na samym dnie
+###E####
+#c.S..c#
+###.####
+#...#..#
+#.#...##
+#.#.#..#
+#.#.##.#
+#...#g.#
+#k#...k#
+########

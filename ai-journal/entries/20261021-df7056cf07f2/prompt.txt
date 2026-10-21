@@ -1,0 +1,6 @@
+Test generowania grafiki. Użyj swojego narzędzia do generowania obrazów (image generation), aby wygenerować JEDEN obraz: kafelek tekstury do gry 2D w stylu pixel art.
+
+Opis obrazu: kwadratowa, bezszwowa (seamless, kafelkowalna) tekstura litej skały w podziemnej kopalni, widok z boku, pixel art o niskiej rozdzielczości (wygląd siatki 32×32 dużych pikseli), ograniczona ciemna paleta: ciemne szarobrązowe kamienie, delikatne pęknięcia, kilka jaśniejszych krawędzi oświetlonych ciepłym światłem lampy. Bez tekstu, bez postaci, bez ramki, bez znaków wodnych, płaskie oświetlenie bez winiety, wypełnia cały kadr.
+
+Zapisz wygenerowany obraz jako plik PNG w bieżącym katalogu pod nazwą rock_test.png (jeśli narzędzie zapisuje obraz gdzie indziej, skopiuj go tutaj). Następnie sprawdź Pythonem (Pillow) rozmiar i tryb obrazu.
+Odpowiedz krótko: czy generowanie zadziałało, ścieżka pliku, rozmiar w pikselach, tryb (RGB/RGBA) oraz jaki był dokładny prompt przekazany do narzędzia generowania obrazów.

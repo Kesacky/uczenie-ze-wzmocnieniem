@@ -1,0 +1,56 @@
+Nie musimy czekać. Agent RL potrzebuje tylko interfejsu środowiska, czyli reset(), step() i zamiany stanu na indeks tablicy Q. Grafika nie jest mu do niczego potrzebna. Ten interfejs jest już opisany w planie gry, więc możemy pracować równolegle. Sprawdziłem: równoległa sesja jeszcze nic nie utworzyła, więc nie ma z czym się zderzyć.
+
+Co robimy tutaj:
+
+1. Zamknięcie E1: wiadomość do prowadzącego z tematem, potem commit i push. Commit zrobisz Ty, bo nie mam gita na Twoim komputerze.
+2. Plan eksperymentów w raporcie. To element E2, który zależy tylko od formalizacji, więc mogę go napisać już teraz.
+3. Agenci RL: Q-learning i SARSA w osobnym pliku (miner_rl/agents/tabular.py) oraz skrypt treningu. Testuję ich na małym środowisku testowym. Gdy równoległa sesja skończy MineEnv, podpinam go bez zmian w agentach.
+
+Żeby napisać plan eksperymentów, potrzebuję Twoich decyzji:
+
+[Pytania z wyborem odpowiedzi zadane w interfejsie; odpowiedzi użytkownika poniżej]
+
+1. Które algorytmy porównujemy?
+   - Q-learning + SARSA (zalecane): klasyczne porównanie off-policy vs on-policy. SARSA zwykle wybiera ostrożniejsze strategie, co przy ryzyku zawału daje gotowy, ciekawy wniosek. Wystarcza do maksimum punktów.
+   - Q-learning + SARSA + Double Q: dodatkowo Double Q-learning (mniej przeszacowań wartości przy losowości). Więcej materiału do analizy, trochę więcej pracy.
+   - Q-learning + SARSA + DQN: DQN jako bonus za trudniejsze podejście (P00 to premiuje). Najwięcej pracy i ryzyka niestabilnego uczenia.
+   Wybór użytkownika: Q-learning + SARSA.
+
+2. Ile niezależnych uruchomień (ziaren losowych) na każdy wariant?
+   - 5 ziaren (zalecane): wystarcza do pokazania średniej i rozrzutu (wykresy z pasmem odchylenia). Trening tablicowy jest szybki, więc to tanie.
+   - 10 ziaren: pewniejsze wnioski statystyczne, dłuższy czas eksperymentów.
+   - 3 ziarna: najszybciej, ale rozrzut wyników będzie słabo oszacowany.
+   Wybór użytkownika: 10 ziaren.
+
+3. Które eksperymenty dodatkowe robimy poza porównaniem z baseline? (wielokrotny wybór)
+   - Wpływ kary za zawał: −5 / −20 / −50: jak zmienia się skłonność agenta do ryzyka (głębokość kopania, % zawałów).
+   - Wpływ γ (dyskonta): np. 0,9 / 0,95 / 0,99: czy agent planuje dalej i odważniej schodzi głębiej.
+   - Strategia eksploracji ε: stałe ε vs malejące ε: szybkość i stabilność uczenia.
+   - Uogólnienie na mapy: ten sam algorytm na 4 mapach o różnej trudności i analiza, gdzie zawodzi.
+   Wybór użytkownika: wpływ kary za zawał.
+
+[Dalsza odpowiedź Claude]
+Twoje wybory: Q-learning + SARSA, 10 ziaren, dodatkowo eksperyment z karą za zawał. Porównanie na wszystkich 4 mapach i tak wejdzie do głównego eksperymentu, bo mapy są częścią środowiska. Biorę się za plan eksperymentów i za samych agentów. Algorytmy piszę sam, bez Codexa.
+
+[Działania Claude] Napisano agentów Q-learning i SARSA z testami (Cliff Walking, 6 testów przechodzi) oraz sekcje raportu „Algorytm uczący się” i „Plan eksperymentów”.
+
+[Odpowiedź końcowa]
+Gotowe. Raport ma teraz opisane algorytmy i plan eksperymentów (PDF wyżej), a agenci są w Twoim folderze projektu.
+
+Co powstało:
+
+- Agenci: miner_rl/agents/tabular.py zawiera Q-learning i SARSA, trening, ewaluację oraz zapis i odczyt modelu. Napisałem go sam, bez Codexa.
+- Testy: tests/test_tabular.py, 6 testów przechodzi. Najważniejszy to Cliff Walking z podręcznika Suttona i Barto. Q-learning uczy się tam drogi 13 kroków wzdłuż urwiska, a SARSA bezpieczniejszej, 15–17 kroków. To dowód, że implementacja działa zgodnie z teorią. Na obronie możesz to podać jako sposób weryfikacji.
+- Raport, sekcja 6 „Algorytm uczący się”: wzory obu algorytmów, wyjaśnienie, czemu SARSA jest ostrożniejsza, oraz szczegóły implementacji.
+- Raport, sekcja 7 „Plan eksperymentów”: 4 agenci (losowy, heurystyka progowa, Q-learning, SARSA), 4 mapy, hiperparametry, 10 ziaren, eksperyment z karą −5/−20/−50, hipotezy H1–H3 i lista wykresów.
+- Dziennik: dopisałem wpisy z tej części rozmowy, w tym Twoje wybory.
+
+Zostaje zamknięcie E1. Wiadomość do prowadzącego, do wysłania po swojemu:
+
+> Dzień dobry,
+> zgłaszam temat projektu: „Górnik w niestabilnej kopalni”, ścieżka podstawowa (środowisko gridowe). Agent wydobywa złoża w kopalni, w której każde wydobycie obniża stabilność stropu i zwiększa ryzyko losowego zawału. Ma ograniczony olej i kilka stempli, a nagrodę dostaje dopiero za ładunek wyniesiony na powierzchnię. Musi więc nauczyć się, kiedy kopać dalej, a kiedy wracać. Planuję porównać Q-learning i SARSA z agentem losowym i heurystyką progową na 4 mapach o różnej trudności.
+> Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
+> Wstępna formalizacja MDP jest w sprawozdaniu (report/main.tex).
+> Pozdrawiam
+
+Przed wysłaniem zrób commit i push. Jeśli chcesz, możesz to zrobić z poziomu VS Code albo terminala: git add -A, git commit -m "Formalizacja MDP, plan eksperymentów, agenci Q-learning i SARSA", git push. Pliki prywatne i tak są wykluczone.

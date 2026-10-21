@@ -1,0 +1,11 @@
+; opis = Stabilna kopalnia: płytkie, tanie złoża, mała głębokość
+###E####
+#c.S...#
+#.##.#c#
+#.s#.#.#
+##.....#
+#..##s.#
+#g.#####
+########
+########
+########

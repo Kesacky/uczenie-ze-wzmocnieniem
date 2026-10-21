@@ -12,6 +12,8 @@
 \usepackage[polish]{babel}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
 \setlength{\parindent}{0pt}
@@ -22,24 +24,139 @@
 \date{Wersja robocza: 21 października 2026}
 \begin{document}
 \maketitle
-\textbf{Status dokumentu.} To szablon rozwijany równolegle z projektem.
-Temat nie został jeszcze wybrany. Nie zaimplementowano środowiska ani agentów
-i nie przeprowadzono eksperymentów. Opisy planowane nie są wynikami wykonanych prac.
+\textbf{Status dokumentu.} Wersja robocza rozwijana równolegle z projektem.
+Temat „Górnik w niestabilnej kopalni” jest propozycją zgłaszaną do akceptacji
+prowadzącego (etap E1). Formalizacja jest wstępna i może zostać skorygowana po
+pierwszych testach środowiska. Nie przeprowadzono jeszcze eksperymentów.
 \tableofcontents
 
 \section{Opis problemu}
-\doUzupelnienia{temat, cel agenta, zastosowanie oraz zakres projektu.
-Opisać wymagane uzgodnienia z prowadzącym i ich rzeczywisty status.}
+Górnik schodzi do kopalni, aby wydobyć złoża i wynieść je na powierzchnię.
+Złoża położone głębiej są cenniejsze, ale każde wydobycie osłabia strop kopalni
+i zwiększa ryzyko zawału. Lampa górnika ma ograniczony zapas oleju, a do
+wzmacniania stropu służy niewielka liczba stempli. Zawał lub wyczerpanie oleju
+oznacza utratę całego niesionego ładunku. Nagrodę agent otrzymuje dopiero wtedy,
+gdy wyjdzie z kopalni.
+
+Celem agenta jest maksymalizacja oczekiwanej wartości ładunku wyniesionego na
+powierzchnię. W praktyce sprowadza się to do pytania, które agent musi sobie
+zadawać w każdym kroku: \emph{kopać dalej czy wracać?} Projekt realizuje
+podstawową ścieżkę środowiska gridowego (P00, sekcja 6.1) z energią (olej),
+zasobami (stemple), zdarzeniami zależnymi od decyzji agenta oraz kilkoma mapami
+o różnej trudności.
 
 \section{Uzasadnienie zastosowania RL}
-\doUzupelnienia{wyjaśnić sekwencyjność decyzji, ich wpływ na przyszły stan
-oraz rolę długoterminowych konsekwencji, niepewności lub konfliktu celów.}
+\begin{itemize}
+  \item \textbf{Decyzje sekwencyjne.} Wynik epizodu zależy od całej sekwencji
+  ruchów, wydobyć i stawiania stempli, a nie od pojedynczego wyboru.
+  \item \textbf{Wpływ na przyszły stan.} Każde wydobycie trwale obniża stabilność
+  stropu i zmienia mapę, a po wydobyciu określonej liczby złóż zawala się wybrany
+  korytarz. Decyzja podjęta na początku epizodu wpływa na ryzyko i dostępne drogi
+  w dalszej części.
+  \item \textbf{Niepewność.} Zawał jest zdarzeniem losowym, którego
+  prawdopodobieństwo rośnie wraz ze spadkiem stabilności i głębokością.
+  Agent musi nauczyć się oceniać ryzyko, a nie tylko szukać najkrótszej drogi.
+  \item \textbf{Opóźniona nagroda i konflikt celów.} Nagroda pojawia się dopiero
+  przy wyjściu. Głębsze złoża zwiększają zysk, ale także ryzyko i czas powrotu,
+  co wymaga planowania długoterminowego.
+  \item \textbf{Dlaczego nie zwykłe przeszukiwanie.} Algorytmy takie jak BFS czy
+  A* znajdują najkrótszą drogę w znanym, deterministycznym grafie. Tutaj
+  optymalna strategia zależy od rozkładu prawdopodobieństwa zawału i od
+  kompromisu między zyskiem a ryzykiem, który agent ma odkryć przez interakcję.
+\end{itemize}
 
 \section{Formalizacja RL/MDP}
-\doUzupelnienia{agent, środowisko, przestrzeń stanów lub obserwacji,
-przestrzeń akcji, dynamika przejść, nagroda, warunki końca epizodu,
-ograniczenia, pojedynczy krok interakcji i mierzalna definicja sukcesu.
-Uzasadnić składniki nagrody i wskazać założenia wymagające sprawdzenia.}
+\subsection{Agent i środowisko}
+Agentem jest górnik. Środowiskiem jest kopalnia w postaci siatki
+o szerokości $W$ i głębokości $H$ (wstępnie $W=8$, $H=10$). Wiersz $0$ to
+powierzchnia z polem wyjścia. Pola siatki: lita skała (nieprzechodnia),
+korytarz, złoże (węgiel, srebro, złoto, kryształ), wyjście oraz pole startowe.
+
+\subsection{Stan}
+Stan w kroku $t$ to krotka
+\[
+  s_t = (x,\ y,\ \sigma,\ o,\ m,\ n),
+\]
+gdzie $(x,y)$ to pozycja górnika, $\sigma \in \{0,\dots,5\}$ to globalna
+stabilność stropu, $o \in \{0,1,2,3\}$ to zapas oleju w czterech przedziałach,
+$m \in \{0,1\}^K$ to maska wydobytych złóż ($K \le 5$ złóż na mapie),
+a $n \in \{0,1,2\}$ to liczba pozostałych stempli.
+
+Wartość niesionego ładunku nie jest osobnym elementem stanu, ponieważ wynika
+jednoznacznie z maski $m$ (ładunek to suma wartości wydobytych złóż). Zawalenie
+korytarza zależy wyłącznie od liczby wydobytych złóż, czyli także od $m$.
+Dzięki temu stan zachowuje własność Markowa, a jego rozmiar jest ograniczony do
+$80 \cdot 6 \cdot 4 \cdot 2^5 \cdot 3 \approx 1{,}8 \cdot 10^5$ kombinacji,
+z których osiągalna jest tylko część. Pozwala to na tablicową reprezentację
+funkcji wartości.
+
+\subsection{Akcje}
+$\mathcal{A} = \{\text{góra}, \text{dół}, \text{lewo}, \text{prawo}, \text{podepnij}\}$.
+\begin{itemize}
+  \item Ruch na korytarz, wyjście lub pole po wydobytym złożu przesuwa górnika.
+  \item Ruch na niewydobyte złoże oznacza jego wydobycie: górnik wchodzi na pole,
+  ładunek rośnie o wartość złoża, a stabilność spada o 1 (nie poniżej 0).
+  \item Ruch w litą skałę lub poza mapę jest akcją niedozwoloną: pozycja się nie
+  zmienia, agent otrzymuje karę.
+  \item \emph{Podepnij} zużywa jeden stempel i podnosi stabilność o 2
+  (maksymalnie do 5). Bez stempli lub przy pełnej stabilności jest akcją
+  niedozwoloną.
+\end{itemize}
+Świadomie zrezygnowano z akcji \emph{czekaj}: stabilność nie odbudowuje się
+samoczynnie, więc czekanie nie przynosiłoby korzyści, a jedynie zużywało olej.
+
+\subsection{Dynamika przejść}
+W każdym kroku zapas oleju maleje o 1 (wartość początkowa 100). Po wykonaniu
+akcji następuje losowanie zawału z prawdopodobieństwem
+\[
+  p_{\text{zawał}}(\sigma, y) = p_0 \,(5 - \sigma)\left(1 + \frac{y}{H}\right),
+  \qquad p_0 = 0{,}02,
+\]
+gdzie $y$ to głębokość górnika. Przy pełnej stabilności zawał nie występuje,
+a przy $\sigma = 0$ na dnie kopalni prawdopodobieństwo wynosi $0{,}2$ na krok.
+Po wydobyciu $N=3$ złóż zawala się korytarz wskazany w opisie mapy, co może
+odciąć najkrótszą drogę powrotu.
+
+\subsection{Funkcja nagrody}
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Zdarzenie & Nagroda \\
+\midrule
+każdy krok & $-0{,}1$ \\
+akcja niedozwolona & $-0{,}5$ (dodatkowo) \\
+wyjście z kopalni & $+$wartość ładunku \\
+zawał lub wyczerpanie oleju & $-20$, ładunek przepada \\
+\bottomrule
+\end{tabular}
+\end{center}
+Wartości złóż: węgiel 1, srebro 3, złoto 6, kryształ 10.
+Koszt kroku zniechęca do zbędnego krążenia. Kara za niedozwoloną akcję
+przyspiesza naukę ograniczeń mapy. Stała kara $-20$ sprawia, że porażka jest
+dotkliwa także wtedy, gdy agent nie niesie ładunku. W eksperymentach zostanie
+zbadany wpływ jej wartości (np. $-5$, $-20$, $-50$) na skłonność agenta do ryzyka.
+
+\subsection{Warunki zakończenia epizodu}
+Epizod kończy się, gdy górnik wyjdzie z kopalni, nastąpi zawał albo skończy się
+olej. Dodatkowo obowiązuje techniczny limit 300 kroków (obcięcie epizodu),
+który zabezpiecza przed nieskończonymi epizodami.
+
+\subsection{Pojedynczy krok interakcji}
+Agent obserwuje stan $s_t$ i wybiera akcję $a_t$. Środowisko wykonuje ruch,
+wydobycie lub podparcie, zmniejsza zapas oleju, losuje zawał i sprawdza warunki
+końca. Następnie zwraca nowy stan $s_{t+1}$, nagrodę $r_{t+1}$ oraz informację
+o zakończeniu epizodu.
+
+\subsection{Miary sukcesu}
+Średni zwrot z epizodu, odsetek bezpiecznych powrotów, średnia wartość
+wyniesionego ładunku, odsetek zawałów oraz średnia długość epizodu. Wyniki będą
+porównywane z agentem losowym i z heurystyką progową („kop do osiągnięcia progu
+ładunku, potem wracaj najkrótszą drogą”).
+
+\subsection{Elementy do weryfikacji po pierwszych testach}
+Wartości $p_0$, kary za zawał, zapasu oleju i liczby stempli, rozmiar map oraz
+liczba złóż. Jeżeli przestrzeń stanów okaże się zbyt duża dla metod tablicowych,
+rozważone zostanie zmniejszenie map lub zastosowanie DQN.
 
 \section{Środowisko}
 \doUzupelnienia{opis implementacji i interfejsu inicjalizacji oraz kroku,
@@ -51,14 +168,111 @@ Udokumentować rzeczywiście wykonane testy przypadków brzegowych.}
 jego założenia i wyniki. Porównanie musi wykorzystywać uczciwe warunki.}
 
 \section{Algorytm uczący się}
-\doUzupelnienia{wybrany algorytm RL lub DRL i uzasadnienie wyboru,
-hiperparametry, reprezentacja wartości lub architektura sieci,
-przebieg uczenia oraz odrębna procedura ewaluacji.}
+Porównywane są dwa tablicowe algorytmy uczenia różnicami czasowymi (TD):
+Q-learning i SARSA \cite{sutton}. Oba utrzymują tablicę wartości akcji
+$Q(s,a)$, przechowywaną jako słownik: kluczem jest stan, wartością wektor
+$Q(s,\cdot)$ dla pięciu akcji. Pamięć zajmują więc tylko stany faktycznie
+odwiedzone.
+
+\textbf{Q-learning} (off-policy) aktualizuje wartość w kierunku najlepszej akcji
+w stanie następnym:
+\[
+  Q(s,a) \leftarrow Q(s,a) + \alpha\left[r + \gamma \max_{a'} Q(s',a') - Q(s,a)\right].
+\]
+\textbf{SARSA} (on-policy) używa akcji $a'$ faktycznie wybranej przez bieżącą
+politykę $\varepsilon$-zachłanną:
+\[
+  Q(s,a) \leftarrow Q(s,a) + \alpha\left[r + \gamma\, Q(s',a') - Q(s,a)\right].
+\]
+Ponieważ SARSA uwzględnia w ocenie także losowe ruchy eksploracyjne, w
+środowiskach z ryzykiem uczy się zwykle ostrożniejszych strategii. W kopalni
+oznacza to oczekiwanie, że SARSA będzie rzadziej schodzić głęboko przy niskiej
+stabilności. Właśnie to porównanie motywuje wybór tych dwóch algorytmów.
+
+\textbf{Szczegóły implementacji.} Akcje wybierane są polityką
+$\varepsilon$-zachłanną z liniowo malejącym $\varepsilon$, a remisy wartości
+rozstrzygane losowo. Stan terminalny (wyjście, zawał, brak oleju) nie jest
+bootstrapowany. Obcięcie epizodu limitem kroków jest bootstrapowane, bo nie jest
+prawdziwym końcem zadania. Faza uczenia jest oddzielona od ewaluacji: ewaluacja
+używa polityki zachłannej ($\varepsilon=0$), bez aktualizacji tablicy Q i na
+ziarnach losowych rozłącznych z treningiem. Implementacja:
+\texttt{miner\_rl/agents/tabular.py}.
+
+\textbf{Weryfikacja implementacji.} Przed użyciem w kopalni oba algorytmy
+przetestowano na klasycznym zadaniu \emph{Cliff Walking} \cite{sutton}
+(\texttt{tests/test\_tabular.py}). Zgodnie z literaturą Q-learning nauczył się
+najkrótszej drogi wzdłuż urwiska (13 kroków), a SARSA dłuższej, bezpieczniejszej
+(15--17 kroków). Testy sprawdzają także powtarzalność treningu przy ustalonym
+ziarnie, brak bootstrapu w stanie terminalnym oraz zapis i odczyt tablicy Q.
 
 \section{Plan eksperymentów}
-\doUzupelnienia{warianty i hipotezy, parametry, budżet treningu,
-metryki, baseline, scenariusze, ziarna losowe, kilka uruchomień lub uzasadnienie
-odstępstwa oraz planowane tabele i wykresy.}
+\subsection{Porównywani agenci}
+\begin{itemize}
+  \item \textbf{Agent losowy} -- dolne odniesienie.
+  \item \textbf{Heurystyka progowa} -- wydobywa najbliższe złoża, dopóki wartość
+  ładunku nie osiągnie progu $X$, potem wraca najkrótszą drogą; stawia stempel,
+  gdy stabilność spadnie do 1. Próg $X \in \{3, 6, 10, 15\}$ dobierany jest
+  osobno dla każdej mapy na epizodach treningowych, a raportowany jest najlepszy
+  wariant, aby porównanie było uczciwe.
+  \item \textbf{Q-learning} i \textbf{SARSA} z tymi samymi hiperparametrami.
+\end{itemize}
+
+\subsection{Mapy}
+Cztery mapy o rosnącej trudności: \emph{stabilna} (płytkie złoża, mała
+głębokość), \emph{krucha} (szybki spadek bezpieczeństwa), \emph{kusząca głębia}
+(najcenniejsze złoża na dnie) oraz \emph{zawał korytarza} (zdarzenie odcinające
+najkrótszą drogę powrotu).
+
+\subsection{Hiperparametry (wartości wyjściowe)}
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Parametr & Wartość \\
+\midrule
+współczynnik uczenia $\alpha$ & $0{,}1$ \\
+dyskonto $\gamma$ & $0{,}99$ \\
+$\varepsilon$ & liniowo od $1{,}0$ do $0{,}05$ w ciągu 70\% epizodów \\
+liczba epizodów treningu & $20\,000$ na uruchomienie (do korekty po pierwszych testach) \\
+liczba niezależnych uruchomień & 10 ziaren na każdą kombinację agent--mapa \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Procedura i miary}
+Co 500 epizodów treningu wykonywana jest ewaluacja zachłanna na 100 epizodach,
+a po treningu ewaluacja końcowa na 1000 epizodach. Mierzone są: średni zwrot,
+odsetek bezpiecznych powrotów, średnia wartość wyniesionego ładunku, odsetek
+zawałów i wyczerpania oleju, średnia długość epizodu oraz największa osiągnięta
+głębokość. Wyniki podawane są jako średnia i odchylenie standardowe z 10 ziaren.
+Wszystkie ziarna, hiperparametry i konfiguracja środowiska zapisywane są razem
+z wynikami (\texttt{results/}), co pozwala odtworzyć każdy wykres.
+
+\subsection{Eksperymenty}
+\begin{enumerate}
+  \item \textbf{Porównanie główne.} Agent losowy, heurystyka progowa, Q-learning
+  i SARSA na czterech mapach.
+  \item \textbf{Wpływ kary za zawał.} Q-learning i SARSA z karą $-5$, $-20$ i
+  $-50$ (10 ziaren każda) na mapie \emph{kusząca głębia}. Badana jest zmiana
+  skłonności do ryzyka: głębokość wydobycia, odsetek zawałów i wartość ładunku.
+\end{enumerate}
+
+\subsection{Hipotezy}
+\begin{itemize}
+  \item[H1.] Agenci RL osiągają wyższy średni zwrot niż heurystyka progowa,
+  zwłaszcza na mapach, gdzie opłaca się zmienić kolejność wydobycia lub użyć stempla.
+  \item[H2.] SARSA w trakcie treningu powoduje mniej zawałów niż Q-learning,
+  kosztem niższej wartości ładunku. W ewaluacji zachłannej różnica może maleć.
+  \item[H3.] Wyższa kara za zawał prowadzi do płytszego kopania i rzadszych
+  zawałów. Zbyt niska kara skutkuje zbyt ryzykowną strategią.
+\end{itemize}
+
+\subsection{Planowane wykresy i tabele}
+Krzywe uczenia (średnia z pasmem odchylenia z 10 ziaren, oś X: epizod, oś Y:
+zwrot) oraz krzywe odsetka zawałów w trakcie treningu. Tabela wyników końcowych
+dla wszystkich agentów i map. Wykres zależności odsetka zawałów i wartości
+ładunku od kary. Mapa cieplna odwiedzin pól dla wybranych polityk. Analiza
+nieudanych epizodów: zestawienie przyczyn porażek oraz nagrania wybranych
+epizodów.
 
 \section{Wyniki}
 Nie przeprowadzono jeszcze eksperymentów. Nie ma wyników liczbowych do przedstawienia.
@@ -71,7 +285,7 @@ Wykresy muszą mieć opisane osie, jednostki i legendy.}
 co poprawia lub pogarsza wyniki oraz własne wnioski studenta.}
 
 \section{Ograniczenia rozwiązania}
-Na obecnym etapie ograniczeniem jest brak ustalonego tematu i implementacji.
+Na obecnym etapie ograniczeniem jest brak implementacji i wyników.
 \doUzupelnienia{ograniczenia modelu, obserwacji, funkcji nagrody, eksperymentów
 i możliwości uogólniania, zgodne z rzeczywistym stanem rozwiązania.}
 
@@ -91,6 +305,9 @@ z czystej kopii repozytorium.}
 \input{sections/ai.tex}
 
 \begin{thebibliography}{9}
+\bibitem{sutton}
+R.~S. Sutton, A.~G. Barto,
+\emph{Reinforcement Learning: An Introduction}, wyd.~2, MIT Press, 2018.
 \bibitem{zasady}
 Materiały kursowe WEiI PRz,
 \emph{Uczenie się ze wzmocnieniem. Zasady realizacji projektu},

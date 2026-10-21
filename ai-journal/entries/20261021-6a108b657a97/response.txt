@@ -1,0 +1,22 @@
+[Wiadomość w trakcie pracy]
+Krótka informacja w trakcie pracy: w międzyczasie sesja główna zmieniła formalizację MDP (raport `report/main.tex`, nowy `PLAN_GRY_CODEX.md`): 5 akcji (wejście w złoże = wydobycie, bez „kop” i „czekaj”), stan `(x, y, σ, olej w 4 przedziałach, maska złóż, stemple 0–2)`, pola `X` zamieniające się w skałę, mapy 8×10 z maks. 5 złożami, kara −20 także za brak oleju, p₀ = 0,02. Środowisko, mapy, baseline'y, renderer i testy miałem już gotowe według starej wersji planu — teraz przerabiam je na wersję z raportu (raport jest nadrzędny). Tekstury i GIF-y zostają, nagram je ponownie po zmianach.
+
+[Odpowiedź końcowa]
+Plan gry jest zrealizowany i wszystkie pliki są już w folderze projektu. Commitów nie zrobiłem, bo ta sesja nie miała dostępu do terminala na Twoim komputerze. Gra jest zgodna z nową formalizacją z raportu.
+
+**Co jest gotowe**
+- Środowisko `MineEnv` (logikę napisałem sam): 5 akcji, stan `(x, y, σ, o, m, n)`, pola `X`, kara −20 za zawał i za brak oleju. Do tego 4 mapy 8×10, a wszystkie liczby są w `miner_rl/config.py`.
+- Agent losowy i heurystyka progowa, po 1000 epizodów na mapę w `results/`. Próg dobierałem na ziarnach 0–999, a ewaluację robiłem na ziarnach od 1 000 000.
+- Grafika i tryby gry (pisał je Codex): renderer pygame oraz `play.py`, `watch.py` i `record.py`. `watch.py` czyta też modele zapisane przez `tabular.py`.
+- Tekstury: 37 sztuk wygenerował Codex, a `gen_textures.py` tnie je z arkuszy. Są też 3 GIF-y w `results/gifs/`.
+- 81 testów przechodzi (`python -m pytest -q`, uruchomione w chmurze). README ma sekcję „Uruchomienie gry”.
+- Dziennik AI zawiera 4 wymiany z Codexem, prompty do grafik i tę rozmowę.
+
+**Ważne dla projektu**
+- Przy p₀ = 0,02 i stemplu stawianym dopiero przy σ = 1 heurystyka ma ujemny zwrot na każdej mapie, np. −4,82 na m1. To gorzej niż natychmiastowe wyjście (−0,1). Gdy stempel stawia się wcześniej (σ ≤ 3), m1 i m4 dają zysk.
+- Szybki test Q-learningu i SARSA z `tabular.py` (20 000 epizodów) skończył się nauczeniem natychmiastowego wyjścia. Tym powinna zająć się sesja główna. Tabela wrażliwości i propozycje są w `private/RAPORT_SESJI_GRY.md`.
+
+**Po Twojej stronie**
+1. Uruchom `tmp\commit_gra.ps1`. Utworzy 6 commitów z plików tej sesji, do tego cały `ai-journal/` i `.gitignore`. Potem zrób `git push`.
+2. Zagraj w `play.py` i obejrzyj `watch.py`. Okna i klawiatury nie dało się sprawdzić w chmurze. Będzie to też Twoja własna weryfikacja do sekcji „Wsparcie AI”.
+3. Sekcje raportu „Środowisko” i „Agent bazowy” oraz `ai.tex` uzupełni sesja główna. Materiał do nich jest w raporcie sesji.

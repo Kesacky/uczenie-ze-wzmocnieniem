@@ -1,0 +1,55 @@
+Jesteś w repozytorium Pythona (katalog bieżący) z grą RL „Górnik w niestabilnej kopalni”. Logika gry jest gotowa i przetestowana. Twoje zadanie: napisać warstwę graficzną w pygame, tryby uruchomienia oraz testy. Komentarze, docstringi i komunikaty dla użytkownika pisz po polsku. Python 3.10+, zależności tylko z requirements.txt (gymnasium, numpy, pygame, pillow, imageio, pytest); wszystkie są już zainstalowane, nie instaluj niczego.
+
+## Czego NIE wolno zmieniać
+miner_rl/config.py, miner_rl/env/*, miner_rl/agents/base.py, miner_rl/agents/baselines.py, maps/*, tests/test_env.py, tests/test_baselines.py, scripts/log_ai.py, scripts/run_baselines.py, results/*, report/, docs/, ai-journal/, README.md. Jeśli uznasz, że w tych plikach jest błąd, opisz go w odpowiedzi zamiast poprawiać. Środowisko `MineEnv` nie może importować pygame, a renderer nie może zmieniać stanu środowiska (tylko czyta).
+
+## Co już istnieje (przeczytaj przed pisaniem)
+- miner_rl/env/mine_env.py: `MineEnv(mine_map="m1_stabilna", config=None, render_mode=None, **overrides)`, API Gymnasium. Akcje: 0 góra, 1 dół, 2 lewo, 3 prawo, 4 kop, 5 podepnij, 6 czekaj (stałe UP, DOWN, LEFT, RIGHT, DIG, PROP, WAIT, ACTION_NAMES). Publiczny stan do czytania: `grid` (list[list[str]], znaki: `#` skała, `.` korytarz, `S` start, `E` wyjście, `c` węgiel, `s` srebro, `g` złoto, `k` kryształ, `T` woda, `z` korytarz pęknięty (zawali się po zdarzeniu), `R` gruz), `pos` (x, y), `facing` (0..3 jak akcje ruchu), `stability`, `config.stability_max`, `oil`, `config.oil_start`, `load_value`, `props`, `prop_cells` (pola z postawionym stemplem), `steps`, `last_action`, `last_dug` (pole wykopane w ostatnim kroku albo None), `last_info` (słownik info z ostatniego kroku: `reason` in {None,"exit","collapse","out_of_oil","step_limit"}, `collapsed`, `event` == "corridor_collapse" gdy właśnie zawalił się korytarz, `collapse_prob`, `illegal`), `width`, `height`, `map.name`, `map.description`, `total_reward`.
+- miner_rl/agents/base.py: `Agent` z `reset()` i `act(obs) -> int`. miner_rl/agents/baselines.py: `RandomAgent(n_actions=7, seed=None)`, `ThresholdAgent.for_env(env, threshold=6)`.
+- maps/m1_stabilna.txt, m2_krucha.txt, m3_gleboka.txt, m4_zawal_korytarza.txt (10×8 lub 10×10). `miner_rl.env.load_map`, `list_maps()`.
+- tests/conftest.py ustawia SDL_VIDEODRIVER=dummy i dodaje katalog główny do sys.path.
+
+## Do napisania
+
+### 1. miner_rl/render/assets.py
+Ładowanie tekstur z katalogu `assets/` (domyślnie `<repo>/assets`). Kafelek bazowy 32×32 px, renderowany ze skalą `scale` (domyślnie 2), skalowanie metodą nearest (`pygame.transform.scale`, nie smoothscale). Nazwy plików (PNG RGBA) – to jest kontrakt, którego będzie się trzymać generator tekstur:
+- assets/tiles/: rock_0.png, rock_1.png, rock_2.png (warianty skały, wybór deterministyczny z (x, y)), corridor.png (tło tunelu), corridor_cracked.png (pole `z`), coal.png, silver.png, gold.png, crystal.png (złoże widziane w ścianie skały), water.png, prop.png (stempel, rysowany NA korytarzu z przezroczystością), exit.png (szyb z drabiną), rubble.png (gruz `R`), surface.png (niebo/trawa nad skałą w wierszu 0, opcjonalnie).
+- assets/sprites/: miner_up_0.png, miner_up_1.png, miner_down_0.png, miner_down_1.png, miner_left_0.png, miner_left_1.png, miner_right_0.png, miner_right_1.png (chód), miner_dig_0.png, miner_dig_1.png (kopanie, patrzy w prawo; dla lewej strony odbij lustrzanie), miner_loaded.png (z workiem na plecach, patrzy w prawo), dust_0..2.png (pył), collapse_0..3.png (zawał, nakładka na kafelek), flash.png (błysk wykopania).
+- assets/ui/: oil.png, stability.png, sack.png (ikony 32×32), hud_frame.png (32×32, rysowana jako 9-slice z marginesem 8 px).
+Klasa `AssetPack(assets_dir=None, tile=32, scale=2, use_textures=True)` z metodą `get(name) -> pygame.Surface` (nazwa bez rozszerzenia z podkatalogiem, np. "tiles/coal") zawsze zwracającą powierzchnię o rozmiarze tile*scale: jeśli pliku brak, nie da się go wczytać albo use_textures=False, zwraca wygenerowany zastępnik (kolorowy prostokąt w ciemnej palecie: skała szarobrązowa, korytarz ciemnobrązowy, węgiel czarny z szarym, srebro jasnoszare, złoto żółte, kryształ turkusowy, woda niebieska, stempel brązowy pionowy pal, wyjście z jasną drabiną, gruz szary w kropki, górnik jako prostokąt z kaskiem i kropką lampy wskazującą kierunek). Właściwość `textured_names` (które nazwy wczytano z plików) i `missing_names`. Powierzchnie keszuj. Moduł nie może wymagać okna: przy dummy driverze używaj `convert_alpha()` tylko jeśli istnieje display surface.
+
+### 2. miner_rl/render/renderer.py
+`Renderer(env, scale=2, assets=None, assets_dir=None, use_textures=True, lamp=True, hud=True)`:
+- `draw() -> pygame.Surface`: rysuje aktualny stan na własnej powierzchni offscreen (szer. = width*tile*scale, wys. = height*tile*scale + wysokość HUD). Widok z boku (przekrój kopalni). Każdy krok animacji jest liczony wywołaniami `draw()` (licznik klatek), a nie czasem zegara, żeby GIF-y były deterministyczne.
+- Pola: korytarz pod złożem/stemplem/górnikiem; złoża jako kafelek w ścianie; `prop_cells` z teksturą stempla; `R` gruz; `z` pęknięty korytarz; `E` wyjście.
+- Górnik: sprite wg `facing` i klatki chodu (zmiana klatki, gdy pozycja zmieniła się względem poprzedniego draw()), sprite kopania przez 2 klatki po akcji kop (last_action == 4 i last_dug nie None), wariant z workiem gdy load_value > 0 (worek jako nakładka sack, jeśli nie ma miner_loaded).
+- Efekty: błysk (flash) na polu `last_dug`; gdy stability <= 1: drganie obrazu (przesunięcie o ±2*scale px deterministycznie z licznika klatek) i pył (dust_0..2) spadający w kilku losowych (z ustalonego ziarna) polach korytarza obok górnika; światło lampy (gdy lamp=True): ciemność poza promieniem zależnym od oleju (np. promień od 2.5 do 5 kafelków), łagodny gradient, ciepły odcień; przy `last_info["event"] == "corridor_collapse"` krótki komunikat.
+- HUD na dole (ramka hud_frame): pasek stabilności (zielony >=4, żółty 2–3, czerwony <=1) z ikoną, pasek oleju z ikoną, ładunek (wartość) z ikoną worka, liczba stempli, krok, suma nagród, nazwa mapy; czytelna czcionka `pygame.font.Font(None, ...)` (bez zewnętrznych plików czcionek). Inicjalizuj tylko `pygame.font`, nie wymagaj okna.
+- `collapse_frames(n=8) -> list[pygame.Surface]`: animacja zawału na końcu epizodu (collapse_0..3 na polu górnika i sąsiednich, drganie, przyciemnienie) – używana przez watch/record po epizodzie z reason == "collapse". Analogicznie krótka `end_frames(n)` z napisem końca epizodu (np. „Wyjście: +X”, „Zawał!”, „Brak oleju”, „Limit kroków”).
+- `frame_array(surface=None) -> np.ndarray` (H, W, 3) uint8 do GIF-ów (`pygame.surfarray.array3d` z transpozycją).
+- `Window` lub metody `open_window(caption)`, `present(surface)`, `close()` do trybu z oknem; renderer offscreen ma działać z SDL_VIDEODRIVER=dummy.
+
+### 3. miner_rl/agents/loader.py
+`make_agent(spec: str, env, seed=None, threshold=6.0) -> Agent`: "random" -> RandomAgent(seed=seed), "threshold" -> ThresholdAgent.for_env(env, threshold), ścieżka do pliku .pkl -> obiekt Agent z pickle, "pakiet.moduł:funkcja" -> wywołanie funkcja(env) zwracające Agenta (to jest punkt zaczepienia dla przyszłych agentów RL). Czytelny błąd dla nieznanej specyfikacji.
+
+### 4. scripts/play.py (człowiek)
+`python scripts/play.py --map maps/m1_stabilna.txt [--seed 0] [--scale 2] [--no-textures] [--no-lamp]`. Turowo: jedno naciśnięcie = jeden krok env. Klawisze: strzałki ruch, Spacja kop, P podepnij, W czekaj, R restart epizodu, Esc/zamknięcie okna wyjście. Po końcu epizodu pokaż animację (zawał) i komunikat z wynikiem, R zaczyna od nowa. Argument --map przyjmuje ścieżkę albo samą nazwę mapy. Funkcja `main(argv=None)`. Do testów: opcja `--script "1,1,4,..."` (lista akcji wykonywana automatycznie bez okna, z SDL_VIDEODRIVER=dummy, potem wyjście z kodem 0) – tak, żeby test mógł odpalić play bez klawiatury.
+
+### 5. scripts/watch.py (podgląd agenta)
+`python scripts/watch.py --map ... --agent random|threshold|<plik.pkl>|<moduł:funkcja> [--threshold 6] [--fps 8] [--episodes 3] [--seed 0] [--scale 2] [--no-textures] [--no-lamp]`. Okno, agent gra z zadaną prędkością, Spacja pauza, +/- zmiana fps, Esc wyjście. Po każdym epizodzie animacja końca i wypisanie w konsoli: zwrot, długość, przyczyna. `main(argv=None)`, opcja `--headless` (bez okna, tylko symulacja z rysowaniem offscreen) do testów.
+
+### 6. scripts/record.py (GIF)
+`python scripts/record.py --map ... --agent ... --episodes 3 --out results/gifs/ [--fps 8] [--seed 0] [--scale 1] [--threshold 6] [--only-failed] [--max-tries 200] [--no-textures] [--no-lamp]`. Działa bez okna (ustaw SDL_VIDEODRIVER=dummy, jeśli nie ustawiono). Zapisuje jeden GIF na epizod: `<out>/<mapa>_<agent>_seed<ziarno>_<przyczyna>.gif` (imageio, pętla nieskończona, czas klatki 1000/fps ms; sprawdź poprawny parametr dla zainstalowanej wersji imageio 2.38 i wtyczki pillow), z klatką początkową, wszystkimi krokami i animacją końca (zawał). `--only-failed` szuka kolejnych ziaren (do --max-tries), aż nagra wskazaną liczbę epizodów zakończonych inaczej niż wyjściem. Wypisuje ścieżki zapisanych plików. `main(argv=None)` zwraca listę ścieżek.
+
+### 7. scripts/gen_textures.py – NIE pisz teraz (osobne zadanie).
+
+### 8. tests/test_render.py (pytest, wszystko w trybie dummy, szybkie)
+- AssetPack bez tekstur (pusty katalog tmp_path) zwraca zastępniki właściwego rozmiaru dla każdej nazwy z kontraktu; missing_names zawiera wszystkie.
+- AssetPack z teksturami: wygeneruj w tmp_path kilka PNG (Pillow) o rozmiarze 32×32, sprawdź, że są wczytane (textured_names) i przeskalowane do 64×64.
+- Renderer: draw() dla każdej mapy z maps/ bez tekstur i z teksturami z tmp_path; rozmiar powierzchni; frame_array kształt i dtype; renderer nie zmienia stanu env (porównaj obs_to_key/ grid przed i po draw()); efekty przy stability <= 1 (stability_start=1) i animacja collapse_frames po wymuszonym zawale (collapse_prob=1.0) nie rzucają wyjątków; dwa renderery na tym samym stanie dają identyczne klatki (determinizm).
+- play.py --script (kilka akcji) kończy się kodem 0; watch.py --headless --episodes 1 dla random i threshold; record.py zapisuje GIF do tmp_path i plik da się odczytać imageio z liczbą klatek > 1; make_agent: random, threshold, moduł:funkcja (np. "miner_rl.agents.baselines:RandomAgent" nie pasuje do sygnatury, więc w teście zdefiniuj pomocniczą funkcję w module testowym lub użyj prostego modułu tymczasowego), nieznana specyfikacja -> ValueError.
+
+## Wymagania końcowe
+- `python -m pytest -q` w katalogu głównym przechodzi w całości (także stare testy). Uruchom to i popraw błędy.
+- Kod czytelny, z typami, bez zbędnych zależności, bez zmian w plikach z listy zakazanej.
+- Na końcu odpowiedz krótko po polsku: lista utworzonych plików, wynik pytest (liczba testów), znane ograniczenia, ewentualne uwagi do plików, których nie wolno było zmieniać.

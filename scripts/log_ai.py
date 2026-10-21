@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append a complete AI exchange to the local, private LaTeX journal.
+"""Append a complete AI exchange to the project's public LaTeX journal (ai-journal/).
 
 Only Python's standard library is required. This script does not capture chats
 automatically, redact secrets, compile TeX, or create the journal's main.tex.
@@ -24,10 +24,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ENTRY_PATTERN = re.compile(r"\d{8}-[0-9a-f]{12}\Z")
-DEFAULT_VERIFICATION = (
-    "Niepotwierdzona: student powinien samodzielnie sprawdzić i zrozumieć "
-    "wykorzystaną pomoc."
-)
+DEFAULT_VERIFICATION = "Do uzupełnienia."
 
 
 def latex_escape(value: str) -> str:
@@ -127,33 +124,45 @@ def entry_staging(entries_dir: Path):
 
 
 def entry_tex(entry_id: str, metadata: dict[str, str]) -> str:
-    labels = (
-        ("date", "Data użycia"),
-        ("tool", "Narzędzie"),
-        ("model", "Model"),
-        ("purpose", "Cel użycia"),
-        ("scope", "Zakres wykorzystanej pomocy"),
-        ("verification", "Samodzielna weryfikacja studenta"),
-        ("conversation_url", "Link do pełnej rozmowy"),
+    tool = metadata.get("tool", "")
+    if metadata.get("model"):
+        tool = f"{tool} ({metadata['model']})" if tool else metadata["model"]
+    rows = (
+        ("Data", metadata.get("date", "")),
+        ("Narzędzie", tool),
+        ("Cel", metadata.get("purpose", "")),
+        ("Zakres pomocy", metadata.get("scope", "")),
+        ("Weryfikacja", metadata.get("verification", "")),
+        ("Link do rozmowy", metadata.get("conversation_url", "")),
     )
-    lines = [
-        rf"\section{{Wymiana {latex_escape(entry_id)}}}",
-        r"\begin{description}",
-    ]
-    for key, label in labels:
-        if metadata.get(key):
-            lines.append(rf"\item[{label}] {latex_escape(metadata[key])}")
+    title = f"{metadata.get('date', '')} -- {metadata.get('purpose', '')}".strip(" -")
+    lines = [rf"\section{{{latex_escape(title)}}}", rf"\label{{{entry_id}}}"]
+    for label, value in rows:
+        if value:
+            lines.append(rf"\metawiersz{{{label}}}{{{latex_escape(value)}}}")
     lines.extend(
         [
-            r"\end{description}",
             r"\subsection*{Prompt}",
-            rf"\VerbatimInput[breaklines=true,breakanywhere=true,fontsize=\small]{{entries/{entry_id}/prompt.txt}}",
+            rf"\VerbatimInput{{entries/{entry_id}/prompt.txt}}",
             r"\subsection*{Odpowiedź}",
-            rf"\VerbatimInput[breaklines=true,breakanywhere=true,fontsize=\small]{{entries/{entry_id}/response.txt}}",
+            rf"\VerbatimInput{{entries/{entry_id}/response.txt}}",
+            r"\bigskip\hrule\bigskip",
             "",
         ]
     )
     return "\n".join(lines)
+
+
+def rebuild_entries(journal_dir: Path) -> int:
+    """Regenerate entry.tex for every entry from its metadata (after a format change)."""
+    count = 0
+    for directory in (journal_dir / "entries").iterdir():
+        if directory.is_dir() and not directory.is_symlink() and ENTRY_PATTERN.fullmatch(directory.name):
+            metadata = json.loads((directory / "metadata.json").read_text(encoding="utf-8"))
+            (directory / "entry.tex").write_text(entry_tex(directory.name, metadata), encoding="utf-8")
+            count += 1
+    rebuild_index(journal_dir)
+    return count
 
 
 def rebuild_index(journal_dir: Path) -> None:
@@ -225,18 +234,22 @@ def append_entry(args: argparse.Namespace) -> Path:
 
 def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--prompt-file", type=Path, required=True)
-    parser.add_argument("--response-file", type=Path, required=True)
-    parser.add_argument("--model", required=True, help="Rzeczywista nazwa modelu; nie zgaduj wariantu.")
+    parser.add_argument("--prompt-file", type=Path)
+    parser.add_argument("--response-file", type=Path)
+    parser.add_argument("--model", help="Rzeczywista nazwa modelu; nie zgaduj wariantu.")
     parser.add_argument("--tool", default="Codex")
-    parser.add_argument("--purpose", required=True)
-    parser.add_argument("--scope", required=True)
+    parser.add_argument("--purpose")
+    parser.add_argument("--scope")
+    parser.add_argument(
+        "--rebuild", action="store_true",
+        help="Przebuduj entry.tex wszystkich wpisów (np. po zmianie formatu) i zakończ.",
+    )
     parser.add_argument("--date", type=parse_date, help="YYYY-MM-DD; domyślnie Europe/Warsaw.")
     parser.add_argument("--verification", default=DEFAULT_VERIFICATION)
     parser.add_argument("--conversation-url")
     parser.add_argument(
-        "--journal-dir", type=Path, default=PROJECT_ROOT / "private" / "ai-journal",
-        help="Katalog lokalnego dziennika; zmień tylko świadomie (np. na potrzeby testu).",
+        "--journal-dir", type=Path, default=PROJECT_ROOT / "ai-journal",
+        help="Katalog dziennika; zmień tylko świadomie (np. na potrzeby testu).",
     )
     return parser
 
@@ -244,11 +257,19 @@ def make_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = make_parser()
     args = parser.parse_args()
+    if args.rebuild:
+        count = rebuild_entries(args.journal_dir.resolve())
+        print(f"Przebudowano wpisów: {count}")
+        return 0
+    missing = [name for name in ("prompt_file", "response_file", "model", "purpose", "scope")
+               if getattr(args, name) is None]
+    if missing:
+        parser.error("brak wymaganych argumentów: " + ", ".join("--" + m.replace("_", "-") for m in missing))
     try:
         destination = append_entry(args)
     except (OSError, UnicodeError, ValueError) as error:
         parser.exit(1, f"Błąd zapisu dziennika AI: {error}\n")
-    print(f"Zapisano lokalny wpis AI: {destination}")
+    print(f"Zapisano wpis AI: {destination}")
     return 0
 
 

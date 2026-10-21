@@ -1,0 +1,11 @@
+; opis = Zawał korytarza: po wydobyciu 3 złóż szyb X zamienia się w skałę
+###E####
+#..S...#
+#.#X####
+#.#X####
+#.#X.s.#
+#.#c##.#
+#.#..#.#
+#.##g#k#
+#......#
+########
