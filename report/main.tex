@@ -1,8 +1,15 @@
 \documentclass[11pt,a4paper]{article}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+  \setmainfont[BoldFont=lmroman10-bold.otf,ItalicFont=lmroman10-italic.otf,BoldItalicFont=lmroman10-bolditalic.otf]{lmroman10-regular.otf}
+  \setmonofont{lmmono10-regular.otf}
+\fi
 \usepackage[polish]{babel}
-\usepackage{lmodern}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{microtype}
 \usepackage{hyperref}

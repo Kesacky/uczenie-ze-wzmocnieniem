@@ -38,7 +38,8 @@ Dane trafiają do `private/ai-journal/entries/<data>-<id>/`:
 
 Skrypt przebudowuje indeks `private/ai-journal/entries.tex`. Nie tworzy ani nie
 modyfikuje `main.tex`. Główny dokument powinien używać kodowania UTF-8, polskich
-fontów oraz pakietu `fvextra` (rozszerza `fancyvrb` o zawijanie długich wierszy),
+fontów (dla XeLaTeX/LuaLaTeX przez `fontspec`, dla pdfLaTeX przez `fontenc`
+i `inputenc`) oraz pakietu `fvextra` (zawijanie długich wierszy),
 a następnie dołączać `\input{entries.tex}`. Kompilację wykonuj z katalogu
 `private/ai-journal/`. Nie jest potrzebne `shell-escape`.
 

@@ -101,6 +101,31 @@ def journal_lock(journal_dir: Path):
         lock_path.unlink(missing_ok=True)
 
 
+@contextmanager
+def entry_staging(entries_dir: Path):
+    """Use inherited Windows ACLs, unlike TemporaryDirectory's private ACLs."""
+    staging_name = ".entry-" + uuid4().hex
+    staging = entries_dir / staging_name
+    staging.mkdir()
+    try:
+        yield staging
+    finally:
+        # After the successful rename this path no longer exists. On failure,
+        # remove only the four files this operation could have created. Never
+        # recursively delete an unchecked or unexpectedly populated directory.
+        if staging.exists():
+            if (
+                staging.is_symlink()
+                or staging.name != staging_name
+                or not re.fullmatch(r"\.entry-[0-9a-f]{32}", staging.name)
+                or staging.resolve().parent != entries_dir.resolve()
+            ):
+                raise ValueError("Odmowa sprzątania nieoczekiwanej ścieżki stagingu.")
+            for filename in ("prompt.txt", "response.txt", "metadata.json", "entry.tex"):
+                (staging / filename).unlink(missing_ok=True)
+            staging.rmdir()
+
+
 def entry_tex(entry_id: str, metadata: dict[str, str]) -> str:
     labels = (
         ("date", "Data użycia"),
@@ -186,8 +211,7 @@ def append_entry(args: argparse.Namespace) -> Path:
         entries_dir.mkdir(exist_ok=True)
         entry_id = used_date.replace("-", "") + "-" + uuid4().hex[:12]
         destination = entries_dir / entry_id
-        with tempfile.TemporaryDirectory(prefix=".entry-", dir=entries_dir) as temporary_dir:
-            staging = Path(temporary_dir)
+        with entry_staging(entries_dir) as staging:
             (staging / "prompt.txt").write_bytes(prompt)
             (staging / "response.txt").write_bytes(response)
             (staging / "metadata.json").write_text(
