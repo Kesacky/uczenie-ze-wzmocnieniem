@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Poprawa formatu dziennika AI",
+  "scope": "Zmiana układu wpisów na prośbę studenta",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "93d4ff0c26b9c8b0b5f9b3ef0867e07bd02f92d67c1aaf66b51a53f9adca6bed",
+  "response_sha256": "5637c8c77d049d8a69ff246e40a276b6df0c2db80bac9f38af6683ccc1bf0a96",
+  "recorded_at_utc": "2026-10-21T17:24:30.331933+00:00"
+}

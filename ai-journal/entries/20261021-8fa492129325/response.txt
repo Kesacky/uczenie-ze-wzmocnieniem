@@ -1,0 +1,20 @@
+Sprawdziłem. Twój komputer jest połączony: Windows, aplikacja Claude w wersji 3.1623.0, a dostępne foldery to projekt i `.codex`. Narzędzia terminala na Twoim komputerze nie ma jednak w tej sesji wcale. Nie jest wyłączone, po prostu nie zostało udostępnione. Nie da się go włączyć stąd żadnym zatwierdzeniem, a ja nie wiem dokładnie, od czego na Windowsie zależy jego dostępność. Najprędzej pomoże aktualizacja aplikacji Claude i otwarcie nowego zadania połączonego z komputerem. Tego jednak nie mogę zagwarantować.
+
+Za to z chmury repozytorium na GitHubie jest osiągalne, więc działa wariant z tokenem. Kroki:
+
+1. Wejdź na GitHub: Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token.
+2. Ustaw:
+   - Repository access: Only select repositories i wybierz `uczenie-ze-wzmocnieniem`,
+   - Permissions → Repository permissions → Contents: Read and write,
+   - Expiration: do końca semestru (np. luty 2027).
+3. Skopiuj token i zapisz go w Notatniku jako `C:\Users\Marcin\.codex\github-token.txt`. W pliku ma być sam token, nic więcej.
+4. Napisz mi, że gotowe. Nie wklejaj tokenu do czatu, bo rozmowa trafia do publicznego dziennika.
+
+Jak będzie wyglądał każdy push:
+
+- wczytam token z pliku i nigdy go nie wyświetlę,
+- skopiuję zmienione pliki z Twojego folderu do repozytorium w chmurze,
+- sprawdzę, że nie ma wśród nich plików prywatnych,
+- zrobię commit i push.
+
+Twój lokalny folder nie dowie się o tym commicie. Przed swoją pracą w gicie zrób więc `git pull`, a najlepiej zostaw commity mnie, żeby historia była w jednym miejscu.

@@ -1,11 +1,13 @@
-; opis = Stabilna kopalnia: płytkie, tanie złoża, mała głębokość
-###E####
-#c.S...#
-#.##.#c#
-#.s#.#.#
-##.....#
-#..##s.#
-#g.#####
-########
-########
-########
+; opis = Stabilna kopalnia: płytkie, tańsze złoża
+; wygenerowano = python scripts/gen_maps.py --theme stabilna --seed 1
+#####E######
+####.S..####
+##c##.######
+##.##.######
+#s......c###
+#####.######
+###.......g#
+#####.##.###
+#####.##.###
+###k.....###
+############

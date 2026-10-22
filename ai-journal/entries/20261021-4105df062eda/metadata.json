@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Większe mapy, ryzyko zawału, generator map, losowa mapa, ekran wyniku, launcher",
+  "scope": "Decyzje podjął student (zakres gra i RL, 16x16, 0,2% na krok, dwie wersje gry i algorytmu, balans p0=0,005 i złoża x3). Claude: generator map i gen_maps.py, zmiany MineEnv (losowe mapy, widok lokalny, człon 0,002), kalibracja i baseline, testy, README; UI zlecone Codexowi (osobny wpis).",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "808be3f3578d2e211973cfe1bec58b7758843c0af9f8f5e50d87e9ff76543b52",
+  "response_sha256": "cc77c4a97b97f1c479053a6022b350aef837a3b9b7358162790599078beb5288",
+  "recorded_at_utc": "2026-10-21T20:47:14.416222+00:00"
+}

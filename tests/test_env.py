@@ -182,21 +182,37 @@ def test_forced_collapse_ends_episode_and_loses_load():
 def test_collapse_probability_formula():
     env, _, _ = make()
     cfg = env.config
-    assert cfg.collapse_base == 0.02
+    assert (cfg.collapse_floor, cfg.collapse_base, cfg.collapse_power) == (0.001, 0.003, 2.0)
     p = env.collapse_probability(stability=2, y=3)
-    assert p == pytest.approx(0.02 * (5 - 2) * (1 + 3 / env.height))
-    assert env.collapse_probability(stability=cfg.stability_max, y=3) == 0.0
+    assert p == pytest.approx(0.001 + 0.003 * (5 - 2) ** 2 * (1 + 3 / env.height))
+    # przy pełnej stabilności zostaje tylko ryzyko podstawowe 0,1% na krok
+    assert env.collapse_probability(stability=cfg.stability_max, y=3) == pytest.approx(0.001)
+    # po jednym wydobyciu ryzyko rośnie łagodnie (kwadrat: 1, 4, 9, 16, 25)
+    assert env.collapse_probability(stability=4, y=3) < 0.006
     env.config = cfg.replace(collapse_base=10.0)
     assert env.collapse_probability(stability=0, y=3) == 1.0   # obcięcie do [0, 1]
 
 
-def test_full_stability_never_collapses():
-    env = MineEnv("m1_stabilna", step_limit=200, oil_start=1000)
+def test_full_stability_never_collapses_without_floor():
+    env = MineEnv("m1_stabilna", step_limit=200, oil_start=1000, collapse_floor=0.0)
     env.reset(seed=1)
     for i in range(200):
         _, _, term, trunc, info = env.step(RIGHT if i % 2 else LEFT)
         assert not info["collapsed"]
     assert trunc and not term
+
+
+def test_floor_risk_causes_collapses_at_full_stability():
+    env = MineEnv("m1_stabilna", step_limit=300, oil_start=1000, collapse_floor=0.05)
+    collapses = 0
+    for seed in range(20):
+        env.reset(seed=seed)
+        done, i = False, 0
+        while not done:
+            _, _, term, trunc, info = env.step(RIGHT if i % 2 else LEFT)
+            done, i = term or trunc, i + 1
+        collapses += info["collapsed"]
+    assert collapses == 20          # przy 5% na krok zawał przed 300 krokami jest pewny w praktyce
 
 
 def test_no_collapse_on_exit_step():
@@ -274,7 +290,7 @@ def test_event_happens_once_and_depends_only_on_mask():
 def test_state_space_size_matches_report():
     env = MineEnv("m3_gleboka")                         # K = 5
     assert env.n_deposits == 5
-    assert env.n_states == 8 * 10 * 6 * 4 * 2 ** 5 * 3   # ok. 1,8e5
+    assert env.n_states == 12 * 11 * 6 * 4 * 2 ** 5 * 3   # ok. 3,0e5
 
 
 def test_obs_index_is_unique_and_in_range():
@@ -325,7 +341,7 @@ def test_ansi_render():
 @pytest.mark.parametrize("path", list_maps(), ids=lambda p: p.stem)
 def test_map_files_follow_report(path):
     m = load_map(path)
-    assert (m.width, m.height) == (8, 10)
+    assert (m.width, m.height) == (12, 11)
     assert m.exit[1] == 0 and 1 <= len(m.deposits) <= 5
     reach = reachable(m.rows, m.start)
     assert m.exit in reach
@@ -357,7 +373,7 @@ def test_defaults_match_report():
         == (-0.1, -0.5, -20.0, -20.0)
     assert (cfg.oil_start, cfg.oil_bins, cfg.props_start, cfg.props_max) == (100, 4, 2, 2)
     assert (cfg.stability_max, cfg.corridor_event_after, cfg.step_limit) == (5, 3, 300)
-    assert cfg.deposit_values == {"c": 1, "s": 3, "g": 6, "k": 10}
+    assert cfg.deposit_values == {"c": 3, "s": 9, "g": 18, "k": 30}
 
 
 def test_map_header_overrides_config():
@@ -378,3 +394,51 @@ def test_config_from_json(tmp_path):
 def test_config_rejects_unknown_key():
     with pytest.raises(KeyError):
         GameConfig().replace(nie_ma_takiego=1)
+
+
+# ------------------------------------------------------- losowe mapy
+def test_random_maps_change_between_episodes_and_follow_seed():
+    env = MineEnv(random_maps=True)
+    env.reset(seed=1)
+    rows_a = env.map.rows
+    env.reset(seed=2)
+    rows_b = env.map.rows
+    env.reset(seed=1)
+    assert env.map.rows == rows_a != rows_b
+    assert (env.width, env.height, env.n_deposits) == (12, 11, 5)
+    assert env.observation_space.contains(env._obs())
+
+
+def test_random_maps_trajectory_is_reproducible():
+    def trace(seed):
+        env = MineEnv(random_maps=True)
+        obs, _ = env.reset(seed=seed)
+        rng = np.random.default_rng(0)
+        out = [env.map.rows]
+        for _ in range(200):
+            obs, r, term, trunc, info = env.step(int(rng.integers(5)))
+            out.append((tuple(obs), r, info["reason"]))
+            if term or trunc:
+                break
+        return out
+    assert trace(5) == trace(5)
+
+
+def test_local_view_observation():
+    env, obs, _ = make(**SAFE, obs_mode="local", view_radius=1)
+    # TINY: wokół S (2,1): wiersz 0 = '#','E','#'; wiersz 1 = 'c','S','.'; wiersz 2 = '.','X','.'
+    assert obs[7:].tolist() == [0, 3, 0, 2, 1, 1, 1, 4, 1]
+    assert env.observation_space.contains(obs)
+    assert env.obs_to_vector(obs).shape == (env.vector_size,)
+    obs, *_ = env.step(LEFT)             # wydobycie c: pole staje się korytarzem
+    assert obs[7:].tolist() == [0, 0, 3, 0, 1, 1, 0, 1, 4]
+
+
+def test_map_seed_option_separates_map_from_game():
+    env = MineEnv(random_maps=True)
+    env.reset(seed=1, options={"map_seed": 42})
+    rows = env.map.rows
+    env.reset(seed=2, options={"map_seed": 42})
+    assert env.map.rows == rows                     # ta sama kopalnia, inne losowanie zawałów
+    env.reset(seed=1, options={"map_seed": 43})
+    assert env.map.rows != rows

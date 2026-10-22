@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Plan prac etapu E2",
+  "scope": "Planowanie; bez zmian w kodzie",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "707e0a819b485e914c8b58641f1506e8944a82380668c106f88098fe511ec620",
+  "response_sha256": "b18efee6980871096f02775a614137ffc26d596b4f7aa800fb01d6208dbc5238",
+  "recorded_at_utc": "2026-10-21T21:44:52.199146+00:00"
+}

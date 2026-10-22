@@ -1,0 +1,10 @@
+Sprawdziłem jeszcze raz i push nadal nie przechodzi, choć tym razem odpowiedź serwera mówi wprost, czego brakuje: repozytorium Kesacky/uczenie-ze-wzmocnieniem nie jest w zestawie repozytoriów autoryzowanych dla tej sesji (session's sources).
+
+Instalacja aplikacji Claude na GitHubie to pierwszy krok i on się udał. Brakuje drugiego: repozytorium trzeba jeszcze dołączyć jako źródło do samej sesji. Ta sesja zaczęła się bez repozytorium, a ja nie mam narzędzia, którym mógłbym je dopiąć w trakcie. Prawdopodobnie da się to zrobić tylko przy tworzeniu nowego zadania, wybierając repozytorium w jego ustawieniach. Nie widzę jednak tego interfejsu, więc nie mam pewności, gdzie dokładnie jest ta opcja.
+
+Wszystko jest gotowe do wysłania, a to, czego nie udało się wysłać, nie zostało w kopii w chmurze. Najszybciej będzie, jeśli wyślesz zmiany sam z terminala w folderze projektu:
+git add .gitignore README.md docs report ai-journal miner_rl tests scripts
+git commit -m "Formalizacja MDP, plan eksperymentów, agenci Q-learning i SARSA"
+git push
+
+Jeśli przy zakładaniu nowej sesji znajdziesz opcję dodania repozytorium, w tamtej sesji będę mógł robić commity sam.

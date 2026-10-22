@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Wyjaśnienie różnicy między uprawnieniami a dostępnymi narzędziami",
+  "scope": "Wyjaśnienie; bez zmian w kodzie",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "d8776d45369c98cdd74962aefa4bf8a1f7501c8e963675806ae781db36a42e1b",
+  "response_sha256": "24ff0d0e63ac6ee77150f1b60ad5e92516b2a0db3061d3a97f84515cb67d9e83",
+  "recorded_at_utc": "2026-10-21T21:54:10.979654+00:00"
+}

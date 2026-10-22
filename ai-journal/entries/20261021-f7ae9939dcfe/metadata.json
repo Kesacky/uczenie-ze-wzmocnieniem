@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Pytanie o zakres testów i pierwsze uruchomienie gry na komputerze",
+  "scope": "Wyjaśnienie, które testy były w planie, a które poza zadaniem; skrypt tmp/uruchom_gre.bat i instalacja bibliotek w .venv (przerwane przez użytkownika); odpowiedzi na komunikaty kontroli git.",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "90a736cdefccebe7d5b4644591b5550c07a28e25750de08fd225c46cc484e161",
+  "response_sha256": "fe17bdbaf7c12a222bd77b79e13a7840762f9925475b2be2d54ea3fa6dd8c125",
+  "recorded_at_utc": "2026-10-21T20:47:14.353136+00:00"
+}

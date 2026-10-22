@@ -1,0 +1,10 @@
+Na origin/main nie było niewypchniętych commitów — wszystkie zmiany były niezacommitowane, więc najpierw utworzyłem jeden commit, a potem go wypchnąłem.
+
+Sprawdzenia przed wysłaniem:
+- `.venv/Scripts/python.exe -m pytest -q` → 188 passed.
+- `git check-ignore`: AGENTS.md i private/ są ignorowane; PDF-y prowadzącego, `tmp/` i `Claude outputs/` nie trafiły do commita.
+- Przeszukałem nowe wpisy ai-journal/ i skrypty pod kątem tokenów i haseł — nic nie znalazłem.
+
+Commit obejmuje zmiany środowiska i renderera, generator map (generator.py, gen_maps.py), UI gry (ui.py, graj.bat), nowe testy, odświeżone wyniki baseline i GIF-y, aktualizacje README, raportu i docs/etapy.md oraz wpisy dziennika AI z 21–22.10.
+
+Do zrobienia przez Ciebie: w wpisach dziennika status weryfikacji to „Brak samodzielnej weryfikacji studenta” — uzupełnij go po przejrzeniu zmian.

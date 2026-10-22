@@ -1,0 +1,1 @@
+wyjasnij czym w tym projekcie jest RL I MDP prosto

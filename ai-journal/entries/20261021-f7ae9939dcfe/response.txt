@@ -1,0 +1,28 @@
+[Odpowiedź na wiadomość 1]
+Tak, głównym zadaniem była gra i ona jest gotowa. Możesz w nią zagrać przez `python scripts/play.py --map m1_stabilna` (strzałki to ruch, P to podpora).
+
+Testy, o których pisałem, to trzy różne rzeczy:
+
+1. **Automatyczne testy gry (81 testów pytest)** były w planie, w punkcie 7. Sprawdzają, czy zasady działają tak jak w raporcie: wejście w złoże je wydobywa, ruch w skałę daje karę i nic nie zmienia, przy zawale przepada ładunek, olej się kończy, korytarz X zawala się po 3 złożach, a grafika rysuje się bez błędów. Prowadzący wymaga takich testów (P00), więc to część gry.
+
+2. **Agenci bazowi (agent losowy i heurystyka)** też były w planie, w punkcie 3. Każdy grał 1000 razy na każdej mapie, wyniki są w `results/`. To punkt odniesienia do porównania z RL.
+
+3. **Krótki test Q-learningu i porównanie różnych p₀** wykraczały poza zadanie, zrobiłem je z własnej inicjatywy. Chciałem sprawdzić, czy na tej grze da się w ogóle czegoś nauczyć. Wyszło, że przy obecnych ustawieniach agent uczy się od razu wychodzić z kopalni, bez kopania. To ważne ostrzeżenie dla sesji głównej, ale nie było moim zadaniem. Nie zmieniałem przez to niczego w grze.
+
+Jedyne, czego nie mogłem sprawdzić, to gra w oknie z klawiaturą, bo w chmurze nie ma ekranu. Gdy uruchomisz `play.py`, od razu zobaczysz, czy sterowanie działa.
+
+[Wiadomość 2 – brak odpowiedzi końcowej]
+Claude utworzył tmp\uruchom_gre.bat (środowisko .venv, instalacja bibliotek z requirements.txt, testy, start gry) i uruchomił go dwuklikiem w Eksploratorze plików. Log pokazał Python 3.13.14 i udaną instalację bibliotek (PIP_OK); w trakcie testów użytkownik przerwał wykonanie i wysłał nową prośbę, więc ta wymiana nie ma odpowiedzi końcowej.
+
+[Odpowiedzi na komunikaty automatycznej kontroli git (nie od użytkownika), dosłownie]
+I committed the leftover changes in my cloud scratch copy, but I deliberately didn't push them, so your GitHub repo hasn't changed.
+
+The scratch copy isn't your repository. It holds helper commits, including a snapshot of your local uncommitted files and the main session's work, and was only for tracking my own changes. Pushing it would put that history on `origin` and diverge from your local repo. The GitHub token in this environment is also invalid, so a push wouldn't have worked anyway.
+
+The real files are already in your project folder. To commit and push them, run `tmp\commit_gra.ps1`, which makes 6 small commits, then `git push`.
+
+---
+
+The flagged commits only existed in my cloud scratch copy and were never meant to go to GitHub. They were my own checkpoints, including a snapshot of your uncommitted local files, so amending and pushing them would have been wrong. I deleted that scratch git history instead; the files themselves are already in your project folder. The remaining cloud clone matches GitHub exactly, with nothing new to commit or push.
+
+Nothing changes on your side: run `tmp\commit_gra.ps1`, which makes the commits under your own git identity with the Claude co-author line, then `git push`.

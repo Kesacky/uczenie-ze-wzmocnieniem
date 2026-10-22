@@ -1,0 +1,8 @@
+Gotowe: menu, ekrany wyników, skalowanie, losowe mapy, zapis klatek i launcher Windows.
+
+- Zmienione: `miner_rl/render/{assets,renderer,cli}.py`, `scripts/{play,watch,record}.py`.
+- Nowe: `miner_rl/render/ui.py`, `tests/test_ui.py`, `graj.bat` (ASCII, CRLF).
+- `python -m pytest -q`: **146 testów przeszło**, 1 ostrzeżenie zależności, 28,75 s.
+- Klatki: [menu](/home/claude/work/tmp/ui_menu.png), [zawał](/home/claude/work/tmp/ui_end_collapse.png), [wyjście](/home/claude/work/tmp/ui_end_exit.png), [losowa mapa 1.5](/home/claude/work/tmp/ui_random_map.png).
+
+Ograniczenia: testy korzystały z dummy SDL; rzeczywiste okno i launcher wymagają sprawdzenia na Windows. README ma nieaktualny rozmiar map, a raport błędnie informuje o braku implementacji — pozostawiłem je bez zmian zgodnie z zakazem. Nie zmieniałem dokumentacji ani dziennika AI.

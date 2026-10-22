@@ -1,0 +1,15 @@
+Prawdopodobnie tak. Według dokumentacji Anthropic polecenia na Twoim komputerze Claude uruchamia w osobnej maszynie wirtualnej z Linuksem, która na Windowsie działa na Hyper-V. Jeśli Hyper-V jest wyłączone, aplikacja nie ma gdzie uruchomić powłoki, więc w ogóle mi jej nie daje.
+
+Masz zainstalowany VirtualBox, a on często idzie w parze z wyłączonym Hyper-V, bo starsze wersje się z nim gryzły. To mój najbardziej prawdopodobny trop, ale dokumentacja nie podaje pełnej listy wymagań, więc nie mam pewności.
+
+Co spróbować:
+1. Menedżer zadań → Wydajność → Procesor: „Wirtualizacja: Włączona”. Jeśli jest wyłączona, włącz ją w BIOS/UEFI (Intel VT-x albo AMD-V/SVM).
+2. Start → „Włącz lub wyłącz funkcje systemu Windows” → zaznacz „Platforma maszyny wirtualnej” oraz „Hyper-V” (Hyper-V jest tylko w Windows Pro, Education i Enterprise; w Home zaznacz samą „Platformę maszyny wirtualnej”). Uruchom ponownie komputer.
+3. Zaktualizuj aplikację Claude do najnowszej wersji.
+4. Zacznij nowe zadanie w aplikacji z wybranym tym komputerem i folderem projektu. Narzędzia dostaję na starcie sesji, więc ta sesja ich nie zyska.
+
+Uwaga: nowsze wersje VirtualBoxa działają z włączonym Hyper-V, ale wolniej. Starsze mogą przestać uruchamiać swoje maszyny.
+
+Jeśli po tym w nowej sesji nadal nie będę mieć powłoki, to ograniczenie jest po stronie aplikacji, a wtedy zostaje sterowanie komputerem albo wklejanie mi wyników.
+
+[Działania Claude] Sprawdzono dokumentację architektury Cowork (support.claude.com).

@@ -1,0 +1,13 @@
+Mam jedno ograniczenie środowiska, nie brakuje mi uprawnienia, które mógłbyś kliknąć.
+
+- Codex z Twojego komputera działa lokalnie. Ma zwykły terminal i Twoje zalogowane konto GitHub, więc może zrobić git push.
+- Ja działam w chmurze. Do Twoich plików mam narzędzia do odczytu i zapisu, ale nie mam terminala na Twoim komputerze. Ta sesja go nie dostała, a czy jest dostępny, zależy od komputera i wersji aplikacji desktopowej, nie od ustawienia. W sterowaniu komputerem terminal i VS Code są tylko „do klikania”, bez wpisywania tekstu. To stała blokada bezpieczeństwa.
+- W chmurze nie mam dostępu do Twojego konta GitHub. Codex, którego tam uruchamiam, też go nie ma. Sprawdziłem też katalog konektorów: nie ma w nim konektora do GitHuba.
+
+Masz trzy możliwości:
+
+1. Wpisujesz 3 komendy sam. To pół minuty, najprostsze i najbezpieczniejsze.
+2. Prosisz swojego lokalnego Codexa, np. „zrób commit i push zmian w tym repo”. Ma do tego wszystko, co potrzebne.
+3. Dajesz mi token GitHub ograniczony tylko do tego repozytorium (fine-grained token z uprawnieniem Contents: read and write). Wtedy wysyłam zmiany z chmury sam. Tokenu nie wklejaj do czatu, bo czat trafia do publicznego dziennika. Zapisz go w pliku obok logowania Codexa, a ja go stamtąd wczytam. Minus: przy każdym pushu kopiuję pliki z Twojego komputera do chmury, więc jest to trochę wolniejsze.
+
+Przy częstych commitach w trakcie projektu najwygodniejsza będzie opcja 3. Jeśli ją wybierzesz, podam Ci kroki utworzenia tokenu.

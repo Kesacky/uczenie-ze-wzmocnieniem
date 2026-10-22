@@ -1,0 +1,18 @@
+Generowane losowo mapy zmieniłyby cały problem, nie tylko trudność. Są cztery główne skutki.
+
+1. Tablica Q przestaje działać. Nasz stan to (pozycja, stabilność, olej, maska wydobytych złóż, stemple). Działa tylko dlatego, że mapa jest stała. „Złoże nr 2” i „pole (3,5)” zawsze oznaczają to samo, więc agent może zapamiętać, co gdzie leży. Przy losowej mapie ta sama krotka stanu oznaczałaby zupełnie różne sytuacje: raz skałę obok, raz złoto. Agent nie widziałby różnicy, czyli problem przestaje być procesem Markowa. Żeby to naprawić, mapa musi trafić do obserwacji. Wtedy liczba stanów rośnie astronomicznie i potrzebny jest DQN z siecią, która „widzi” planszę, np. sieć konwolucyjna albo lokalne okno wokół górnika.
+
+2. Agent uczy się czegoś innego. Na stałej mapie zapamiętuje konkretną trasę: „idź tędy, wykop to, wracaj”. Na losowych mapach musi nauczyć się ogólnej reguły typu „przy tej stabilności i takiej odległości od wyjścia już wracaj”. To ciekawsze i lepiej pokazuje, czym jest RL. Dochodzi też naturalny test uogólnienia: trening na jednych mapach, ewaluacja na nigdy niewidzianych.
+
+3. Koszty:
+- Trening: wielokrotnie dłuższy, a wyniki mocno się wahają między mapami.
+- Generator: musi gwarantować, że mapa jest sensowna, czyli że wyjście jest osiągalne, a złoża mają rozsądną głębokość. To dodatkowy kod i testy.
+- Ryzyko: DQN bywa niestabilny, a w P00 trudniejsze podejście jest premiowane, ale nie wymagane.
+
+4. Stan projektu. Sesja od gry skończyła pracę: środowisko, 4 mapy, baseline'y i tekstury są gotowe. Zgłosiła jednak ważny problem. Q-learning i SARSA na stałych mapach uczą się na razie od razu wychodzić z kopalni. Losowa eksploracja kończy się zawałem z karą −20, więc agent uznaje, że lepiej nic nie robić. Na losowych mapach ten problem byłby jeszcze większy.
+
+Moja rekomendacja:
+1. Teraz: zostajemy przy 4 stałych mapach i naprawiamy uczenie. Możliwe kierunki to lepsza eksploracja, optymistyczna inicjalizacja tablicy Q i ewentualnie łagodniejsze parametry ryzyka. To rdzeń projektu i zgadza się z formalizacją w raporcie.
+2. Później, jako rozszerzenie (jeśli zostanie czas): losowe mapy i DQN porównany z agentami tablicowymi. Daje to ciekawą analizę uogólnienia i punkty za trudniejsze podejście, a nie ryzykujemy przy tym podstawy.
+
+Problem z uczeniem trzeba rozwiązać tak czy inaczej, więc proponuję zacząć od niego. Mam przedstawić Ci opcje naprawy do wyboru?

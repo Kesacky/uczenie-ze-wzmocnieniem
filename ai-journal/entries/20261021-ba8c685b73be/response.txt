@@ -1,0 +1,12 @@
+Bo w tej sesji nie dostałem narzędzia do uruchamiania poleceń na Twoim komputerze. Aplikacja Claude łączy mnie z Twoim PC na dwa sposoby:
+
+- dostęp do plików w podłączonym folderze (czytanie i zapis), który mam;
+- powłoka, czyli uruchamianie poleceń w tym folderze w małej maszynie wirtualnej na Twoim komputerze, której nie mam.
+
+To, czy powłoka jest dostępna, zależy od Twojego komputera i wersji aplikacji desktopowej, a nie od ustawienia, które da się włączyć w czacie. Na tym PC (Windows) aplikacja jej nie udostępnia, więc nie mogę tego obejść.
+
+Polecenia uruchamiam w swojej chmurze (tam testuję kod i będzie pracował Codex), ale chmura nie widzi Twojego lokalnego repo i nie ma dostępu do zapisu na GitHubie.
+
+Mogę jeszcze sterować komputerem (mysz, klawiatura, zrzuty ekranu) i tak wpisać polecenia w terminalu, ale jest to wolne i drogie w limicie. Dlatego przy gicie najwygodniej będzie, jeśli wkleisz mi wynik `git status`, a ja dam Ci gotowe polecenia.
+
+[Działania Claude] Brak.

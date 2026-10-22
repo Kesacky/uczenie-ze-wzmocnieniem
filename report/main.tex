@@ -18,6 +18,7 @@
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.55em}
+\setlength{\emergencystretch}{3em}
 \newcommand{\doUzupelnienia}[1]{\textbf{Do uzupełnienia:} #1}
 \title{Uczenie się ze wzmocnieniem\\Sprawozdanie z projektu}
 \author{Autor: do uzupełnienia przez studenta}
@@ -27,7 +28,9 @@
 \textbf{Status dokumentu.} Wersja robocza rozwijana równolegle z projektem.
 Temat „Górnik w niestabilnej kopalni” jest propozycją zgłaszaną do akceptacji
 prowadzącego (etap E1). Formalizacja jest wstępna i może zostać skorygowana po
-pierwszych testach środowiska. Nie przeprowadzono jeszcze eksperymentów.
+pierwszych testach środowiska. Gotowe są: środowisko gry z grafiką, generator
+map, agenci bazowi z wynikami oraz implementacja algorytmów Q-learning i SARSA.
+Nie przeprowadzono jeszcze eksperymentów z agentami uczącymi się.
 \tableofcontents
 
 \section{Opis problemu}
@@ -44,6 +47,12 @@ zadawać w każdym kroku: \emph{kopać dalej czy wracać?} Projekt realizuje
 podstawową ścieżkę środowiska gridowego (P00, sekcja 6.1) z energią (olej),
 zasobami (stemple), zdarzeniami zależnymi od decyzji agenta oraz kilkoma mapami
 o różnej trudności.
+
+Gra ma dwa warianty: \emph{stała mapa} (jedna z czterech kopalni o różnym
+charakterze) oraz \emph{losowa mapa}, w której każdy epizod toczy się w nowej
+kopalni z generatora. Pierwszy wariant pozwala agentowi nauczyć się strategii dla
+konkretnej kopalni, drugi sprawdza, czy agent potrafi uogólnić strategię na
+kopalnie, których wcześniej nie widział.
 
 \section{Uzasadnienie zastosowania RL}
 \begin{itemize}
@@ -68,7 +77,7 @@ o różnej trudności.
 \section{Formalizacja RL/MDP}
 \subsection{Agent i środowisko}
 Agentem jest górnik. Środowiskiem jest kopalnia w postaci siatki
-o szerokości $W$ i głębokości $H$ (wstępnie $W=8$, $H=10$). Wiersz $0$ to
+o szerokości $W=12$ i głębokości $H=11$. Wiersz $0$ to
 powierzchnia z polem wyjścia. Pola siatki: lita skała (nieprzechodnia),
 korytarz, złoże (węgiel, srebro, złoto, kryształ), wyjście oraz pole startowe.
 
@@ -86,9 +95,17 @@ Wartość niesionego ładunku nie jest osobnym elementem stanu, ponieważ wynika
 jednoznacznie z maski $m$ (ładunek to suma wartości wydobytych złóż). Zawalenie
 korytarza zależy wyłącznie od liczby wydobytych złóż, czyli także od $m$.
 Dzięki temu stan zachowuje własność Markowa, a jego rozmiar jest ograniczony do
-$80 \cdot 6 \cdot 4 \cdot 2^5 \cdot 3 \approx 1{,}8 \cdot 10^5$ kombinacji,
-z których osiągalna jest tylko część. Pozwala to na tablicową reprezentację
-funkcji wartości.
+$12 \cdot 11 \cdot 6 \cdot 4 \cdot 2^5 \cdot 3 = 304\,128$ kombinacji,
+z których osiągalna jest tylko część (pozycja może być wyłącznie polem
+przechodnim). Pozwala to na tablicową reprezentację funkcji wartości.
+
+\textbf{Wariant z losową mapą.} Gdy mapa zmienia się w każdym epizodzie, sama
+pozycja i maska złóż nie mówią nic o układzie nowej kopalni: ta sama krotka
+stanu oznaczałaby zupełnie różne sytuacje. W tym wariancie obserwacja jest
+rozszerzona o widok otoczenia górnika: kody 25 pól w kwadracie $5\times 5$
+wokół niego (skała lub pole poza mapą, korytarz, niewydobyte złoże, wyjście,
+korytarz grożący zawaleniem). Agent nie widzi całej kopalni, więc jest to
+problem częściowo obserwowalny. Tę cechę uwzględniamy przy interpretacji wyników.
 
 \subsection{Akcje}
 $\mathcal{A} = \{\text{góra}, \text{dół}, \text{lewo}, \text{prawo}, \text{podepnij}\}$.
@@ -109,11 +126,14 @@ samoczynnie, więc czekanie nie przynosiłoby korzyści, a jedynie zużywało ol
 W każdym kroku zapas oleju maleje o 1 (wartość początkowa 100). Po wykonaniu
 akcji następuje losowanie zawału z prawdopodobieństwem
 \[
-  p_{\text{zawał}}(\sigma, y) = p_0 \,(5 - \sigma)\left(1 + \frac{y}{H}\right),
-  \qquad p_0 = 0{,}02,
+  p_{\text{zawał}}(\sigma, y) = p_{\min} + p_0 \,(5 - \sigma)^{2}\left(1 + \frac{y}{H}\right),
+  \qquad p_{\min} = 0{,}001,\quad p_0 = 0{,}003,
 \]
-gdzie $y$ to głębokość górnika. Przy pełnej stabilności zawał nie występuje,
-a przy $\sigma = 0$ na dnie kopalni prawdopodobieństwo wynosi $0{,}2$ na krok.
+gdzie $y$ to głębokość górnika. Nawet przy pełnej stabilności istnieje
+niewielkie ryzyko ($0{,}1\%$ na krok). Po pierwszym wydobyciu wynosi ono
+$0{,}4$--$0{,}7\%$ na krok zależnie od głębokości, a przy $\sigma = 0$ blisko
+dna kopalni dochodzi do około $14\%$. Kwadrat sprawia, że pierwsze wydobycia są
+mało groźne, a każde kolejne coraz bardziej, co wzmacnia rolę stempli.
 Po wydobyciu $N=3$ złóż zawala się korytarz wskazany w opisie mapy, co może
 odciąć najkrótszą drogę powrotu.
 
@@ -130,7 +150,7 @@ zawał lub wyczerpanie oleju & $-20$, ładunek przepada \\
 \bottomrule
 \end{tabular}
 \end{center}
-Wartości złóż: węgiel 1, srebro 3, złoto 6, kryształ 10.
+Wartości złóż: węgiel 3, srebro 9, złoto 18, kryształ 30.
 Koszt kroku zniechęca do zbędnego krążenia. Kara za niedozwoloną akcję
 przyspiesza naukę ograniczeń mapy. Stała kara $-20$ sprawia, że porażka jest
 dotkliwa także wtedy, gdy agent nie niesie ładunku. W eksperymentach zostanie
@@ -153,19 +173,145 @@ wyniesionego ładunku, odsetek zawałów oraz średnia długość epizodu. Wynik
 porównywane z agentem losowym i z heurystyką progową („kop do osiągnięcia progu
 ładunku, potem wracaj najkrótszą drogą”).
 
-\subsection{Elementy do weryfikacji po pierwszych testach}
-Wartości $p_0$, kary za zawał, zapasu oleju i liczby stempli, rozmiar map oraz
-liczba złóż. Jeżeli przestrzeń stanów okaże się zbyt duża dla metod tablicowych,
-rozważone zostanie zmniejszenie map lub zastosowanie DQN.
+\subsection{Zmiany względem wersji wstępnej}
+Pierwsza wersja formalizacji (mapy $8\times 10$, $p = 0{,}02\,(5-\sigma)(1+y/H)$,
+złoża 1/3/6/10, brak ryzyka przy pełnej stabilności) okazała się po pierwszych
+testach zbyt surowa: nawet najlepsza heurystyka miała ujemny średni zwrot na
+wszystkich mapach, a zawały kończyły 30--80\% epizodów. Po zagraniu w grę
+i pomiarach zmieniono rozmiar map (na $12\times 11$, układ przypominający
+kopalnię zamiast labiryntu), postać wzoru na ryzyko zawału oraz wartości złóż.
+Wszystkie parametry znajdują się w jednym pliku konfiguracyjnym
+(\texttt{miner\_rl/config.py}), więc dalsze korekty nie wymagają zmian kodu.
+
+\subsection{Elementy do weryfikacji}
+Siła kompromisu „kopać czy wracać”: przy obecnych parametrach najlepsza
+heurystyka na trzech z czterech map wydobywa wszystkie złoża (sekcja
+\ref{sec:baseline}), więc dylemat jest wyraźny głównie na mapie kruchej. Jeżeli
+w eksperymentach okaże się to problemem, wystarczy zwiększyć $p_0$ lub wykładnik
+we wzorze na ryzyko.
 
 \section{Środowisko}
-\doUzupelnienia{opis implementacji i interfejsu inicjalizacji oraz kroku,
-legalnych akcji, map lub scenariuszy i zdarzeń dynamicznych.
-Udokumentować rzeczywiście wykonane testy przypadków brzegowych.}
+\subsection{Interfejs}
+Środowisko \texttt{MineEnv} (\texttt{miner\_rl/env/mine\_env.py}) ma interfejs
+biblioteki Gymnasium \cite{gymnasium}: \texttt{reset(seed)} rozpoczyna epizod
+i zwraca obserwację, \texttt{step(a)} zwraca nową obserwację, nagrodę,
+informację o zakończeniu (\texttt{terminated}) i obcięciu
+(\texttt{truncated}) oraz słownik \texttt{info} z przyczyną końca epizodu,
+zebranymi złożami i wartością ładunku. Obserwacja to wektor liczb całkowitych
+w kolejności $(x, y, \sigma, o, m_1,\dots,m_K, n)$. W wariancie z losową mapą
+dołączany jest do niej widok otoczenia $5\times 5$. Logika gry nie zależy od
+grafiki. Wszystkie stałe gry i nagród są zebrane w
+\texttt{miner\_rl/config.py}, a mapa może nadpisać część z nich w swoim nagłówku
+(np. krucha kopalnia zaczyna z niższą stabilnością).
 
-\section{Agent bazowy}
-\doUzupelnienia{adekwatny agent losowy, heurystyczny lub inny baseline,
-jego założenia i wyniki. Porównanie musi wykorzystywać uczciwe warunki.}
+\subsection{Krok środowiska}
+Kolejność zdarzeń w jednym kroku:
+\begin{enumerate}
+  \item kara za krok;
+  \item wykonanie akcji (ruch, wydobycie albo podparcie) i ewentualna kara za
+  akcję niedozwoloną;
+  \item wejście na wyjście kończy epizod nagrodą równą wartości ładunku
+  (bez losowania zawału);
+  \item zdarzenie korytarza: po wydobyciu $N$ złóż pola oznaczone \texttt{X}
+  stają się skałą;
+  \item zużycie oleju;
+  \item losowanie zawału (kara, ładunek przepada);
+  \item brak oleju (kara, ładunek przepada);
+  \item limit 300 kroków ustawia \texttt{truncated}.
+\end{enumerate}
+Akcja niedozwolona nie zmienia stanu, ale czas płynie: zużywa olej i niesie
+ryzyko zawału. Liczba losowa do zawału jest pobierana w każdym kroku, dzięki czemu
+przy tym samym ziarnie i tych samych akcjach przebieg epizodu jest identyczny.
+Pola \texttt{X} zamieniają się w skałę tylko wtedy, gdy górnik na nich nie stoi
+(zdarzenie wywołuje wydobycie, a wydobycie oznacza wejście na pole złoża), więc
+mapa zależy wyłącznie od maski i stan pozostaje Markowowski.
+
+\subsection{Mapy}
+Cztery stałe mapy (\texttt{maps/}) mają rozmiar $12\times 11$ i po 5 złóż.
+Wygenerowano je generatorem opisanym niżej z zapisanymi ziarnami, a test sprawdza,
+że pliki odpowiadają generatorowi.
+\begin{center}
+\begin{tabular}{@{}lp{0.62\textwidth}@{}}
+\toprule
+Mapa & Charakter \\
+\midrule
+\texttt{m1\_stabilna} & płytkie, tańsze złoża; standardowe parametry \\
+\texttt{m2\_krucha} & stabilność początkowa 3 i tylko jeden stempel \\
+\texttt{m3\_gleboka} & tanie złoża płytko, kryształy na samym dnie \\
+\texttt{m4\_zawal\_korytarza} & po wydobyciu 3 złóż korytarz \texttt{X} zawala się
+i odcina najkrótszą drogę powrotu \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Generator map}
+Generator (\texttt{miner\_rl/env/generator.py}) tworzy przekrój kopalni, a nie
+labirynt. Kolejne kroki to: wyjście i start przy powierzchni, poziomy wydobywcze
+co 2--3 wiersze, szyb główny i łączniki między poziomami, losowo drugi łącznik
+(droga alternatywna), krótkie ślepe wyrobiska i komory. Złoża umieszczane są na
+ślepych końcach wyrobisk, co najmniej 4 pola od startu i w różnych pasach
+głębokości, a ich rodzaj zależy od głębokości (płytko węgiel, na dnie kryształ).
+Opcjonalnie na najkrótszej drodze do najgłębszego złoża wyznaczany jest odcinek
+\texttt{X}, po którego zawaleniu wszystkie cele pozostają osiągalne inną drogą.
+Każda mapa jest walidowana (osiągalność wyjścia i złóż, także po zawale), a całe
+losowanie zależy tylko od ziarna, więc mapy są odtwarzalne.
+
+\subsection{Grafika i tryby uruchomienia}
+Grafika (\texttt{miner\_rl/render/}, biblioteka pygame) tylko odczytuje stan
+środowiska. Pokazuje kopalnię z teksturami pixel art, światło lampy, pasek
+stabilności, olej, ładunek, pył i drgania przy niskiej stabilności oraz animację
+zawału. Dostępne są trzy tryby: gra człowieka z menu wyboru wariantu
+(\texttt{scripts/play.py}, w systemie Windows także \texttt{graj.bat}), podgląd
+agenta (\texttt{scripts/watch.py}) i nagrywanie epizodów do plików GIF
+(\texttt{scripts/record.py}). Tekstury wygenerowano narzędziem AI (sekcja
+\ref{sec:ai}), a gra działa także bez nich.
+
+\subsection{Testy}
+Testy (\texttt{tests/}, pytest) obejmują m.in.: inicjalizację i powtarzalność
+przy ustalonym ziarnie, ruch w skałę i poza mapę, wydobycie, stawianie stempli
+(także bez stempli i przy pełnej stabilności), wymuszony zawał, wzór na ryzyko,
+brak oleju, wyjście z ładunkiem, limit kroków, zdarzenie korytarza, rozmiar
+przestrzeni stanów, poprawność i odtwarzalność generatora map, agentów bazowych
+oraz grafikę w trybie bez okna. Polecenie \texttt{python -m pytest -q} dało
+wynik: 188 testów zaliczonych (21.10.2026, Python 3.13).
+
+\section{Agent bazowy}\label{sec:baseline}
+Porównywane są dwa punkty odniesienia (\texttt{miner\_rl/agents/baselines.py}):
+\begin{itemize}
+  \item \textbf{Agent losowy} wybiera akcję z rozkładu jednostajnego.
+  \item \textbf{Heurystyka progowa} zna mapę i odczytuje stan z obserwacji.
+  Stawia stempel, gdy stabilność spadnie do progu; wraca najkrótszą drogą, gdy
+  ładunek osiągnie próg $X$ lub kończy się olej; w przeciwnym razie idzie do
+  najbliższego niewydobytego złoża.
+\end{itemize}
+Aby porównanie było uczciwe, wariant heurystyki dobierany jest osobno dla każdej
+mapy z siatki $X \in \{3, 9, 18, 30, 45\}$ i progu stempla $\sigma \le 1$ lub
+$\sigma \le 3$, na 500 epizodach treningowych (ziarna od 0). Wybrany wariant
+i agent losowy oceniani są na 1000 epizodach na rozłącznych ziarnach (od
+1\,000\,000), tych samych, które posłużą do oceny agentów uczących się.
+Skrypt: \texttt{scripts/run\_baselines.py}, wyniki: \texttt{results/}.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Mapa & Wariant & Losowy & Zwrot (heur.) & Wyjścia & Zawały & Wartość \\
+\midrule
+stabilna & $X=45$, $\sigma\le3$ & $-18{,}6$ & $44{,}0 \pm 30{,}5$ & 82,7\% & 17,3\% & 52,1 \\
+krucha & $X=9$, $\sigma\le3$ & $-14{,}5$ & $5{,}0 \pm 11{,}1$ & 85,2\% & 14,8\% & 10,2 \\
+głęboka & $X=45$, $\sigma\le3$ & $-15{,}8$ & $58{,}2 \pm 28{,}7$ & 88,5\% & 11,5\% & 63,7 \\
+zawał korytarza & $X=45$, $\sigma\le3$ & $-18{,}0$ & $49{,}7 \pm 35{,}0$ & 81,2\% & 18,8\% & 58,5 \\
+losowa & $X=45$, $\sigma\le3$ & $-16{,}4$ & $44{,}0 \pm 26{,}6$ & 87,0\% & 13,0\% & 50,2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Zwrot to średnia $\pm$ odchylenie standardowe z 1000 epizodów, „Wartość” to średnia
+wartość wyniesionego ładunku (0 w epizodach zakończonych porażką). Agent losowy ma
+ujemny zwrot na wszystkich mapach: często wykonuje akcje niedozwolone, prawie nie
+wydobywa złóż, a w 13--20\% epizodów kończy mu się olej. We wszystkich przypadkach wygrywał wcześniejszy próg stempla
+($\sigma\le3$), co pokazuje, że moment podparcia stropu ma duże znaczenie.
+Na trzech mapach heurystyka najlepiej wypada przy wydobyciu wszystkich złóż
+($X=45$); na mapie kruchej opłaca się wrócić wcześniej ($X=9$).
 
 \section{Algorytm uczący się}
 Porównywane są dwa tablicowe algorytmy uczenia różnicami czasowymi (TD):
@@ -210,18 +356,15 @@ ziarnie, brak bootstrapu w stanie terminalnym oraz zapis i odczyt tablicy Q.
 \begin{itemize}
   \item \textbf{Agent losowy} -- dolne odniesienie.
   \item \textbf{Heurystyka progowa} -- wydobywa najbliższe złoża, dopóki wartość
-  ładunku nie osiągnie progu $X$, potem wraca najkrótszą drogą; stawia stempel,
-  gdy stabilność spadnie do 1. Próg $X \in \{3, 6, 10, 15\}$ dobierany jest
-  osobno dla każdej mapy na epizodach treningowych, a raportowany jest najlepszy
-  wariant, aby porównanie było uczciwe.
+  ładunku nie osiągnie progu $X$, potem wraca najkrótszą drogą; wariant
+  (próg $X$ i moment stawiania stempla) dobierany jest osobno dla każdej mapy
+  (sekcja \ref{sec:baseline}).
   \item \textbf{Q-learning} i \textbf{SARSA} z tymi samymi hiperparametrami.
 \end{itemize}
 
 \subsection{Mapy}
-Cztery mapy o rosnącej trudności: \emph{stabilna} (płytkie złoża, mała
-głębokość), \emph{krucha} (szybki spadek bezpieczeństwa), \emph{kusząca głębia}
-(najcenniejsze złoża na dnie) oraz \emph{zawał korytarza} (zdarzenie odcinające
-najkrótszą drogę powrotu).
+Cztery stałe mapy opisane w sekcji „Środowisko” oraz wariant z losową mapą
+(nowa kopalnia z generatora w każdym epizodzie).
 
 \subsection{Hiperparametry (wartości wyjściowe)}
 \begin{center}
@@ -254,6 +397,12 @@ z wynikami (\texttt{results/}), co pozwala odtworzyć każdy wykres.
   \item \textbf{Wpływ kary za zawał.} Q-learning i SARSA z karą $-5$, $-20$ i
   $-50$ (10 ziaren każda) na mapie \emph{kusząca głębia}. Badana jest zmiana
   skłonności do ryzyka: głębokość wydobycia, odsetek zawałów i wartość ładunku.
+  \item \textbf{Stała a losowa mapa.} Agent uczony na jednej stałej mapie
+  porównany z agentem uczonym na losowych mapach (obserwacja z widokiem
+  otoczenia). Ocena na tych samych mapach i ziarnach, a dodatkowo na nowych,
+  niewidzianych w treningu kopalniach, aby zmierzyć zdolność uogólniania.
+  W pierwszej kolejności używana jest ta sama tablicowa metoda. Jeżeli okaże się
+  niewystarczająca dla dużej przestrzeni obserwacji, rozważony zostanie DQN.
 \end{enumerate}
 
 \subsection{Hipotezy}
@@ -264,7 +413,20 @@ z wynikami (\texttt{results/}), co pozwala odtworzyć każdy wykres.
   kosztem niższej wartości ładunku. W ewaluacji zachłannej różnica może maleć.
   \item[H3.] Wyższa kara za zawał prowadzi do płytszego kopania i rzadszych
   zawałów. Zbyt niska kara skutkuje zbyt ryzykowną strategią.
+  \item[H4.] Agent uczony na stałej mapie wypada na niej lepiej niż agent uczony
+  na losowych mapach, ale nie przenosi się na nowe kopalnie; agent uczony na
+  losowych mapach osiąga niższy wynik na każdej pojedynczej mapie, za to
+  uogólnia się na mapy niewidziane w treningu.
 \end{itemize}
+
+\subsection{Znane ryzyko}
+W pierwszym teście integracyjnym (poprzednia wersja parametrów, 20\,000 epizodów,
+jedno ziarno) Q-learning i SARSA nauczyły się natychmiastowego wyjścia z kopalni.
+Losowa eksploracja często kończyła się zawałem lub brakiem oleju (kara $-20$),
+więc wartości stanów w głębi kopalni szybko stawały się ujemne, a wyjście było
+bezpiecznym lokalnym optimum. Przed eksperymentami właściwymi zostanie to
+sprawdzone przy nowych parametrach. W razie potrzeby rozważone zostaną:
+optymistyczna inicjalizacja tablicy Q, dłuższa eksploracja i dobór $\alpha$.
 
 \subsection{Planowane wykresy i tabele}
 Krzywe uczenia (średnia z pasmem odchylenia z 10 ziaren, oś X: epizod, oś Y:
@@ -285,7 +447,10 @@ Wykresy muszą mieć opisane osie, jednostki i legendy.}
 co poprawia lub pogarsza wyniki oraz własne wnioski studenta.}
 
 \section{Ograniczenia rozwiązania}
-Na obecnym etapie ograniczeniem jest brak implementacji i wyników.
+Na obecnym etapie ograniczeniem jest brak wyników agentów uczących się.
+Wariant z losową mapą jest częściowo obserwowalny (agent widzi tylko otoczenie
+$5\times 5$). Model zawału jest umowny i nie odwzorowuje rzeczywistej mechaniki
+górotworu.
 \doUzupelnienia{ograniczenia modelu, obserwacji, funkcji nagrody, eksperymentów
 i możliwości uogólniania, zgodne z rzeczywistym stanem rozwiązania.}
 
@@ -293,21 +458,32 @@ i możliwości uogólniania, zgodne z rzeczywistym stanem rozwiązania.}
 Repozytorium:
 \url{https://github.com/Kesacky/uczenie-ze-wzmocnieniem}.
 
-Nie ma jeszcze programu RL do uruchomienia.
-Dokumentację można kompilować poleceniem \texttt{pdflatex main.tex}
-z katalogu \texttt{report}; kompilację należy wykonać dwukrotnie,
-aby uaktualnić spis treści.
-\doUzupelnienia{wymagania środowiska programu, instalacja zależności,
-polecenia uruchomienia, treningu, ewaluacji i odtworzenia wyników
-z czystej kopii repozytorium.}
+Wymagany jest Python 3.10 lub nowszy. Instalacja zależności i testy:
+\begin{verbatim}
+python -m pip install -r requirements.txt
+python -m pytest -q
+\end{verbatim}
+Gra: \texttt{python scripts/play.py} (menu z wyborem stałej lub losowej mapy;
+w systemie Windows wystarczy dwuklik na \texttt{graj.bat}). Podgląd agenta:
+\texttt{python scripts/watch.py --map m3\_gleboka --agent threshold}.
+Ewaluacja agentów bazowych:
+\texttt{python scripts/run\_baselines.py --episodes 1000}.
+Raport kompiluje się poleceniem \texttt{pdflatex main.tex} lub
+\texttt{xelatex main.tex} z katalogu \texttt{report} (dwukrotnie, aby
+uaktualnić spis treści), a dziennik AI poleceniem \texttt{xelatex main.tex}
+z katalogu \texttt{ai-journal}.
+\doUzupelnienia{polecenia treningu i odtworzenia wyników agentów uczących się.}
 
-\section{Wsparcie AI}
+\section{Wsparcie AI}\label{sec:ai}
 \input{sections/ai.tex}
 
 \begin{thebibliography}{9}
 \bibitem{sutton}
 R.~S. Sutton, A.~G. Barto,
 \emph{Reinforcement Learning: An Introduction}, wyd.~2, MIT Press, 2018.
+\bibitem{gymnasium}
+M.~Towers i in., \emph{Gymnasium: A Standard Interface for Reinforcement Learning
+Environments}, arXiv:2407.17032, 2024.
 \bibitem{zasady}
 Materiały kursowe WEiI PRz,
 \emph{Uczenie się ze wzmocnieniem. Zasady realizacji projektu},

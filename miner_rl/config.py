@@ -26,7 +26,7 @@ from typing import Any
 class GameConfig:
     # --- Złoża: znak mapy -> wartość (głębsze są cenniejsze) ---
     deposit_values: dict[str, int] = field(
-        default_factory=lambda: {"c": 1, "s": 3, "g": 6, "k": 10}
+        default_factory=lambda: {"c": 3, "s": 9, "g": 18, "k": 30}   # 21.10.2026: ×3 dla map 16×16
     )
     max_deposits: int = 5                # K: górna granica liczby złóż na mapie
 
@@ -38,8 +38,10 @@ class GameConfig:
     props_start: int = 2                 # n: liczba stempli na starcie
     props_max: int = 2                   # górna granica n (rozmiar przestrzeni stanów)
 
-    # --- Zawał: p = collapse_base * (stability_max - sigma) * (1 + y / H) ---
-    collapse_base: float = 0.02
+    # --- Zawał: p = collapse_floor + collapse_base * (stability_max - sigma)^collapse_power * (1 + y / H) ---
+    collapse_floor: float = 0.001        # ryzyko w każdym kroku nawet przy pełnej stabilności
+    collapse_base: float = 0.003
+    collapse_power: float = 2.0          # >1: pierwsze wydobycia mało groźne, każde kolejne coraz bardziej
     collapse_prob: float | None = None   # jeśli ustawione, wymusza stałe p (np. 1.0 w testach)
 
     # --- Olej w lampie ---

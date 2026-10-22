@@ -1,13 +1,15 @@
 ; opis = Krucha kopalnia: niska stabilność na starcie i jeden stempel
+; wygenerowano = python scripts/gen_maps.py --theme krucha --seed 2
 ; stability_start = 3
 ; props_start = 1
-###E####
-#..S.c.#
-#.####.#
-#s.#...#
-##.#.###
-#..#.g.#
-#.##.#.#
-#g...#s#
-########
-########
+######E#####
+######S.####
+####c#.#####
+####.#.#####
+####......s#
+######.#####
+####g#.#g###
+###......###
+##.###.#####
+##........k#
+############

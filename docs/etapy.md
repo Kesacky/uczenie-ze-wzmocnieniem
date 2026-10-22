@@ -1,6 +1,6 @@
 # Etapy i lista kontrolna
 
-Stan na 21.10.2026: przeczytano oba PDF-y, spisano wymagania, utworzono publiczne repozytorium i szablon raportu. Kompilacja raportu we wbudowanym edytorze zakończyła się powodzeniem. Temat nie został wybrany, formalizacja nie jest gotowa, nie potwierdzono przekazania linku prowadzącemu. **E1 nie jest ukończony.**
+Stan na 21.10.2026 (wieczór): wybrano proponowany temat „Górnik w niestabilnej kopalni”, raport zawiera opis problemu i formalizację MDP. Gotowe są środowisko gry, generator map, agenci bazowi z wynikami oraz implementacja Q-learningu i SARSA. Nie potwierdzono akceptacji tematu ani przekazania linku prowadzącemu. **E1 nie jest ukończony** (brak akceptacji); prace E2 są w toku.
 
 Publiczne repozytorium: [Kesacky/uczenie-ze-wzmocnieniem](https://github.com/Kesacky/uczenie-ze-wzmocnieniem). Samo umieszczenie linku w dokumentacji nie oznacza przekazania go prowadzącemu ani zaliczenia etapu.
 
@@ -10,8 +10,8 @@ Publiczne repozytorium: [Kesacky/uczenie-ze-wzmocnieniem](https://github.com/Kes
 
 | Etap | Termin względny | Data kalendarzowa | Wymagany rezultat | Status |
 | --- | --- | --- | --- | --- |
-| E1 | do końca P2 | do potwierdzenia | temat, link do repo, opis problemu, wstępna formalizacja | nieukończony |
-| E2 | do P4 | do potwierdzenia | środowisko, baseline, plan badań, pierwsza działająca wersja | nierozpoczęty |
+| E1 | do końca P2 | do potwierdzenia | temat, link do repo, opis problemu, wstępna formalizacja | czeka na akceptację tematu |
+| E2 | do P4 | do potwierdzenia | środowisko, baseline, plan badań, pierwsza działająca wersja | w toku |
 | E3 | do P6 | do potwierdzenia | finalny projekt, raport, eksperymenty, wyniki i analiza | nierozpoczęty |
 | E4 | P7 | do potwierdzenia | poprawki wskazane przez prowadzącego, domknięcie | oczekuje na uwagi |
 
@@ -31,12 +31,12 @@ Każdy rozpoczęty tydzień opóźnienia może kosztować 10 punktów, osobno dl
 - [x] Dodać szkielet sprawozdania `report/main.tex` i sprawdzić jego kompilację (21.10.2026, kompilator edytora: sukces).
 - [x] Wykonać pierwszy commit rzeczywiście utworzonych materiałów (commit inicjujący dokumentację i narzędzie dziennika, 21.10.2026).
 - [x] Sprawdzić przed publikacją, czy brak sekretów, danych wrażliwych i materiałów bez prawa rozpowszechniania; oryginalne PDF-y zostawić lokalnie (kontrola plików i `git check-ignore`).
-- [ ] Wybrać i jednoznacznie opisać temat; uzgodnić własny temat z prowadzącym.
-- [ ] Zapisać cel agenta i uzasadnienie sekwencyjnego charakteru problemu oraz zastosowania RL.
-- [ ] Opisać agenta, środowisko i stan/obserwację.
-- [ ] Zdefiniować dostępne akcje, nagrody i warunki końca epizodu.
-- [ ] Opisać ograniczenia, pojedynczy krok interakcji i mierzalną definicję sukcesu.
-- [ ] Wskazać niepewne założenia formalizacji do weryfikacji po testach.
+- [x] Wybrać i jednoznacznie opisać temat (raport, sekcja 1). Uzgodnić temat z prowadzącym: **do zrobienia**.
+- [x] Zapisać cel agenta i uzasadnienie sekwencyjnego charakteru problemu oraz zastosowania RL (raport, sekcje 1–2).
+- [x] Opisać agenta, środowisko i stan/obserwację (raport, sekcja 3).
+- [x] Zdefiniować dostępne akcje, nagrody i warunki końca epizodu (raport, sekcja 3).
+- [x] Opisać ograniczenia, pojedynczy krok interakcji i mierzalną definicję sukcesu (raport, sekcja 3).
+- [x] Wskazać niepewne założenia formalizacji do weryfikacji po testach (raport, sekcja 3, „Elementy do weryfikacji”).
 - [ ] Udokumentować dotychczasową pomoc AI i wskazać rzeczywistą weryfikację studenta.
 - [ ] Uzupełnić termin kalendarzowy E1 oraz wynik weryfikacji prowadzącego.
 
@@ -46,18 +46,18 @@ Potwierdzenie przekazania linku: **brak**. Temat/akceptacja: **brak**. Wynik wer
 
 Źródła: P00 §4, s. 3; P01 §3, s. 2–4.
 
-- [ ] Przygotować czytelną strukturę kodu i plik zależności/środowiska.
+- [x] Przygotować czytelną strukturę kodu i plik zależności/środowiska (`miner_rl/`, `requirements.txt`).
 - [ ] Zaktualizować instrukcję uruchomienia i sprawdzić czysty checkout bez ręcznych zmian ścieżek.
-- [ ] Wprowadzić obsługę ziaren losowych, gdy wpływają na powtarzalność.
-- [ ] Zaimplementować inicjalizację epizodu i krok środowiska.
-- [ ] Zdefiniować obsługę poprawnych i niedozwolonych akcji.
-- [ ] Sprawdzić właściwe tematowi przypadki brzegowe, zakończenie i limit kroków.
-- [ ] Opisać zdarzenia dynamiczne i potwierdzić zgodność kodu z raportem.
-- [ ] Uruchomić wielokrotne pełne epizody bez błędów.
-- [ ] Zaimplementować adekwatny baseline i zapisać jego wyniki.
-- [ ] Przygotować plan porównań, wariantów i hiperparametrów.
-- [ ] Wybrać metryki jakości i plan tabel/wykresów.
-- [ ] Zaplanować kilka uruchomień albo zapisać uzasadnienie odstępstwa.
+- [x] Wprowadzić obsługę ziaren losowych, gdy wpływają na powtarzalność (`reset(seed)`, test powtarzalności).
+- [x] Zaimplementować inicjalizację epizodu i krok środowiska (`miner_rl/env/mine_env.py`).
+- [x] Zdefiniować obsługę poprawnych i niedozwolonych akcji.
+- [x] Sprawdzić właściwe tematowi przypadki brzegowe, zakończenie i limit kroków (`tests/test_env.py`; `python -m pytest -q`: 188 passed, 21.10.2026, chmura Claude).
+- [x] Opisać zdarzenia dynamiczne i potwierdzić zgodność kodu z raportem (raport, sekcja 4).
+- [x] Uruchomić wielokrotne pełne epizody bez błędów (ewaluacja agentów bazowych, 1000 epizodów na mapę).
+- [x] Zaimplementować adekwatny baseline i zapisać jego wyniki (`miner_rl/agents/baselines.py`, `results/`).
+- [x] Przygotować plan porównań, wariantów i hiperparametrów (raport, sekcja „Plan eksperymentów”).
+- [x] Wybrać metryki jakości i plan tabel/wykresów.
+- [x] Zaplanować kilka uruchomień albo zapisać uzasadnienie odstępstwa (10 ziaren na wariant).
 - [ ] Przygotować pierwszą działającą wersję rozwiązania.
 - [ ] Uzupełnić raport, dziennik decyzji i dokumentację AI w trakcie prac.
 - [ ] Uzupełnić termin kalendarzowy E2 oraz wynik weryfikacji prowadzącego.

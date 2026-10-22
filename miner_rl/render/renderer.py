@@ -12,17 +12,18 @@ if TYPE_CHECKING:
 class Renderer:
     """Rysuje na własnej powierzchni, opcjonalnie prezentowanej w oknie."""
 
-    def __init__(self, env: MineEnv, scale: int = 2, assets: AssetPack | None = None,
+    def __init__(self, env: MineEnv, scale: float = 2, assets: AssetPack | None = None,
                  assets_dir=None, use_textures: bool = True, lamp: bool = True,
                  hud: bool = True) -> None:
         pygame.font.init()
         self.env = env
         self.assets = assets or AssetPack(assets_dir, scale=scale, use_textures=use_textures)
         self.scale = self.assets.scale
-        self.tile = self.assets.tile * self.scale
-        self.hud_height = 88 * self.scale if hud else 0
+        self.tile = max(8, round(self.assets.tile * self.scale))
+        self.scale = self.tile / self.assets.tile
+        self.hud_height = round(88 * self.scale) if hud else 0
         self.surface = pygame.Surface((env.width*self.tile, env.height*self.tile+self.hud_height))
-        self.font = pygame.font.Font(None, 16*self.scale)
+        self.font = pygame.font.Font(pygame.font.match_font('dejavusans'), max(8, round(13*self.scale)))
         self.lamp, self.hud = lamp, hud
         self.frame = 0
         self._previous_pos = env.pos
@@ -123,7 +124,7 @@ class Renderer:
         top = e.height*t
         frame = self.assets.get('ui/hud_frame')
         # Dziewięć części ramki; brzegi zachowują szerokość ośmiu pikseli bazowych.
-        margin = min(8*s, t//3)
+        margin = min(round(8*s), t//3)
         width, height = self.surface.get_width(), self.hud_height
         src = (0, margin, t-margin, t)
         xs, ys = (0, margin, width-margin, width), (top, top+margin, top+height-margin, top+height)
@@ -137,13 +138,13 @@ class Renderer:
             ('oil', e.oil, e.config.oil_start, (218, 153, 51), 'Olej')]):
             left = 10*s + i*(width//2)          # dwie kolumny niezależnie od szerokości mapy
             bar = width//2 - 44*s
-            self.surface.blit(pygame.transform.scale(self.assets.get('ui/'+icon), (20*s, 20*s)), (left, top+10*s))
+            self.surface.blit(pygame.transform.scale(self.assets.get('ui/'+icon), (round(20*s), round(20*s))), (left, top+10*s))
             pygame.draw.rect(self.surface, (20, 20, 20), (left+24*s, top+25*s, bar, 6*s))
             pygame.draw.rect(self.surface, barcolor, (left+24*s, top+25*s, int(bar*max(0, min(1, value/max(1, maximum)))), 6*s))
             self._text(self.surface, f'{label}: {value}', (left+24*s, top+9*s))
-        self.surface.blit(pygame.transform.scale(self.assets.get('ui/sack'), (18*s, 18*s)), (10*s, top+38*s))
+        self.surface.blit(pygame.transform.scale(self.assets.get('ui/sack'), (round(18*s), round(18*s))), (10*s, top+38*s))
         self._text(self.surface, f'Ładunek: {e.load_value}  Stemple: {e.props}/{e.config.props_max}  Krok: {e.steps}', (32*s, top+38*s))
-        self._text(self.surface, f'Zwrot: {e.total_reward:.1f}  {e.map.name}', (10*s, top+60*s))
+        self._text(self.surface, f'Wynik: {e.total_reward:.1f}  {e.map.name}' + (f'  Ziarno: {self.seed}' if hasattr(self, 'seed') else ''), (10*s, top+60*s))
 
     def collapse_frames(self, n: int = 8) -> list[pygame.Surface]:
         frames = []
@@ -166,16 +167,13 @@ class Renderer:
         return frames
 
     def end_frames(self, n: int = 8) -> list[pygame.Surface]:
-        reason = self.env.last_info.get('reason')
-        if reason == 'collapse':
-            return self.collapse_frames(n)
-        text = {'exit': f'Wyjście: +{self.env.load_value}', 'out_of_oil': 'Brak oleju',
-                'step_limit': 'Limit kroków'}.get(reason, 'Koniec epizodu')
-        frames = []
-        for _ in range(n):
-            frame = self.draw().copy()
-            self._text(frame, text, (10*self.scale, 10*self.scale))
-            frames.append(frame)
+        from .ui import draw_end_screen, summary
+        if n < 1:
+            return []
+        frames = self.collapse_frames(max(1, n//2)) if self.env.last_info.get('reason') == 'collapse' and n > 1 else []
+        frame = self.draw().copy()
+        draw_end_screen(frame, summary(self.env), [])
+        frames.extend(frame.copy() for _ in range(n-len(frames)))
         return frames
 
     def frame_array(self, surface: pygame.Surface | None = None) -> np.ndarray:

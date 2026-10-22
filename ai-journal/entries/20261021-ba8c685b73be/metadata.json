@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Wyjaśnienie braku powłoki na komputerze użytkownika",
+  "scope": "Wyjaśnienie; bez zmian w kodzie",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "8506d84c29ee879dcfa562f4323efb9b9969f8cbe7318d8e14625d9b721a0095",
+  "response_sha256": "a2ed0811e660a8b901d7b2307840f436af311c0b6bbd3d2497c89b9f210a3efc",
+  "recorded_at_utc": "2026-10-21T21:52:26.812248+00:00"
+}

@@ -1,0 +1,12 @@
+Poprawione i zapisane w folderze projektu. Zamknij otwarte okno gry i uruchom `graj.bat` jeszcze raz.
+
+**Co było nie tak i co zmieniłem**
+- **Losowa mapa nie była losowa.** Gra zawsze startowała z tym samym ziarnem, więc każde uruchomienie dawało tę samą kopalnię i te same zawały. Teraz każda gra losuje przebieg od nowa. „Zagraj ponownie” zostawia tę samą kopalnię z nowymi zawałami, a „Nowa mapa” losuje inną kopalnię.
+- **Mapa jest o połowę mniejsza:** 12×11 pól zamiast 16×16.
+- **Kopalnia zamiast labiryntu.** Nowy generator buduje szyb od wyjścia w dół, poziome chodniki co 2–3 wiersze, łączniki między poziomami i krótkie ślepe przodki. Dookoła jest lita skała.
+- **Rudy już nie leżą przy starcie.** Złoża są na końcach wyrobisk, co najmniej 4 pola od startu, i rozłożone po głębokości: płytko węgiel, na dnie kryształy.
+- **Mniejsza szansa na zawał.** Przy pełnej stabilności to 0,1% na krok, a po jednym złożu ok. 0,5%. Ryzyko rośnie dopiero przy kolejnych wydobyciach bez stempla, do 15% przy zerowej stabilności. Heurystyka, która bierze 1 złoże i wraca, ma teraz 3–7% zawałów zamiast ok. 30%.
+
+Wszystkie 188 testów przechodzą. Wyniki agentów bazowych i GIF-y policzyłem od nowa.
+
+Jedna rzecz do decyzji: przy takim ryzyku na większości map opłaca się zebrać wszystkie złoża. Dylemat „kopać dalej czy wracać” widać więc głównie na mapie „krucha”. Gdyby był potrzebny mocniejszy dylemat, wystarczy podnieść jedną liczbę w `config.py` (`collapse_base`). Szczegóły i nowe liczby do raportu są w `private/RAPORT_SESJI_GRY.md`. Commity nadal robi `tmp\commit_gra.ps1`.

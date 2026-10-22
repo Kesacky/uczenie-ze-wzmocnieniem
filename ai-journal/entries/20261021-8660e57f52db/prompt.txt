@@ -1,0 +1,1 @@
+a jak zmienilo by to proces uczenia agenta gdybysmy zamiast stalych map wprowadzli losowo generowane ?

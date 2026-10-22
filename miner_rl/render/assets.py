@@ -14,9 +14,9 @@ ASSET_NAMES = ([f'tiles/{n}' for n in TILE_NAMES] + [f'sprites/{n}' for n in SPR
 class AssetPack:
     """Leniwie wczytuje i keszuje kafelki skalowane najbliższym sąsiadem."""
 
-    def __init__(self, assets_dir=None, tile: int = 32, scale: int = 2,
+    def __init__(self, assets_dir=None, tile: int = 32, scale: float = 2,
                  use_textures: bool = True) -> None:
-        if tile < 1 or scale < 1:
+        if tile < 1 or scale <= 0:
             raise ValueError('Rozmiar kafelka i skala muszą być dodatnie.')
         self.assets_dir = Path(assets_dir) if assets_dir else Path(__file__).resolve().parents[2] / 'assets'
         self.tile, self.scale = tile, scale
@@ -37,7 +37,7 @@ class AssetPack:
             except (OSError, ValueError, pygame.error):
                 surface = self._fallback(name)
                 self.missing_names.add(name)
-            size = self.tile * self.scale
+            size = max(8, round(self.tile * self.scale))
             self._cache[name] = pygame.transform.scale(surface, (size, size))
         return self._cache[name]
 

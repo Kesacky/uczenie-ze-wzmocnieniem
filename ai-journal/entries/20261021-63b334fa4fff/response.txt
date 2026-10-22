@@ -1,0 +1,21 @@
+**RL (uczenie ze wzmocnieniem)** to sposób uczenia, w którym nikt nie mówi agentowi, co ma robić. Agent próbuje, dostaje nagrody albo kary i z czasem uczy się, które decyzje opłacają się na dłuższą metę.
+
+U Ciebie agentem jest górnik. Na początku chodzi po kopalni prawie losowo i często ginie w zawale. Po tysiącach epizodów zapamiętuje w tabeli Q (Q-learning, SARSA), że np. „głęboko i przy niskiej stabilności lepiej wracać z tym, co mam”. Nikt mu tej reguły nie wpisał: wyciągnął ją z nagród.
+
+**MDP (proces decyzyjny Markowa)** to zasady gry zapisane matematycznie, żeby RL miało na czym działać. W Twoim raporcie ma te części:
+
+1. **Stan s** – co agent wie w danej chwili: (x, y, σ, o, m, n), czyli pozycja, stabilność stropu 0–5, olej w 4 przedziałach, maska wydobytych złóż i liczba stempli.
+2. **Akcje** – góra, dół, lewo, prawo, podepnij. Wejście w złoże oznacza jego wydobycie.
+3. **Przejścia** – co dzieje się po akcji: olej −1, wydobycie obniża stabilność o 1, losowanie zawału z p = 0,02·(5−σ)·(1+y/H), po 3 złożach zawala się wybrany korytarz.
+4. **Nagroda** – −0,1 za krok, −0,5 za niedozwolony ruch, +wartość ładunku przy wyjściu, −20 za zawał lub brak oleju.
+5. **γ (współczynnik dyskontowania)** – jak bardzo agent ceni przyszłe nagrody względem bieżących.
+
+„Markowa” znaczy: żeby przewidzieć, co stanie się dalej, wystarczy obecny stan, a historia nie jest potrzebna. Dlatego ładunek nie jest osobnym elementem stanu, bo da się go policzyć z maski m.
+
+**Analogia:** MDP to instrukcja planszówki, a RL to gracz, który instrukcji nie przeczytał i uczy się grać, grając.
+
+**Zdanie na obronę:** MDP opisuje problem (stany, akcje, przejścia, nagrody), a RL to metoda, która uczy się dobrej strategii w tym MDP metodą prób i błędów, bez znajomości wzoru na zawał.
+
+**Uwaga na obronę:** olej jest w stanie tylko jako 4 przedziały, choć środowisko liczy go dokładnie (100 kroków). Agent nie wie więc dokładnie, ile kroków mu zostało, i własność Markowa jest tu spełniona tylko w przybliżeniu. Prowadzący może o to zapytać. Można to opisać w raporcie jako świadome uproszczenie albo trzymać w stanie dokładniejszą wartość oleju. Powiedz, którą wersję wolisz, a poprawię raport.
+
+[Działania Claude] Odczyt zasad projektu i sekcji MDP z raportu, dopisanie tego wpisu do dziennika AI.

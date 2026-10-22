@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Publikacja w repozytorium: ograniczenia dostępu",
+  "scope": "Wyjaśnienie, dlaczego Claude nie może wykonać git push; opcje",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "a42524d04437f7b92beeec3cbd091b89d89c9316468dd7897316974d37a13eb1",
+  "response_sha256": "7b335e226c836b9716bd8ab1a087ae11b68b8b75867b243b15e6ce8dde0ede71",
+  "recorded_at_utc": "2026-10-21T17:24:31.395355+00:00"
+}

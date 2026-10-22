@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Publikacja w repozytorium: ponowna próba",
+  "scope": "Ponowna próba pusha po instalacji aplikacji Claude na GitHubie (nieudana)",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "eeeec7ef2ecf5369f727faf31ea88803450a1c9669ca4e44653999c7dbc4c70b",
+  "response_sha256": "f4fe1ab2ec6539fcc934e9cb6ab4f8befeb2832cfaf3b08287272858ca66620d",
+  "recorded_at_utc": "2026-10-21T17:24:34.551380+00:00"
+}

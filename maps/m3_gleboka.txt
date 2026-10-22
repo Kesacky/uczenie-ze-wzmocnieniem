@@ -1,11 +1,13 @@
 ; opis = Kusząca głębia: tanie złoża płytko, kryształy na samym dnie
-###E####
-#c.S..c#
-###.####
-#...#..#
-#.#...##
-#.#.#..#
-#.#.##.#
-#...#g.#
-#k#...k#
-########
+; wygenerowano = python scripts/gen_maps.py --theme gleboka --seed 3
+######E#####
+####..S#####
+######.#####
+######.#.###
+#####c....##
+####s#.#####
+##......####
+##.###.#####
+##.#k#.#####
+#k........k#
+############

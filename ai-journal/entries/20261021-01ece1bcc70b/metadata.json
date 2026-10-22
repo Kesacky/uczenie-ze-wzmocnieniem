@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Losowe mapy: trudność i zgodność z wymaganiami",
+  "scope": "Ocena nakładu pracy (DQN) i zgodności z P00; rekomendacja etapowania",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "6c9b8b8c4d0646ac63d153bcfcd6cf0829d929e57ed0e2f8889423ebcf120bf2",
+  "response_sha256": "9b97d71b127eb949dbda3f22c695dfa42fa1fb1d13af88e734d2ac6939e2e021",
+  "recorded_at_utc": "2026-10-21T17:24:36.705891+00:00"
+}

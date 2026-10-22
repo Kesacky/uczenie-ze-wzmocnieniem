@@ -1,0 +1,18 @@
+Raport i pozostałe pliki są zaktualizowane pod obecną wersję gry. Raport w PDF (12 stron) jest wyżej.
+
+Co się zmieniło w grze (z raportu sesji od gry): mapy 12×11 o układzie kopalni zamiast labiryntu, nowy wzór na ryzyko zawału (niewielkie ryzyko także przy pełnej stabilności, kwadrat przy spadku stabilności), złoża 3/9/18/30, generator map i drugi wariant gry z losową mapą, menu i ekran końcowy.
+
+Raport (report/main.tex):
+- Formalizacja: rozmiar map, nowy wzór na zawał z przykładowymi wartościami, wartości złóż, rozmiar przestrzeni stanów (304 128), wariant z losową mapą (widok otoczenia 5×5, problem częściowo obserwowalny) oraz nowy podrozdział „Zmiany względem wersji wstępnej”, który wyjaśnia, dlaczego parametry zmieniono po testach.
+- Środowisko (było puste): interfejs, kolejność zdarzeń w kroku, tabela 4 map, opis generatora, grafika i tryby, testy.
+- Agent bazowy (było puste): procedura doboru wariantu heurystyki i tabela wyników na 4 mapach i mapach losowych.
+- Plan eksperymentów: trzeci eksperyment „stała a losowa mapa”, hipoteza H4 i opis znanego ryzyka (agenci uczyli się od razu wychodzić z kopalni).
+- Instrukcja uruchomienia, ograniczenia, bibliografia (Gymnasium) i sekcja „Wsparcie AI” z opisem pracy przy grze: co zrobił Claude, co Codex, a co generator obrazów.
+
+Inne pliki: README.md (aktualny stan, kompilacja dziennika XeLaTeX-em, najbliższy krok), docs/etapy.md (odhaczone wykonane punkty E1 i E2 z dowodami; akceptacja tematu nadal otwarta), docs/koncepcja.md (warianty gry, aktualne parametry i eksperymenty).
+
+Sprawdziłem też kod gry z Twojego folderu: python -m pytest -q dało 188 zaliczonych testów.
+
+Jedna rzecz do Twojej decyzji: przy obecnych parametrach najlepsza heurystyka na 3 z 4 map wydobywa wszystkie złoża, więc dylemat „kopać czy wracać” widać głównie na mapie kruchej. Zapisałem to w raporcie jako element do weryfikacji. Jeśli eksperymenty pokażą, że to problem, wystarczy zwiększyć ryzyko zawału w config.py.
+
+[Działania Claude] Odczyt raportu sesji gry i kodu, uruchomienie testów, aktualizacja raportu, README, docs/etapy.md i docs/koncepcja.md.

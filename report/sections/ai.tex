@@ -1,3 +1,6 @@
+Pełne prompty i odpowiedzi (dosłownie, z datą, narzędziem i modelem) są zapisywane
+w repozytorium, w pliku \texttt{ai-journal/main.tex}. Poniżej podsumowanie.
+
 \subsection*{21 października 2026 -- przygotowanie projektu}
 \textbf{Narzędzia:} Codex (OpenAI, model GPT-6.1)
 oraz Claude (Anthropic, Cowork, model claude-opus-5-5).
@@ -5,10 +8,32 @@ oraz Claude (Anthropic, Cowork, model claude-opus-5-5).
 \textbf{Cel i zakres pomocy:} analiza wymagań P00 i P01, przygotowanie struktury
 repozytorium, szablonu raportu i narzędzia do prowadzenia dziennika AI
 (Codex); przegląd możliwych tematów projektu i wstępna koncepcja wybranego
-tematu „Górnik w niestabilnej kopalni” (Claude). Na tym etapie nie powstał
-kod środowiska, agentów ani wyniki eksperymentów.
+tematu „Górnik w niestabilnej kopalni” (Claude).
 
-\textbf{Weryfikacja:} do uzupełnienia.
+\subsection*{21 października 2026 -- formalizacja, algorytmy i plan eksperymentów}
+\textbf{Narzędzie:} Claude (Anthropic, Cowork, model claude-opus-5-5).
 
-\textbf{Dziennik:} pełne prompty i odpowiedzi z etapu realizacji projektu
-są zapisywane w repozytorium, w pliku \texttt{ai-journal/main.tex}.
+\textbf{Cel i zakres pomocy:} Claude przedstawiał warianty formalizacji i planu
+eksperymentów, a student wybierał spośród nich (poziomy stabilności, kara za
+zawał, model ryzyka, zestaw akcji, porównywane algorytmy, liczba ziaren,
+eksperyment dodatkowy). Claude zredagował sekcje raportu z opisem problemu,
+formalizacją, opisem algorytmów i planem eksperymentów oraz napisał
+implementację Q-learningu i SARSA z testami (\texttt{miner\_rl/agents/tabular.py},
+\texttt{tests/test\_tabular.py}).
+
+\subsection*{21 października 2026 -- gra i agenci bazowi}
+\textbf{Narzędzia:} Claude (Anthropic, Cowork, model claude-opus-5-5);
+Codex CLI (OpenAI, model gpt-6.1-sol), sterowany promptami przygotowanymi przez
+Claude; generator obrazów wywoływany przez Codex (wariant modelu nieudostępniony).
+
+\textbf{Cel i zakres pomocy:} Claude napisał logikę środowiska, generator map,
+agentów bazowych, testy środowiska i skrypt ewaluacji agentów bazowych. Codex
+wygenerował grafikę gry (renderer pygame, menu, ekran końcowy, tryby gry,
+podglądu i nagrywania), testy grafiki oraz tekstury pixel art (prompty do obrazów
+zapisano w \texttt{assets/sheets.json} i w dzienniku). Zmiany rozmiaru map,
+modelu ryzyka i wartości złóż (sekcja „Zmiany względem wersji wstępnej”) wynikały
+z decyzji i uwag studenta po zagraniu w grę oraz z pomiarów i propozycji Claude.
+
+\subsection*{Weryfikacja studenta}
+Do uzupełnienia przez studenta (np. ręczne zagranie w grę, obejrzenie nagrań
+epizodów, przegląd formalizacji i kodu).

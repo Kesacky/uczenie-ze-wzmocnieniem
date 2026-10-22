@@ -1,0 +1,7 @@
+Uprawnienia są w porządku i to nie one blokują. Problem jest w tym, czy dana funkcja w ogóle istnieje na tym komputerze.
+
+Uprawnienia mówią, co wolno mi zrobić z narzędziami, które mam: czytać i zapisywać pliki w folderze, sterować komputerem itd. Uruchamianie poleceń to osobne narzędzie, które aplikacja desktopowa daje tylko na części komputerów (działa w lokalnej maszynie wirtualnej). W tej sesji aplikacja go po prostu nie udostępniła, więc nie ma czego włączyć zgodą. Sprawdziłem to na początku tej i poprzedniej sesji: mam dostęp do plików i sterowanie komputerem, powłoki nie ma.
+
+Skoro dałeś pełne uprawnienia, praktyczne wyjście to sterowanie komputerem: otworzę PowerShell w folderze projektu i sam wpiszę `git status`, a potem commity i push. Jest wolniej niż zwykła powłoka, ale przy kilku poleceniach gita to rozsądne. Zrobić to teraz?
+
+[Działania Claude] Brak.

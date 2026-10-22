@@ -1,0 +1,34 @@
+Plan E2. Z E2 gotowe są już: środowisko, testy, agenci bazowi z wynikami i plan eksperymentów w raporcie. Brakuje „pierwszej działającej wersji rozwiązania”, sprawdzenia czystego checkoutu i uzupełnienia dokumentacji.
+
+Krok 0 – Ty (5 min)
+Nie widzę stanu Gita z tej sesji. Sprawdź git status i czy pliki z sesji gry są w commitach (skrypt tmp/commit_gra.ps1, jeśli go nie uruchamiałeś), potem git push. Od tego zależy krok 6.
+
+Krok 1 – Codex: infrastruktura treningu
+- scripts/train.py: konfiguracja z pliku JSON (configs/), algorytm, mapa, hiperparametry, lista ziaren; ewaluacja zachłanna co 500 epizodów na 100 epizodach i końcowa na 1000 epizodach na ziarnach od 1 000 000 (te same co baseline).
+- Zapis do results/runs/<nazwa>/seed_<k>/: curve.csv, final.json, config.json, model .pkl.
+- scripts/evaluate.py (ocena zapisanego modelu) i scripts/plot_results.py (krzywa uczenia: średnia z pasmem po ziarnach, linia baseline; opisane osie i legenda).
+- Testy na małych ustawieniach.
+Gotowe, gdy: pytest przechodzi, a krótki trening na m1 kończy się i zapisuje pliki.
+
+Krok 2 – Claude: trening próbny
+Q-learning i SARSA na m1, 2–3 ziarna, 20 000 epizodów. Sprawdzam, czy agent nadal uczy się tylko natychmiastowego wyjścia.
+
+Krok 3 – Claude decyduje, Codex wdraża: poprawki (jeśli potrzebne)
+Kandydaci: optymistyczna inicjalizacja tablicy Q, dłuższa eksploracja (ε), więcej epizodów, inne α. Mała siatka tylko na m1. Każdą zmianę uzasadnię pod kątem obrony.
+Kryterium „pierwszej działającej wersji”: agent RL wydobywa złoża i ma średni zwrot wyższy niż natychmiastowe wyjście (−0,1) i agent losowy. Pobicie heurystyki to już hipoteza H1 i etap E3.
+
+Krok 4 – Codex: podgląd wytrenowanego agenta
+watch.py i record.py z modelem .pkl oraz jeden GIF do results/gifs/.
+
+Krok 5 – Claude: dokumentacja
+Raport: wyniki wstępne i co wynikło z „Znanego ryzyka”, zaktualizowane hiperparametry, polecenia treningu w „Instrukcji uruchomienia”. Do tego report/sections/ai.tex, docs/etapy.md i README.
+
+Krok 6 – Codex: czysty checkout
+git clone z GitHuba do pustego katalogu, nowe środowisko, pip install -r requirements.txt, pytest, krótki trening. Wynik polecenia zapisuję w etapy.md.
+
+Krok 7 – Ty: weryfikacja studenta i commit
+Zagraj w play.py, obejrzyj GIF-y, przeczytaj sekcje MDP, środowisko i baseline. Powiedz mi, co sprawdziłeś, a ja wpiszę to do ai.tex (sam tego za Ciebie nie wpiszę). Na koniec commit i push.
+
+Zacząć od kroku 1 (zlecenie dla Codexa)?
+
+[Działania Claude] Przeczytano raport (sekcje algorytm, plan eksperymentów, wyniki) i zapisano plan w projekcie.

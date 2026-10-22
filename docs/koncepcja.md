@@ -23,38 +23,27 @@ Decyzje z 21.10.2026: stabilność w 6 poziomach (0–5), globalna dla całej ko
 za zawał (ładunek przepada); 5 akcji (4 ruchy i „podepnij”, wejście w złoże to wydobycie), bez akcji „czekaj”;
 ładunek wynika z maski wydobytych złóż, więc nie jest osobnym elementem stanu.
 
-## 3. Agenci i eksperymenty
+Po pierwszych testach i zagraniu w grę (21.10.2026, wieczór): mapy 12×11 o układzie kopalni
+(szyb, poziomy, łączniki), ryzyko zawału p = 0,001 + 0,003·(5−σ)²·(1+y/H) (niewielkie ryzyko także
+przy pełnej stabilności), wartości złóż 3/9/18/30. Wszystkie liczby są w `miner_rl/config.py`.
 
-- **Baselines:** agent losowy oraz heurystyka „kop do progu ładunku X, potem wracaj
-  najkrótszą drogą” (kilka wartości X, wybrana najlepsza, żeby porównanie było uczciwe).
-- **RL:** Q-learning i SARSA (porównanie podejścia do ryzyka), opcjonalnie Double Q-learning.
-  Rozszerzenie: DQN na większych mapach.
-- **Mapy:** 3–4 kopalnie o rosnącej trudności (stabilna, krucha, „kusząca głębia”, z zawałem korytarza).
-- **Eksperymenty:** wpływ γ i kary za zawał na apetyt na ryzyko, porównanie α i ε,
-  kilka ziaren losowych na wariant, krzywe uczenia, rozdzielenie treningu od ewaluacji
-  oraz analiza nieudanych epizodów (powtórki jako GIF).
+## 3. Warianty gry
 
-## 4. Gra (implementacja z Codexem)
+- **Stała mapa:** jedna z czterech kopalni (`maps/`: stabilna, krucha, kusząca głębia, zawał korytarza).
+- **Losowa mapa:** w każdym epizodzie nowa kopalnia z generatora (`miner_rl/env/generator.py`);
+  obserwacja agenta jest wtedy rozszerzona o widok otoczenia 5×5.
 
-- **Architektura:** `miner_rl/env` to czysta logika, API Gymnasium (`reset`, `step`), bez grafiki,
-  szybka do treningu. `miner_rl/render` to grafika w pygame. `miner_rl/agents` to baseline'y,
-  Q-learning, SARSA i (opcjonalnie) DQN. `scripts/` zawiera trening, ewaluację i nagrywanie.
-- **Tryby:** `play` (człowiek, strzałki i klawisze akcji), `watch` (wytrenowany agent,
-  regulacja prędkości) oraz `record` (GIF lub MP4 do README i raportu).
-- **HUD:** stabilność stropu (pasek, przy niskim poziomie drży i sypie się kurz), olej w lampie,
-  ładunek i wynik. Ciemność poza promieniem lampy (opcjonalnie).
-- **Grafika:** tekstury i sprite'y generowane przez Codexa (funkcja image_generation).
-  Spójny styl pixel art, kafelki 32×32 lub 48×48: skała, korytarz, złoża (np. węgiel,
-  srebro, złoto, kryształ), stempel, wyjście, górnik (4 kierunki i kopanie), animacja zawału.
-  Zasady: zapisywać prompty do grafik w dzienniku AI i opisać je w sekcji „Wsparcie AI”.
-  Grafika ma zapasowy wariant z kolorowymi prostokątami, żeby trening i testy nie zależały
-  od plików graficznych.
-- **Testy:** reset/step, granice mapy, niedozwolone akcje, zawał, brak oleju, wyjście z ładunkiem,
-  limit kroków, powtarzalność przy ustalonym ziarnie.
+## 4. Agenci i eksperymenty
 
-## 5. Kolejność prac
+- **Agenci bazowi:** agent losowy oraz heurystyka progowa (próg ładunku X i moment stawiania
+  stempla dobierane osobno dla każdej mapy). Wyniki: `results/`, tabela w raporcie.
+- **RL:** Q-learning i SARSA (`miner_rl/agents/tabular.py`), 10 ziaren na wariant.
+- **Eksperymenty:** porównanie główne na 4 mapach i mapach losowych; wpływ kary za zawał
+  (−5/−20/−50); agent uczony na stałej mapie a agent uczony na losowych mapach (uogólnianie
+  na nowe kopalnie). Rozszerzenie, jeśli zostanie czas: DQN na mapach losowych.
 
-1. E1: opis problemu i formalizacja w raporcie, wysłanie tematu do akceptacji.
-2. E2: środowisko i testy, baseline'y z zapisanymi wynikami, plan eksperymentów, wersja graficzna.
-3. E3: Q-learning i SARSA (opcjonalnie DQN), eksperymenty, wykresy, analiza, raport.
-4. E4: poprawki po uwagach prowadzącego.
+## 5. Gra (zrealizowana)
+
+Logika w `miner_rl/env` (bez grafiki), grafika pygame w `miner_rl/render`, tekstury pixel art
+wygenerowane przez Codexa (`assets/`), tryby: gra (`scripts/play.py`, `graj.bat`), podgląd agenta
+(`scripts/watch.py`) i nagrywanie GIF-ów (`scripts/record.py`). Testy: `python -m pytest -q`.

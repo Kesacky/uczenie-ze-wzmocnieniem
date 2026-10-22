@@ -1,0 +1,12 @@
+Połączenie z GitHubem działa w trybie odczytu, ale wysyłanie (push) jeszcze nie.
+
+- Repozytorium: origin = https://github.com/Kesacky/uczenie-ze-wzmocnieniem.git, gałąź main. git ls-remote zwraca 38e5d1d, czyli lokalna gałąź jest zgodna z GitHubem.
+- Push nie przechodzi: powłoka, z której korzystam na Twoim komputerze, nie ma zapisanych danych logowania do GitHuba (git push --dry-run kończy się błędem "could not read Username"). Twój Git w Windowsie loguje się sam przez Git Credential Manager, ale ja go stąd nie widzę.
+- Git musi usuwać swoje pliki .lock, a w tym folderze na razie nie mogę usuwać plików. Plik .git/objects/maintenance.lock zostawiony przez git fetch przeniosłem do .git/stale-maintenance-lock-1. Przed commitami potrzebna będzie zgoda na usuwanie plików w folderze projektu.
+- W folderze jest 62 niezacommitowanych zmian (kod środowiska, mapy, testy, dziennik, wyniki), w sumie ok. 29 tys. dodanych i 36 tys. usuniętych linii. Duża część z tego to prawdopodobnie zmienione końce linii (CRLF/LF) w CSV z wynikami, więc przed commitem trzeba to przejrzeć.
+
+Do wysyłania do repozytorium są dwie drogi:
+1. Najprostsza: ja przygotowuję i sprawdzam commity lokalnie, a Ty robisz `git push` w Windowsie (w terminalu albo w GitHub Desktop / VS Code).
+2. Ty tworzysz fine-grained token GitHub tylko dla tego repozytorium (uprawnienie Contents: read/write), a ja zapisuję go w powłoce poza folderem projektu. Token nie trafi do repozytorium ani do dziennika.
+
+Którą drogę wybierasz? Mogę też od razu przejrzeć te 62 zmiany i zaproponować podział na commity.

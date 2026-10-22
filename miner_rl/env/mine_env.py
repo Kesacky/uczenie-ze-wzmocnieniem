@@ -2,8 +2,18 @@
 
 Implementuje formalizację MDP z raportu (`report/main.tex`, sekcja „Formalizacja RL/MDP”).
 
+Dwa warianty gry:
+- stała mapa: `MineEnv("m1_stabilna")` (plik z `maps/` albo obiekt `MineMap`);
+- losowa mapa: `MineEnv(random_maps=True)` – przy każdym `reset(seed)` nowa kopalnia
+  z generatora (`miner_rl/env/generator.py`), wyznaczona przez ziarno epizodu
+  (albo przez `options={"map_seed": s}`, gdy mapa ma być niezależna od ziarna epizodu).
+
 Obserwacja (stan) to wektor liczb całkowitych w kolejności z raportu:
     s = (x, y, sigma, o, m_1..m_K, n)
+Przy `obs_mode="local"` do stanu dołączany jest widok otoczenia górnika: kody pól
+w kwadracie (2r+1)×(2r+1) wierszami (0 skała/poza mapą, 1 korytarz/start,
+2 niewydobyte złoże, 3 wyjście, 4 pole X). Ten wariant jest potrzebny agentom
+uczonym na losowych mapach, bo sama pozycja nie mówi nic o układzie nowej kopalni.
 x, y - pozycja górnika; sigma - stabilność stropu 0..5; o - olej w przedziałach
 0..3; m - maska wydobytych złóż (K = liczba złóż na mapie, K <= 5); n - liczba
 stempli 0..2. Ładunek nie jest częścią stanu: to suma wartości złóż z maski.
@@ -20,7 +30,7 @@ Kolejność zdarzeń w kroku `step(a)`:
  4. zdarzenie korytarza: gdy liczba wydobytych złóż osiągnie N, pola `X` stają się
     skałą (zależy tylko od maski, więc stan pozostaje Markowowski);
  5. zużycie oleju;
- 6. losowanie zawału z p = p0 * (5 - sigma) * (1 + y / H) -> kara, ładunek przepada;
+ 6. losowanie zawału z p = p_min + p0 * (5 - sigma)^k * (1 + y / H) -> kara, ładunek przepada;
  7. brak oleju -> kara, ładunek przepada;
  8. limit kroków ustawia `truncated`.
 Liczba losowa do zawału jest pobierana w każdym kroku (także gdy p = 0 lub po
@@ -42,7 +52,8 @@ from gymnasium import spaces
 import numpy as np
 
 from miner_rl.config import GameConfig
-from miner_rl.env.maps import DEPOSITS, ROCK, WALKABLE, MineMap, load_map
+from miner_rl.env.generator import GeneratorConfig, generate_map
+from miner_rl.env.maps import COLLAPSING, DEPOSITS, EXIT, ROCK, WALKABLE, MineMap, load_map
 
 UP, DOWN, LEFT, RIGHT, PROP = range(5)
 ACTION_NAMES = ("gora", "dol", "lewo", "prawo", "podepnij")
@@ -52,6 +63,7 @@ REASON_EXIT = "exit"
 REASON_COLLAPSE = "collapse"
 REASON_OIL = "out_of_oil"
 REASON_LIMIT = "step_limit"
+OBS_MODES = ("state", "local")
 
 
 class State(NamedTuple):
@@ -69,48 +81,77 @@ class MineEnv(gym.Env):
 
     def __init__(
         self,
-        mine_map: str | Path | MineMap = "m1_stabilna",
+        mine_map: str | Path | MineMap | None = "m1_stabilna",
         config: GameConfig | None = None,
         render_mode: str | None = None,
+        *,
+        random_maps: bool = False,
+        generator: GeneratorConfig | None = None,
+        obs_mode: str = "state",
+        view_radius: int = 2,
         **overrides: Any,
     ) -> None:
         super().__init__()
-        self.map = mine_map if isinstance(mine_map, MineMap) else load_map(mine_map)
-        base = config or GameConfig()
-        # domyślne < nagłówek mapy < jawne nadpisanie
-        self.config = base.replace(**self.map.overrides).replace(**overrides)
         if render_mode is not None and render_mode not in self.metadata["render_modes"]:
             raise ValueError(f"Nieobsługiwany render_mode: {render_mode}")
+        if obs_mode not in OBS_MODES:
+            raise ValueError(f"obs_mode musi być jednym z {OBS_MODES}")
         self.render_mode = render_mode
+        self.random_maps = random_maps
+        self.generator = generator or GeneratorConfig()
+        self.obs_mode = obs_mode
+        self.view_radius = view_radius
+        self._base_config = config or GameConfig()
+        self._overrides = overrides
+        if random_maps:
+            # Mapa startowa tylko po to, by znać wymiary; reset() wylosuje właściwą.
+            first = generate_map(np.random.default_rng(0), self.generator)
+        else:
+            first = mine_map if isinstance(mine_map, MineMap) else load_map(mine_map)
+        self._load_map(first)
 
         cfg = self.config
-        self.width, self.height = self.map.width, self.map.height
-        self.deposits = self.map.deposits
+        self.action_space = spaces.Discrete(len(ACTION_NAMES))
+        nvec = [self.width, self.height, cfg.stability_max + 1, cfg.oil_bins] \
+            + [2] * self.n_deposits + [cfg.props_max + 1]
+        if obs_mode == "local":
+            nvec += [5] * (2 * view_radius + 1) ** 2
+        self.observation_space = spaces.MultiDiscrete(nvec)
+        self._needs_reset = True
+        self._init_state()
+
+    def _load_map(self, mine_map: MineMap) -> None:
+        """Ustaw mapę i konfigurację (domyślne < nagłówek mapy < jawne nadpisania)."""
+        self.map = mine_map
+        self.config = self._base_config.replace(**mine_map.overrides).replace(**self._overrides)
+        cfg = self.config
+        if hasattr(self, "width") and (mine_map.width, mine_map.height, len(mine_map.deposits)) \
+                != (self.width, self.height, self.n_deposits):
+            raise ValueError("Nowa mapa musi mieć te same wymiary i liczbę złóż")
+        self.width, self.height = mine_map.width, mine_map.height
+        self.deposits = mine_map.deposits
         self.n_deposits = len(self.deposits)
         self._deposit_index = {(x, y): i for i, (x, y, _) in enumerate(self.deposits)}
-        self._deposit_value = [cfg.deposit_values[ch] for _, _, ch in self.deposits] \
-            if all(ch in cfg.deposit_values for _, _, ch in self.deposits) else None
-        if self._deposit_value is None:
+        if any(ch not in cfg.deposit_values for _, _, ch in self.deposits):
             raise ValueError("Brak wartości dla części złóż w deposit_values")
+        self._deposit_value = [cfg.deposit_values[ch] for _, _, ch in self.deposits]
         if self.n_deposits > cfg.max_deposits:
-            raise ValueError(f"{self.map.name}: {self.n_deposits} złóż, dozwolone najwyżej {cfg.max_deposits}")
+            raise ValueError(f"{mine_map.name}: {self.n_deposits} złóż, dozwolone najwyżej {cfg.max_deposits}")
         if not 0 <= cfg.stability_start <= cfg.stability_max:
             raise ValueError("stability_start poza zakresem 0..stability_max")
         if not 0 <= cfg.props_start <= cfg.props_max:
             raise ValueError("props_start poza zakresem 0..props_max")
-        self.exit_pos = self.map.exit
-
-        self.action_space = spaces.Discrete(len(ACTION_NAMES))
-        self.observation_space = spaces.MultiDiscrete(
-            [self.width, self.height, cfg.stability_max + 1, cfg.oil_bins]
-            + [2] * self.n_deposits + [cfg.props_max + 1]
-        )
-        self._needs_reset = True
-        self._init_state()
+        self.exit_pos = mine_map.exit
 
     # ------------------------------------------------------------------ API
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
         super().reset(seed=seed)
+        if self.random_maps:
+            # options={"map_seed": s} oddziela mapę od losowania zawałów (ta sama mapa, nowa gra);
+            # bez niego mapa wynika z ziarna epizodu.
+            map_seed = (options or {}).get("map_seed")
+            map_rng = np.random.default_rng(map_seed) if map_seed is not None else self.np_random
+            self._load_map(generate_map(map_rng, self.generator))
         self._init_state()
         self._needs_reset = False
         info = self._info(reason=None, collapsed=False, illegal=False, event=None, p=0.0)
@@ -238,7 +279,8 @@ class MineEnv(gym.Env):
         if cfg.collapse_prob is not None:
             p = cfg.collapse_prob
         else:
-            p = cfg.collapse_base * (cfg.stability_max - stability) * (1.0 + y / self.height)
+            p = cfg.collapse_floor + cfg.collapse_base \
+                * (cfg.stability_max - stability) ** cfg.collapse_power * (1.0 + y / self.height)
         return float(min(max(p, 0.0), 1.0))
 
     # ---------------------------------------------------------- obserwacja
@@ -249,17 +291,34 @@ class MineEnv(gym.Env):
         oil = min(max(oil, 0), cfg.oil_start)
         return min(cfg.oil_bins - 1, oil * cfg.oil_bins // max(cfg.oil_start, 1))
 
+    _CELL_CODE = {ROCK: 0, "S": 1, ".": 1, EXIT: 3, COLLAPSING: 4}
+
+    def local_view(self) -> list[int]:
+        """Kody pól wokół górnika (wierszami), poza mapą = skała."""
+        r = self.view_radius
+        px, py = self.pos
+        codes = []
+        for y in range(py - r, py + r + 1):
+            for x in range(px - r, px + r + 1):
+                if 0 <= x < self.width and 0 <= y < self.height:
+                    ch = self.grid[y][x]
+                    codes.append(2 if ch in DEPOSITS else self._CELL_CODE.get(ch, 0))
+                else:
+                    codes.append(0)
+        return codes
+
     def _obs(self) -> np.ndarray:
-        return np.array(
-            [self.pos[0], self.pos[1], self.stability, self.oil_bin(), *self.mined, self.props],
-            dtype=np.int64,
-        )
+        values = [self.pos[0], self.pos[1], self.stability, self.oil_bin(), *self.mined, self.props]
+        if self.obs_mode == "local":
+            values += self.local_view()
+        return np.array(values, dtype=np.int64)
 
     def decode(self, obs) -> State:
         """Rozpakowanie obserwacji na nazwane pola."""
         values = [int(v) for v in np.asarray(obs).ravel()]
         k = self.n_deposits
         return State(values[0], values[1], values[2], values[3], tuple(values[4:4 + k]), values[4 + k])
+
 
     def load_from_mask(self, mined) -> int:
         """Wartość ładunku wyznaczona z maski złóż (ładunek nie jest osobną zmienną stanu)."""
@@ -285,7 +344,10 @@ class MineEnv(gym.Env):
     @property
     def n_states(self) -> int:
         """Liczba kombinacji stanu (górne ograniczenie; osiągalna jest tylko część)."""
-        return int(np.prod(self.observation_space.nvec, dtype=np.int64))
+        total = 1
+        for radix in self.observation_space.nvec:
+            total *= int(radix)
+        return total
 
     def obs_to_key(self, obs) -> tuple[int, ...]:
         """Krotka stanu, np. klucz słownikowej tablicy Q."""
@@ -299,14 +361,14 @@ class MineEnv(gym.Env):
         return index
 
     def obs_to_vector(self, obs) -> np.ndarray:
-        """Wektor cech w [0, 1] (np. dla DQN), długość 5 + K."""
+        """Wektor cech w [0, 1] (np. dla DQN), długość jak obserwacja."""
         nvec = self.observation_space.nvec
         values = np.asarray(obs, dtype=np.float32).ravel()
         return values / np.maximum(nvec - 1, 1).astype(np.float32)
 
     @property
     def vector_size(self) -> int:
-        return 5 + self.n_deposits
+        return len(self.observation_space.nvec)
 
     # ------------------------------------------------------------ pomocnicze
     def to_text(self) -> str:

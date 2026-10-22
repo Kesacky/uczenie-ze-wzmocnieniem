@@ -1,0 +1,1 @@
+dam ci ten token jezeli trzeba, sprawdz dlaczego nie masz terminala powinienes miec taka mozliwosc i sproboj to w ten sposob odpalic

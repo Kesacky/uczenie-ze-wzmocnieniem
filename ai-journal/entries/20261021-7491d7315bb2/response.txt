@@ -1,0 +1,11 @@
+Częściowo. Sprawdziłem teraz trzy drogi:
+
+1. Twój komputer: nadal nie mam powłoki w tym folderze, tylko odczyt i zapis plików. Nie uruchomię więc `git status`, `git commit` ani `git push` lokalnie.
+2. GitHub z chmury: repo jest publiczne, więc mogę je pobrać i czytać. Wysłać nic nie mogę, bo token GitHuba w mojej chmurze jest nieważny.
+3. Sterowanie komputerem: mam dostęp do „computer use” na Twoim PC, więc mógłbym po Twojej zgodzie otworzyć terminal i sam wpisać polecenia git. To działa, ale jest wolne i zużywa sporo limitu (zrzuty ekranu).
+
+Przy okazji porównałem GitHub z Twoim folderem. Na GitHubie jest 5 commitów, ostatni z 21.10 19:05. Nie ma tam późniejszych zmian: mapy są jeszcze w starym rozmiarze (8 kolumn, nie 12×11), a dziennik AI ma 9 wpisów zamiast 25. Lokalnie jest więc sporo niezacommitowanej pracy (prawdopodobnie zmiany z sesji gry i dzisiejsze wpisy).
+
+Najtańsza opcja: wklej mi wynik `git status` z terminala w folderze projektu, a ja przygotuję gotowe polecenia commitów (małe, opisowe) do skopiowania. Ewentualnie mogę zrobić to przez sterowanie komputerem.
+
+[Działania Claude] Sprawdzono dostęp do powłoki, pobrano publiczne repo z GitHuba i porównano je z lokalnym folderem.

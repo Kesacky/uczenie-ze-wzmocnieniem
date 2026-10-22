@@ -43,21 +43,31 @@ class ThresholdAgent(Agent):
     name = "threshold"
 
     def __init__(self, mine_map: MineMap, config: GameConfig, threshold: float = 6,
-                 prop_at: int = 1, oil_return_bin: int = 0, deposit_cost: int = 50) -> None:
-        self.map = mine_map
-        self.config = config   # konfiguracja już scalona przez MineEnv (env.config)
+                 prop_at: int = 3, oil_return_bin: int = 0, deposit_cost: int = 50) -> None:
         self.threshold = threshold
         self.prop_at = prop_at
         self.oil_return_bin = oil_return_bin
         self.deposit_cost = deposit_cost
+        self.name = f"threshold_{threshold:g}"
+        self.env = None
+        self.set_map(mine_map, config)
+
+    def set_map(self, mine_map: MineMap, config: GameConfig) -> None:
+        self.map = mine_map
+        self.config = config   # konfiguracja już scalona przez MineEnv (env.config)
         self.deposits = mine_map.deposits
         self.k = len(self.deposits)
         self.values = [config.deposit_values[ch] for _, _, ch in self.deposits]
-        self.name = f"threshold_{threshold:g}"
 
     @classmethod
     def for_env(cls, env, threshold: float = 6, **kwargs) -> "ThresholdAgent":
-        return cls(env.map, env.config, threshold=threshold, **kwargs)
+        agent = cls(env.map, env.config, threshold=threshold, **kwargs)
+        agent.env = env     # przy losowych mapach reset() pobiera nową mapę (wiedza o mapie, nie o stanie)
+        return agent
+
+    def reset(self) -> None:
+        if self.env is not None and self.env.map is not self.map:
+            self.set_map(self.env.map, self.env.config)
 
     # ----------------------------------------------------------- mapa
     def _grid(self, mined) -> list[list[str]]:

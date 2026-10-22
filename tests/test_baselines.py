@@ -60,3 +60,16 @@ def test_threshold_agent_props_at_low_stability():
     env = MineEnv("m1_stabilna", stability_start=1, collapse_prob=0.0)
     obs, _ = env.reset(seed=0)
     assert ThresholdAgent.for_env(env).act(obs) == 4
+
+
+def test_threshold_agent_on_random_maps():
+    env = MineEnv(random_maps=True, collapse_prob=0.0, oil_start=1000, step_limit=1000)
+    agent = ThresholdAgent.for_env(env, threshold=float("inf"))
+    for seed in range(10):
+        obs, _ = env.reset(seed=seed)
+        agent.reset()
+        done = False
+        while not done:
+            obs, _, term, trunc, info = env.step(agent.act(obs))
+            done = term or trunc
+        assert info["reason"] == "exit" and info["collected"] == env.n_deposits

@@ -32,6 +32,7 @@ DEPOSITS = ("c", "s", "g", "k")
 FILE_CHARS = set("#.SEX") | set(DEPOSITS)
 WALKABLE = {CORRIDOR, START, EXIT, COLLAPSING}   # pola, na które wchodzi się bez wydobycia
 
+INFO_KEYS = {"wygenerowano"}           # klucze nagłówka, które nie zmieniają GameConfig
 MAPS_DIR = Path(__file__).resolve().parents[2] / "maps"
 
 
@@ -92,6 +93,8 @@ def parse_map(text: str, name: str = "mapa") -> MineMap:
                 name = value.strip()
             elif key == "opis":
                 description = value.strip()
+            elif key in INFO_KEYS:
+                continue                      # informacja dla czytelnika, nie konfiguracja
             else:
                 overrides[key] = parse_value(value)
             continue

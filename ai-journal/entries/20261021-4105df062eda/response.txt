@@ -1,0 +1,23 @@
+[Pytania Claude (formularz wyboru)]
+1. Czy zmiany (większa mapa, początkowa szansa na zawał) mają dotyczyć tylko gry dla człowieka, czy także środowiska do uczenia RL opisanego w raporcie? Opcje: „Tylko gra (Recommended)”, „Gra i RL”.
+2. Jak duża ma być mapa? Opcje: „12×14”, „16×16”, „20×24”.
+3. Jaka ma być szansa na zawał w każdym kroku już przy pełnej stabilności (dziś 0%)? Opcje: „0,5% na krok”, „1% na krok”, „0,2% na krok”.
+4. Jak ma działać generator map? Opcje: „Oba (Recommended)”, „Tylko w grze”, „Tylko skrypt”.
+5. Na mapach 16×16 drogi są ok. 2× dłuższe, więc przy obecnych liczbach (p₀ = 0,02, złoża 1/3/6/10, krok −0,1) gra staje się prawie nie do wygrania: najlepsza heurystyka ma ujemny wynik na prawie każdej mapie, a 95% prób kończy się zawałem. Jak to zbalansować? Opcje: „p₀=0,005, złoża ×3 (Recommended)”, „p₀=0,01, złoża ×3”, „Zostaw jak jest”.
+
+[Odpowiedź końcowa]
+Gotowe, gra jest już uruchomiona na Twoim komputerze przez `graj.bat`. Okno gry się otworzyło, ale nie widzę jego zawartości, bo nie mam do niego dostępu. Sprawdź, czy pokazuje menu.
+
+**Co jest nowe**
+- `graj.bat`: dwuklik i gra startuje. Za pierwszym razem sam instaluje biblioteki do `.venv`.
+- Menu na start: „Stała mapa” (wybór jednej z 4 kopalni) albo „Losowa mapa” (każda gra to nowa kopalnia).
+- Ekran końcowy pokazuje wynik, wyniesiony i utracony ładunek, liczbę złóż, kroki i rekord sesji. Przyciski: „Zagraj ponownie” (R), „Nowa mapa” (N, tylko w trybie losowym), „Menu” (M) i „Wyjście”. Działa też myszą.
+- Mapy mają 16×16. Zawał może się zdarzyć w każdym kroku, nawet przy pełnej stabilności (0,2% na krok). Zgodnie z Twoim wyborem p₀ = 0,005, a złoża są warte 3/9/18/30.
+- Generator map (`miner_rl/env/generator.py`) buduje labirynt z pętlami. Złoża stawia według głębokości, najchętniej w ślepych zaułkach. Na niektórych mapach dodaje korytarz X i zawsze zostawia drogę objazdową. Cztery stałe mapy też pochodzą z generatora, a ich ziarna są zapisane. Własne mapy zrobisz przez `scripts/gen_maps.py`.
+- Pod Twoje dwa algorytmy: `MineEnv(random_maps=True)` losuje nową mapę w każdym epizodzie. Opcja `obs_mode="local"` dodaje do stanu widok 5×5 wokół górnika. Bez niej agent uczony na losowych mapach nie wie, gdzie są ściany.
+
+**Wyniki heurystyki** (1000 epizodów, zwrot): m1 +11,0, m2 +11,4, m3 +49,0, m4 −0,3, mapy losowe +10,0. Agent losowy ma od −11 do −20. Wszystkie 146 testów przechodzą.
+
+**Do zrobienia**
+1. Te zmiany unieważniają liczby w formalizacji w raporcie: rozmiar mapy, wzór na zawał i wartości złóż. Sesja główna musi to poprawić. Szczegóły i tabela są w `private/RAPORT_SESJI_GRY.md`.
+2. Uruchom `tmp\commit_gra.ps1`, potem zrób `git push`. Skrypt usunie też stare GIF-y z map 8×10.

@@ -1,0 +1,18 @@
+Tak, mieści się w projekcie. Ścieżka gridowa w P00 wymienia „kilka map testowych o różnym poziomie trudności”, a losowo generowane mapy to naturalne rozszerzenie tego punktu. DRL (np. DQN) jest wprost dozwolone i „może być premiowane jako trudniejsze podejście”. Nie jest to jednak obowiązkowe, a maksimum punktów da się zdobyć także samą wersją tablicową. Temat zostaje ten sam, więc nie trzeba nowej akceptacji. Warto natomiast wspomnieć o tym prowadzącemu na konsultacji, bo zmienia się formalizacja: stan zawierałby wtedy całą mapę.
+
+O ile trudniej: szacuję, że to mniej więcej 2–3 razy więcej pracy niż część tablicowa, a część tablicowa i tak zostaje jako punkt odniesienia.
+- Generator map: mała trudność (losowe korytarze i złoża plus sprawdzenie, że mapa jest przechodnia i ma sensowną trudność).
+- Mapa w obserwacji: mała (plansza jako kilka warstw plus stabilność, olej i stemple).
+- Implementacja DQN: średnia (sieć konwolucyjna, bufor doświadczeń, sieć docelowa; napiszę ją w PyTorch).
+- Trening: średnia–duża (miliony kroków zamiast tysięcy epizodów, godziny na procesorze zamiast minut).
+- Strojenie: największe ryzyko (DQN bywa niestabilny, a czasu na dostrojenie nie da się dobrze przewidzieć).
+- Eksperymenty: duża (10 ziaren × DQN to dużo godzin, więc dla DQN realnie 3–5 ziaren z uzasadnieniem).
+- Raport: średnia (architektura sieci, procedura treningu, test na niewidzianych mapach).
+
+Co zyskujemy: mocniejsze uzasadnienie RL (agent uczy się ogólnej strategii ryzyka zamiast zapamiętywać trasę); ciekawy eksperyment (trening na jednych mapach, test na nowych i analiza, kiedy agent zawodzi); szansę na premię za DRL.
+
+Moja rekomendacja: robimy to etapami, żeby nie ryzykować terminów (każdy tydzień spóźnienia to −10 pkt).
+1. Do E2/E3: wersja tablicowa na 4 stałych mapach, działająca i z wynikami. To bezpieczny rdzeń, który sam może dać maksimum punktów.
+2. Potem rozszerzenie: losowe mapy i DQN, z wersją tablicową jako punktem odniesienia. Jeśli DQN się nie uda, nadal masz kompletny projekt, a nieudaną próbę i tak można opisać w raporcie jako analizę.
+
+Najpierw jednak trzeba naprawić obecny problem: agenci uczą się od razu wychodzić z kopalni. Bez tego żadna wersja nie zadziała.

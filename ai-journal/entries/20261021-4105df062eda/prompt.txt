@@ -1,0 +1,12 @@
+[Wiadomość użytkownika]
+dodaj jakis prostszy skrypt automatycznie odpalajacy gre , zwieksz rozmiar mapy, poczatkowa szanse na zawal, oraz zrob ekran koncowy ze score oraz przyciskiem reset, stworz tez algorytm automatycznego generowania map
+
+[Odpowiedzi użytkownika na pytania Claude (formularz wyboru)]
+1. Zakres zmian: „Gra i RL”.
+2. Rozmiar mapy: „16×16”.
+3. Szansa na zawał przy pełnej stabilności: „0,2% na krok”.
+4. Generator map: „Zrob jakas opcje wyboru i zrob 2 wersje gry 1 ze stala mapa oraz 2 z generowana losowa zrobimy 2 wersje algorytmy 1 co uczy sie na stalej mapie oraz 2 uczonego dynamicznie i zobaczymy jak sobie poradza”
+5. Balans (drugie pytanie): „p₀=0,005, złoża ×3 (Recommended)”.
+
+[Ponowne wysłanie tej samej wiadomości w trakcie pracy]
+dodaj jakis prostszy skrypt automatycznie odpalajacy gre , zwieksz rozmiar mapy, poczatkowa szanse na zawal, oraz zrob ekran koncowy ze score oraz przyciskiem reset, stworz tez algorytm automatycznego generowania map

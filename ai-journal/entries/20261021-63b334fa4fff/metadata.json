@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Wyjaśnienie pojęć RL i MDP w kontekście projektu",
+  "scope": "Proste wyjaśnienie na podstawie sekcji MDP raportu; wskazanie przybliżenia własności Markowa (olej w przedziałach); bez zmian w kodzie i raporcie",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "331f311ff22a69c31bf3a17ab866c2b24bc5c0bf9c1703daec7c6032d636cfd3",
+  "response_sha256": "13ce4a42d32b90454cdc261b084da104b4d34a61443c05861bcf48f6121f3593",
+  "recorded_at_utc": "2026-10-21T17:26:31.358369+00:00"
+}

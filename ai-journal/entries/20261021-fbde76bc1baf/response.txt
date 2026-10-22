@@ -1,0 +1,9 @@
+Dziennik jest poprawiony, nowy PDF wysłałem wyżej.
+
+- Bez wpisów „kontynuacja”: każda Twoja wiadomość to teraz jeden wpis, a cała moja odpowiedź mieści się w nim razem z pytaniami, Twoimi wyborami i odpowiedzią końcową. Z pięciu wpisów zrobiły się trzy.
+- Krótsze opisy działań: zostało jedno zdanie, np. „[Działania Claude] Napisano agentów Q-learning i SARSA z testami…”. Całkiem bym go nie usuwał. Bez niego z dziennika nie wynika, że kod i raport powstały z pomocą AI, a regulamin wymaga podania zakresu pomocy. Jedna linijka wystarczy.
+- Mniej stron: wpisy nie zaczynają się już od nowej strony, tylko są oddzielone kreską. Dziennik ma teraz 7 stron.
+
+Stary folder dziennika jest w Koszu. Ten format zapisałem w zasadach pracy i w planie dla drugiej sesji, więc obie sesje będą go stosować.
+
+[Działania Claude] Przebudowa dziennika (jeden wpis na wiadomość, krótkie opisy działań, wpisy bez łamania strony) i zapis nowego formatu w zasadach.

@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Publikacja w repozytorium: diagnostyka i token",
+  "scope": "Sprawdzenie dostępności terminala; instrukcja utworzenia tokenu GitHub",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "5a19ecab5ed3412f16bce5ee19ec330c8c5689222f09d22a78475df9400dd54a",
+  "response_sha256": "4b5b70390cf3969d9f097c81a243f7dfe01db0d93b55a38e7eef56e97f560ed2",
+  "recorded_at_utc": "2026-10-21T17:24:32.447842+00:00"
+}

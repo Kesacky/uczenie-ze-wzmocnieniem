@@ -19,6 +19,8 @@ def main(argv=None) -> list[Path]:
     p.add_argument('--only-failed', action='store_true', help='Zapisuj tylko niepowodzenia')
     p.add_argument('--max-tries', type=positive, default=200, help='Limit prób szukania niepowodzeń')
     args = p.parse_args(argv)
+    if args.seed is None:
+        args.seed = 0
     os.environ.setdefault('SDL_VIDEODRIVER', 'dummy')
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -28,6 +30,8 @@ def main(argv=None) -> list[Path]:
         seed = args.seed+attempt
         try:
             obs, _ = env.reset(seed=seed)
+            if args.random:
+                renderer.seed = seed
             agent = make_agent(args.agent, env, seed, args.threshold)
             getattr(agent, 'reset', lambda: None)()
             frames = [renderer.frame_array(renderer.draw())]

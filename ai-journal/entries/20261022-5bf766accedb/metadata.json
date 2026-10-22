@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-22",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Sprawdzenie połączenia z repozytorium GitHub",
+  "scope": "Diagnoza konfiguracji git (remote, uwierzytelnianie, pliki lock, stan zmian); bez zmian w kodzie",
+  "verification": "Brak samodzielnej weryfikacji studenta (do uzupełnienia)",
+  "conversation_url": "",
+  "prompt_sha256": "c0f92737a966c9c3928a7bc827bc1520d5442fe1731dd108922e20cb697f7a72",
+  "response_sha256": "2ca2131c109f357902ea73f55ddaac9dbfb150c90fd57c056d92724193858103",
+  "recorded_at_utc": "2026-10-22T21:41:33.665953+00:00"
+}

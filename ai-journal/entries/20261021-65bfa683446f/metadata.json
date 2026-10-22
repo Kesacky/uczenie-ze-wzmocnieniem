@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-21",
+  "tool": "Claude (Cowork)",
+  "model": "claude-opus-5-5",
+  "purpose": "Publikacja w repozytorium: próba pusha",
+  "scope": "Kontrola zmian i próba wysłania z chmury (nieudana)",
+  "verification": "Do uzupełnienia.",
+  "conversation_url": "",
+  "prompt_sha256": "b4905b9fa3f93aec4ae34aee0d89ebe0de79e2b8a53ba819f220184c722697a3",
+  "response_sha256": "5465954e2169b7dd98f4a23e1a242c07ced1f8c4b39db87b840cf86faf965be1",
+  "recorded_at_utc": "2026-10-21T17:24:33.493761+00:00"
+}

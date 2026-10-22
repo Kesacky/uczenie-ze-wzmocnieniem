@@ -1,0 +1,19 @@
+Jasne – w tym czacie przekazuję Codexowi całe pisanie kodu (także średnie zadania), a sam zostaję przy decyzjach, diagnozie, sprawdzaniu wyników i raporcie.
+
+Kolejny krok to dwie rzeczy:
+
+1. Formalnie (to możesz zrobić tylko Ty): E1 nadal nie jest zamknięty. Trzeba zgłosić prowadzącemu temat „Górnik w niestabilnej kopalni” z linkiem do repo i zapisać datę w docs/etapy.md. Każdy rozpoczęty tydzień spóźnienia po P2 to −10 pkt.
+
+2. Technicznie: ostatni otwarty punkt E2, czyli „pierwsza działająca wersja rozwiązania”. Q-learning i SARSA muszą się czegoś nauczyć na obecnych parametrach (mapy 12×11, nowy wzór zawału, złoża 3/9/18/30). Przy starych parametrach agent uczył się tylko natychmiastowego wyjścia (zwrot −0,1), bo losowa eksploracja kończyła się karą −20 i głębsze stany szybko dostawały złe wartości.
+
+Podział pracy:
+- Codex: scripts/train.py (konfiguracje, wiele ziaren, krzywe uczenia do CSV, zapis modeli .pkl), scripts/evaluate.py (te same ziarna ewaluacji co baseline), scripts/plot_results.py (krzywe z pasmem po ziarnach, porównanie z baseline) i testy do nich.
+- Claude: krótki trening próbny na m1, diagnoza, czy problem „od razu wychodzę” nadal występuje, dobór poprawek (dłuższy trening, inicjalizacja optymistyczna, harmonogram ε, α) z uzasadnieniem na obronę, sprawdzenie kodu Codexa i wpis do raportu.
+
+Potem pełne eksperymenty (10 ziaren na wariant, stała mapa vs losowe mapy), czyli już E3.
+
+Uwaga: w tej sesji nie mam powłoki na Twoim komputerze, tylko przesyłanie plików. Codex pracuje na kopii w chmurze, a commity zrobisz Ty (przygotuję skrypt).
+
+Zacząć od zlecenia Codexowi infrastruktury treningu?
+
+[Działania Claude] Przeczytano zasady pracy, AGENTS.md, README, docs/etapy.md i raport z sesji gry.

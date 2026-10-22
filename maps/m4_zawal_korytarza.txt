@@ -1,11 +1,13 @@
-; opis = Zawał korytarza: po wydobyciu 3 złóż szyb X zamienia się w skałę
-###E####
-#..S...#
-#.#X####
-#.#X####
-#.#X.s.#
-#.#c##.#
-#.#..#.#
-#.##g#k#
-#......#
-########
+; opis = Zawał korytarza: po wydobyciu 3 złóż pola X zamieniają się w skałę
+; wygenerowano = python scripts/gen_maps.py --theme zawal --seed 2
+####E#######
+##..S.######
+####.###c###
+####.##..###
+##.......c##
+##.#####.###
+##g##.....g#
+######.#X###
+####.#.#X###
+####.....k##
+############
