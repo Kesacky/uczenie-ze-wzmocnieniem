@@ -37,7 +37,7 @@ Każdy rozpoczęty tydzień opóźnienia może kosztować 10 punktów, osobno dl
 - [x] Zdefiniować dostępne akcje, nagrody i warunki końca epizodu (raport, sekcja 3).
 - [x] Opisać ograniczenia, pojedynczy krok interakcji i mierzalną definicję sukcesu (raport, sekcja 3).
 - [x] Wskazać niepewne założenia formalizacji do weryfikacji po testach (raport, sekcja 3, „Elementy do weryfikacji”).
-- [ ] Udokumentować dotychczasową pomoc AI i wskazać rzeczywistą weryfikację studenta.
+- [x] Udokumentować dotychczasową pomoc AI i wskazać rzeczywistą weryfikację studenta (oświadczenie studenta z 24.10.2026, że zweryfikował całość E1 i E2; szczegóły weryfikacji do dopisania w `report/sections/ai.tex`).
 - [ ] Uzupełnić termin kalendarzowy E1 oraz wynik weryfikacji prowadzącego.
 
 Potwierdzenie przekazania linku i akceptacja tematu: oświadczenie studenta z 24.10.2026 (bez zapisanej daty i formy przekazania). Wynik weryfikacji E1 przez prowadzącego: nie zapisano.

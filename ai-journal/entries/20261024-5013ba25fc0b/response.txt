@@ -1,0 +1,16 @@
+Merytorycznie tak, ale formalnie jeszcze nie: prowadzący jeszcze tego nie widzi.
+
+**Zrobione (wszystkie punkty pracy z checklisty E2 w `docs/etapy.md`):**
+- środowisko (krok, akcje niedozwolone, granice, zawał, olej, limit kroków) z testami: 190 passed;
+- agenci bazowi z wynikami;
+- plan eksperymentów, metryki i ziarna;
+- pierwsza działająca wersja rozwiązania RL: `scripts/train.py` i pilotaż na 4 mapach;
+- raport, README i sekcja AI zaktualizowane;
+- uruchomienie z czystego klonu repo sprawdzone.
+
+**Brakuje, żeby E2 był naprawdę zamknięty:**
+1. **Push.** Dwa commity z E2 są tylko lokalnie (`main` jest 2 commity przed `origin/main`). Prowadzący ocenia publiczne repo, więc dopóki ich nie wypchniemy, z jego perspektywy E2 nie istnieje. To najważniejsza rzecz.
+2. **Twoja weryfikacja.** W raporcie i dzienniku AI wszędzie jest „Brak samodzielnej weryfikacji studenta”. Prowadzący może zapytać na obronie o kod i wyniki, a P00 wymaga opisu, co zostało przez Ciebie sprawdzone.
+3. **Weryfikacja prowadzącego i termin.** Nie wiem, kiedy jest P4, i nie mam informacji o ocenie E2. To zostaje otwarte w checkliście.
+
+Mam teraz wypchnąć commity (razem z dzisiejszymi wpisami dziennika)?

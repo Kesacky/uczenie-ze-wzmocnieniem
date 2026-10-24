@@ -1,0 +1,38 @@
+## Q(s, a): co oznacza
+
+**Q(s, a) to ocena, ile punktów agent średnio zdobędzie do końca epizodu, jeśli w stanie s wykona akcję a, a potem będzie grał dalej swoją strategią.** Liczy się tu nie tylko nagroda za ten jeden krok, ale cała przyszłość. Przyszłe nagrody są lekko pomniejszane współczynnikiem γ = 0,99.
+
+W naszej grze:
+- **stan s** to krotka `(x, y, stabilność, olej w 4 przedziałach, które z 5 złóż wydobyto, liczba stempli)`;
+- **akcja a** to jedna z 5: `gora`, `dol`, `lewo`, `prawo`, `podepnij`.
+
+Tablica Q to słownik: dla każdego odwiedzonego stanu jest 5 liczb, po jednej na akcję. Agent w danym stanie wybiera akcję z największą wartością Q. Przy eksploracji z prawdopodobieństwem ε wybiera losowo.
+
+Przykład: górnik niesie złoto (18), strop jest słaby, a wyjście jest 3 pola wyżej.
+- `Q(s, gora)` ≈ 17: trzy kroki po −0,1, potem +18, z małym ryzykiem zawału po drodze.
+- `Q(s, dol)` może być niższe: głębiej leży więcej złóż, ale rośnie ryzyko zawału (−20, ładunek przepada).
+
+Te liczby to właśnie dylemat „kopać czy wracać”, zapisany w tablicy.
+
+## Skąd agent zna te wartości
+
+Na początku ich nie zna. Po każdym kroku poprawia jedną liczbę o ułamek błędu (α = 0,1):
+
+```
+Q(s,a) ← Q(s,a) + α · [ r + γ · (wartość następnego stanu) − Q(s,a) ]
+```
+
+- **Q-learning** jako wartość następnego stanu bierze `max Q(s', ·)`, czyli zakłada, że dalej zagra najlepiej.
+- **SARSA** bierze `Q(s', a')` dla akcji, którą naprawdę wybrał, razem z losowymi ruchami eksploracji. Dlatego jest ostrożniejsza.
+
+Po dziesiątkach tysięcy epizodów liczby w tablicy zbliżają się do prawdziwych średnich zwrotów.
+
+## q_init (Q₀): wartość startowa
+
+`q_init` to liczba wpisywana do tablicy dla stanu, którego agent jeszcze nigdy nie widział. Mimo nazwy nie jest to osobny mechanizm, tylko „domyślne przypuszczenie” przed zdobyciem doświadczenia. Wpływa to mocno na eksplorację:
+
+- **Q₀ = 0:** wyjście z kopalni od razu daje −0,1. Losowe błądzenie na początku treningu często kończy się zawałem albo brakiem oleju (−20), więc wartości stanów w głębi szybko robią się ujemne. Skoro „wyjdź od razu” ≈ −0,1 jest lepsze od ujemnych wartości głębi, agent przestaje schodzić i nigdy nie odkrywa, że złoża są warte 30–60 pkt. To lokalne optimum z pilotażu (23 z 24 uruchomień).
+- **Q₀ = 10:** nieznane stany „wyglądają” na warte 10, czyli więcej niż −0,1. Agent ma więc powód, żeby je sprawdzić. Gdy je odwiedzi, wartość koryguje się do prawdziwej. Ta zasada nazywa się *optymizm wobec niepewności* (Sutton i Barto, rozdz. 2.6).
+- **Q₀ = 20:** optymizm jest za duży. Rzadko odwiedzane stany zostają przeszacowane do końca treningu. W ewaluacji (bez uczenia) polityka zachłanna może wtedy chodzić A → B → A → B, bo w obu stanach najwyżej oceniona akcja prowadzi do drugiego, aż skończy się olej. Stąd 3 nieudane uruchomienia w pilotażu.
+
+**Na obronę w jednym zdaniu:** Q(s, a) to przewidywana suma przyszłych nagród za wykonanie akcji a w stanie s. Tablicę uczymy z doświadczenia regułą TD, a Q₀ to wartość startowa, która przez optymizm wymusza eksplorację głębi kopalni.
