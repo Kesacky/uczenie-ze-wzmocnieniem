@@ -54,16 +54,19 @@ class GameConfig:
 
     # --- Nagrody (składniki się sumują) ---
     reward_step: float = -0.1            # za każdy krok
-    reward_illegal: float = -0.5         # dodatkowo za akcję niedozwoloną (stan bez zmian)
-    reward_collapse: float = -20.0       # zawał, ładunek przepada
+    reward_illegal: float = -2.0         # dodatkowo za akcję niedozwoloną (stan bez zmian); do 24.10.2026: -0.5
+    reward_collapse: float = -10.0       # zawał, ładunek przepada; do 24.10.2026: -20
     reward_out_of_oil: float = -20.0     # wyczerpanie oleju, ładunek przepada
     reward_exit_multiplier: float = 1.0  # nagroda przy wyjściu = mnożnik * wartość ładunku
-    # Kształtowanie nagrody (domyślnie wyłączone): przy wydobyciu wypłacany jest ułamek wartości
-    # złoża. Z `reward_dig_refund` ta „zaliczka” jest odejmowana przy końcu epizodu (wyjście,
-    # zawał, brak oleju), więc suma nagród za epizod się nie zmienia (kształtowanie potencjałowe,
-    # Ng i in. 1999, przy γ = 1); bez zwrotu jest to dodatkowa premia za samo wydobycie.
-    reward_dig_fraction: float = 0.0
+    # Nagroda za wydobycie: ułamek wartości złoża wypłacany od razu (od 24.10.2026 domyślnie 0,3,
+    # wcześniej 0). Bez `reward_dig_refund` jest to premia: ładunek i tak jest wypłacany przy
+    # wyjściu. Z `reward_dig_refund` jest to kształtowanie potencjałowe (Ng i in. 1999) z
+    # potencjałem Φ(s) = ułamek · ładunek: w każdym kroku nagroda dostaje γ_s·Φ(s') − Φ(s),
+    # gdzie Φ = 0 w stanie terminalnym, a γ_s = `reward_shaping_gamma` (powinno być równe γ
+    # agenta, wtedy polityka optymalna się nie zmienia).
+    reward_dig_fraction: float = 0.3
     reward_dig_refund: bool = False
+    reward_shaping_gamma: float = 1.0
 
     # --- Epizod ---
     step_limit: int = 300                # techniczny limit kroków (truncated)

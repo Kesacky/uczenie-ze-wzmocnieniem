@@ -6,6 +6,7 @@ najkrótszej drogi wzdłuż urwiska, a SARSA bezpieczniejszej, dłuższej drogi.
 To ten sam efekt, którego oczekujemy w kopalni (ryzyko zawału).
 """
 import numpy as np
+import pytest
 
 from miner_rl.agents.tabular import (EpsilonSchedule, QLearningAgent, SarsaAgent,
                                      TabularAgent, evaluate, train)
@@ -124,3 +125,11 @@ def test_q_learning_target_uses_only_legal_actions():
     agent.values((1,))[:] = [100.0, 2.0, 3.0]          # akcja 0 niedozwolona
     agent.update((0,), 0, 0.0, (1,), None, False, np.array([False, True, True]))
     assert agent.values((0,))[0] == 3.0
+
+
+def test_count_bonus_decreases_with_visits():
+    agent = QLearningAgent(n_actions=2, alpha=1.0, gamma=0.0, bonus_beta=4.0)
+    agent.update((0,), 1, 0.0, (1,), None, True)
+    assert agent.values((0,))[1] == 4.0                 # β/√1
+    agent.update((0,), 1, 0.0, (1,), None, True)
+    assert agent.values((0,))[1] == pytest.approx(4.0 / np.sqrt(2))   # β/√2, α = 1

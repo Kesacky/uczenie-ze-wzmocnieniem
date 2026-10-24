@@ -57,6 +57,7 @@ class TabularAgent:
     epsilon: EpsilonSchedule = field(default_factory=EpsilonSchedule)
     q_init: float = 0.0
     mask_illegal: bool = False           # wybór tylko spośród akcji dozwolonych (env.action_mask())
+    bonus_beta: float = 0.0              # premia za eksplorację β/√N(s,a) dodawana do nagrody w treningu
     seed: int | None = None
     key_fn: Callable = default_key
     q: dict = field(default_factory=dict)
@@ -66,6 +67,7 @@ class TabularAgent:
     def __post_init__(self):
         self.rng = np.random.default_rng(self.seed)
         self.current_epsilon = self.epsilon.start
+        self.visits: dict = {}               # N(s, ·): liczba wykonań akcji w stanie (tylko w treningu)
 
     # --- tablica Q -------------------------------------------------------
     def values(self, obs) -> np.ndarray:
@@ -107,7 +109,16 @@ class TabularAgent:
 
     def update(self, obs, action: int, reward: float, next_obs, next_action: int | None,
                terminated: bool, next_mask=None) -> float:
-        """Jedna aktualizacja TD. Zwraca błąd TD (do diagnostyki)."""
+        """Jedna aktualizacja TD. Zwraca błąd TD (do diagnostyki).
+
+        Przy `bonus_beta > 0` do nagrody dodawana jest premia β/√N(s,a), malejąca wraz
+        z liczbą wykonań akcji a w stanie s (eksploracja oparta na liczbie odwiedzin).
+        """
+        if self.bonus_beta > 0:
+            key = self.key_fn(obs)
+            counts = self.visits.setdefault(key, np.zeros(self.n_actions, dtype=np.int64))
+            counts[action] += 1
+            reward = reward + self.bonus_beta / np.sqrt(counts[action])
         target = self.td_target(reward, next_obs, next_action, terminated, next_mask)
         v = self.values(obs)
         td_error = target - v[action]
@@ -117,7 +128,8 @@ class TabularAgent:
     # --- zapis i odczyt --------------------------------------------------
     def save(self, path: str | Path) -> None:
         data = {"class": type(self).__name__, "n_actions": self.n_actions, "alpha": self.alpha,
-                "gamma": self.gamma, "q_init": self.q_init, "mask_illegal": self.mask_illegal, "q": {k: v.tolist() for k, v in self.q.items()}}
+                "gamma": self.gamma, "q_init": self.q_init, "mask_illegal": self.mask_illegal,
+                "bonus_beta": self.bonus_beta, "q": {k: v.tolist() for k, v in self.q.items()}}
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump(data, f)

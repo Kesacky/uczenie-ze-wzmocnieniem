@@ -169,10 +169,11 @@ class MineEnv(gym.Env):
         self.last_action = action
         self.last_dug = None
         reward = cfg.reward_step
+        load_before = self.load_value
         legal = self._apply(action)
         if not legal:
             reward += cfg.reward_illegal
-        if self.last_dug is not None:
+        if self.last_dug is not None and not cfg.reward_dig_refund:
             reward += cfg.reward_dig_fraction * self._deposit_value[self._deposit_index[self.last_dug]]
 
         terminated = False
@@ -198,8 +199,9 @@ class MineEnv(gym.Env):
                 terminated, reason = True, REASON_OIL
                 self.lost_value = self.load_value
 
-        if terminated and cfg.reward_dig_refund:
-            reward -= cfg.reward_dig_fraction * self.load_value     # zwrot „zaliczki” za wydobycie
+        if cfg.reward_dig_refund:            # kształtowanie potencjałowe: γ_s·Φ(s') − Φ(s)
+            phi_next = 0.0 if terminated else cfg.reward_dig_fraction * self.load_value
+            reward += cfg.reward_shaping_gamma * phi_next - cfg.reward_dig_fraction * load_before
         truncated = not terminated and self.steps >= cfg.step_limit
         if truncated:
             reason = REASON_LIMIT

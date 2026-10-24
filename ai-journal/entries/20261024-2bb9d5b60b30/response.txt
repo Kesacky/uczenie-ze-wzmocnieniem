@@ -1,0 +1,11 @@
+[Zapis istotnych widocznych komunikatów asystenta z tej części rozmowy; pośrednie komunikaty o postępie zostały skrócone.]
+
+Zmiana domyślnych nagród zmienia zasady punktacji, więc oceniam ponownie heurystykę i agenta losowego według nowych zasad, żeby porównanie pozostało uczciwe. Starsze wyniki zostają w repozytorium jako „zasady w wersji 2” (ich config.json zapisuje parametry).
+
+Zrobione: nowe wartości domyślne (kara za akcję niedozwoloną −2, za zawał −10, nagroda 0,3 · wartość złoża za wydobycie; w train.py Q0 = 30 i maskowanie akcji), testy zaktualizowane (201 passed).
+Pomysł 1: premia za eksplorację β/√N(s,a) w treningu (TabularAgent.bonus_beta, --bonus).
+Pomysł 2: poprawne kształtowanie potencjałowe γ·Φ(s′) − Φ(s) z γ agenta (--dig-refund 1).
+Obliczenia: ponowna ocena agentów bazowych, siatka Q0 ∈ {0, 10, 30} × β ∈ {0, 2, 5} na wszystkich mapach (216 treningów), kształtowanie potencjałowe (24 treningi).
+Zaktualizowana formalizacja w raporcie (nagrody, maskowanie, opis zmiany zasad).
+
+Efekt uboczny premii za wydobycie: na mapie kruchej heurystyka przeszła z „weź 2 tanie złoża i wracaj” na „kop wszystko” z zawałem w 71% epizodów, bo premię dostaje nawet wtedy, gdy potem zginie. Opisuję to w raporcie jako koszt tej decyzji.

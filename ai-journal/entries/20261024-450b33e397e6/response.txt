@@ -1,0 +1,37 @@
+Wszystko policzone, opisane w raporcie i wypchnięte na GitHub.
+
+## Co zostało zrobione
+**Nowa wersja domyślna (zasady w wersji 3):** kara za akcję niedozwoloną −2, za zawał −10, nagroda 0,3 · wartość złoża za wydobycie, a agenci maskują akcje niedozwolone. Agenci bazowi zostali ocenieni ponownie według tych zasad. Stare wyniki zostały w repo z oznaczeniem „wersja 2”.
+
+**Trzy pomysły:**
+1. **Premia za eksplorację β/√N(s,a)** (216 treningów): nie poprawia wyników w sposób spójny. Pojedyncze kombinacje są świetne, inne gorsze. Domyślne Q₀ = 30 bez premii pozostaje najpewniejsze.
+2. **Poprawne kształtowanie potencjałowe** (24 treningi): działa, ale nie jest lepsze od domyślnych zasad i częściej daje nieudane uruchomienia.
+3. **Eksperyment główny: 10 ziaren, 100 tys. epizodów** (80 treningów):
+
+| Mapa | Q-learning | SARSA | Heurystyka |
+|---|---|---|---|
+| stabilna | 54,6 ± 3,5 | 39,8 ± 28,9 (2 nieudane) | **62,8** |
+| krucha | 28,1 ± 25,5 (2 nieudane) | **39,0 ± 6,3** | 14,6 |
+| głęboka | **79,3** | 73,1 | **79,5** |
+| zawał korytarza | 57,2 | 55,6 | **71,7** |
+
+## Ocena wyników
+Wyniki są dobre jako materiał do projektu, ale nie są jednoznacznym zwycięstwem RL:
+- **RL wygrywa** na mapie kruchej (2,7× lepiej) i **remisuje** na głębokiej.
+- **RL przegrywa** o 7–16 pkt na mapach stabilnej i zawału korytarza. Ma tam mniej zawałów niż heurystyka, ale wynosi mniej złóż, czyli gra bezpieczniej.
+- **Najciekawszy wynik na obronę:** na mapie głębokiej agent (SARSA, Q₀ = 10, β = 2) zdobył 100 pkt wobec 79,5 heurystyki. Całkowicie pominął tanie płytkie złoża i wziął wszystkie 3 kryształy, bo nauczył się, że każde wydobycie kosztuje stabilność stropu. W raporcie są mapy cieplne pokazujące różnicę tras.
+- **Uczciwa uwaga:** 10 ziaren pokazało, że nieudane uruchomienia nadal się zdarzają (4 z 80), czego 3 ziarna nie wychwyciły. W dwóch przypadkach polityka była dobra przez 99,5 tys. epizodów i zepsuła się w ostatnich 500. Naturalna poprawka to zapisywanie najlepszej polityki według walidacji. To proponuję jako następny krok.
+
+Poza tym:
+- `train.py` zapisuje teraz wynik po każdym treningu i da się go wznowić po przerwie;
+- testy: 202 passed;
+- raport ma 22 strony, a README, checklista E3 i sekcja AI są zaktualizowane.
+
+## Problem po drodze
+Przy wstrzymywaniu mój skrypt zawiesił też proces sterujący kolejką obliczeń, przez co seria z kształtowaniem potencjałowym nie wystartowała sama. Komputer stał przez to bezczynnie aż do Twojego pytania. Uruchomiłem ją ręcznie. Wyniki są kompletne i niczego nie zgubiłem.
+
+## Do zrobienia w E3
+1. Zapisywanie najlepszej polityki według walidacji i powtórzenie eksperymentu głównego.
+2. Eksperyment 2 z planu: kara za zawał −5 / −10 / −20.
+3. Eksperyment 3: mapa stała vs losowa (uogólnianie).
+4. Sekcja „Analiza i wnioski”: tę część warto napisać w dużej mierze samodzielnie, bo to Twoje wnioski są oceniane.

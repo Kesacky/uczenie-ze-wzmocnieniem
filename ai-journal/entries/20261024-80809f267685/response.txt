@@ -1,0 +1,9 @@
+Trening jest wstrzymany. Wszystkie 17 procesów ma status „stopped” i 0% CPU, więc komputer jest wolny.
+
+**Stan:** 81 z 216 treningów premii za eksplorację jest gotowych. Te wyniki zostały w pamięci wstrzymanego procesu i nic nie przepadło. Seria z kształtowaniem potencjałowym jeszcze nie ruszyła; wystartuje automatycznie po wznowieniu i dokończeniu bieżącej.
+
+**Wznowienie:** napisz „wznów”, a odwieszę procesy. Trening pójdzie dokładnie od miejsca, w którym stanął.
+
+**Uwaga, ryzyko:** wstrzymane procesy żyją tylko w pamięci. Jeśli zamkniesz tę sesję Claude Code, zrestartujesz komputer albo uśpisz go z utratą zasilania, niezapisane wyniki przepadną i serię trzeba będzie puścić od nowa (~35 min; wyniki są deterministyczne, więc wyjdą identyczne). Skrypt zapisuje wyniki dopiero na końcu serii. Mogę dopisać zapis po każdym treningu, żeby w przyszłości dało się wznawiać także po restarcie.
+
+Przy wstrzymywaniu popełniłem błąd: mój pomocniczy skrypt wstrzymał też sam siebie, bo jego treść zawierała szukaną nazwę „train.py”. Część treningów przez chwilę jeszcze się liczyła. Posprzątałem to i sprawdziłem: wszystko stoi, a treningi są nienaruszone.

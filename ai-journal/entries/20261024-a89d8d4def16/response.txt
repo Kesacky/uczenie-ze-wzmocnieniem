@@ -1,0 +1,9 @@
+Stan obliczeń:
+
+1. **Agenci bazowi według nowych zasad: gotowe.** Heurystyka na mapie losowej ma teraz 61,7 pkt (wcześniej 44,0, bo dostaje premię za wydobycie i mniejszą karę za zawał). Agent losowy spadł do −42,7, bo często wchodzi w ściany, a kara wynosi teraz −2.
+2. **Premia za eksplorację (Q₀ × β): 69 z 216 uruchomień (~32%).** Jest w trakcie mapy kruchej. Jedno uruchomienie trwa ~2–3 min, a 15 idzie równolegle.
+3. **Poprawne kształtowanie potencjałowe (24 uruchomienia): jeszcze nie ruszyło**, startuje po punkcie 2.
+
+Szacunkowo do końca zostało **ok. 25–30 minut**. Potem porównam warianty, wybiorę najlepszy i puszczę długi trening na 10 ziarnach (pomysł 3).
+
+Uwaga: wyniki w logu (np. 46 pkt na mapie kruchej) są już liczone według nowych zasad, więc nie porównuj ich z wcześniejszymi tabelami.

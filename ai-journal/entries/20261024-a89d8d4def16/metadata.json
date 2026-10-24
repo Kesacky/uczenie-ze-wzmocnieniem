@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24",
+  "tool": "Claude Code (CLI)",
+  "model": "claude-opus-5-5",
+  "purpose": "Sprawdzenie postępu treningu",
+  "scope": "Odczyt logów obliczeń w tle; bez zmian w kodzie",
+  "verification": "Brak samodzielnej weryfikacji studenta (do uzupełnienia)",
+  "conversation_url": "",
+  "prompt_sha256": "2f4e6ad13333a02cbe9fb2cf346f04a1d350ffb4cdde63e28c398fe0f95a6cd0",
+  "response_sha256": "d080654631395c25c1e733795256ade2d25b53207f784f86fce9d74fc4034ee9",
+  "recorded_at_utc": "2026-10-24T19:46:47.663618+00:00"
+}

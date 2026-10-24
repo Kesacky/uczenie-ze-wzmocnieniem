@@ -50,8 +50,8 @@ def test_ofat_variants():
     from train import make_variants, variant_label
     values = {"q_init": [10.0, 30.0], "alpha": [0.1, 0.3, 0.5], "gamma": [0.99],
               "eps_decay": [0.7], "eps_end": [0.05], "episodes": [50_000], "oil_bins": [4],
-              "reward_illegal": [-0.5], "reward_collapse": [-20.0], "dig_fraction": [0.0],
-              "dig_refund": [0], "mask_illegal": [0]}
+              "reward_illegal": [-2.0], "reward_collapse": [-10.0], "dig_fraction": [0.3],
+              "dig_refund": [0], "mask_illegal": [1], "bonus": [0.0]}
     ofat = make_variants(values, ofat=True)
     assert len(ofat) == 1 + 1 + 2                       # bazowy + zmiany pojedynczych czynników
     assert all(sum(v[k] != ofat[0][k] for k in values) <= 1 for v in ofat)
@@ -63,12 +63,41 @@ def test_reward_variants_are_evaluated_with_default_rewards(tmp_path):
     out = tmp_path / "r"
     subprocess.run([sys.executable, str(ROOT / "scripts" / "train.py"), "--maps", "m1_stabilna",
                     "--algos", "sarsa", "--seeds", "1", "--episodes", "40", "--ofat",
-                    "--reward-collapse", "-20", "-5", "--mask-illegal", "0", "1", "--eval-every", "40",
+                    "--reward-collapse", "-10", "-3", "--mask-illegal", "1", "0", "--eval-every", "40",
                     "--eval-episodes", "5", "--final-episodes", "10", "--workers", "2",
                     "--name", "r", "--out", str(out)], check=True, capture_output=True)
     runs = {r["variant"]: r for r in rows(out / "r" / "runs.csv")}
-    assert set(runs) == {"q10_n40", "q10_n40_rc-5", "q10_n40_m1"}
-    final = rows(out / "r" / "final_eval.csv")
-    collapsed = [float(r["return"]) for r in final if r["param"].startswith("q10_n40_rc-5") and r["reason"] == "collapse"]
-    assert all(v <= -20 for v in collapsed)            # ewaluacja z domyślną karą -20
-    assert TabularAgent.load(out / "r" / "models" / "m1_stabilna_sarsa_q10_n40_m1_s0.pkl").mask_illegal
+    assert set(runs) == {"q30_n40", "q30_n40_rc-3", "q30_n40_m0"}
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from train import PARAMS, make_env, train_env
+    job = {"map": "m1_stabilna", **{k: v for k, (_, v) in PARAMS.items()}, "reward_collapse": -3.0}
+    assert train_env(job).config.reward_collapse == -3.0          # trening: nagrody wariantu
+    assert make_env("m1_stabilna").config.reward_collapse == -10.0  # ewaluacja: domyślne nagrody gry
+    assert TabularAgent.load(out / "r" / "models" / "m1_stabilna_sarsa_q30_n40_s0.pkl").mask_illegal
+    assert not TabularAgent.load(out / "r" / "models" / "m1_stabilna_sarsa_q30_n40_m0_s0.pkl").mask_illegal
+
+
+def test_resume_skips_finished_runs(tmp_path):
+    a = run_train(tmp_path / "a")                      # pełny przebieg (wzorzec)
+    out = tmp_path / "b"
+    partial = out / "t" / "partial"
+    partial.mkdir(parents=True)
+    import pickle
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from train import run
+    done = dict(map="m1_stabilna", algo="sarsa", seed=0, episodes=60, q_init=0.0, alpha=0.1, gamma=0.99,
+                eps_start=1.0, eps_end=0.05, eps_decay=0.7, oil_bins=4, reward_illegal=-2.0,
+                reward_collapse=-10.0, dig_fraction=0.3, dig_refund=0, mask_illegal=1, bonus=0.0,
+                eval_every=30, eval_episodes=5, final_episodes=10, eval_seed=1_000_000, out=str(out / "t"),
+                variant="q0_n60")
+    result = run(done)
+    result["train_time"] = -1.0                         # znacznik: wynik wczytany, nie liczony ponownie
+    with (partial / "m1_stabilna_sarsa_q0_n60_s0.pkl").open("wb") as f:
+        pickle.dump(result, f)
+    b = run_train(out)
+    runs = rows(b / "runs.csv")
+    assert [r["train_time_s"] for r in runs if r["variant"] == "q0_n60" and r["agent"] == "sarsa"
+            and r["seed"] == "0"] == ["-1.0"]
+    assert not (b / "partial").exists()
+    strip = lambda rs: [{k: v for k, v in r.items() if k != "train_time_s"} for r in rs]  # noqa: E731
+    assert strip(rows(a / "runs.csv")) == strip(runs)

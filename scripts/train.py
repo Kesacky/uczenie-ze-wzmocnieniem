@@ -4,7 +4,8 @@
 Każdy hiperparametr (--q-init, --alpha, --gamma, --eps-decay, --eps-end, --episodes)
 oraz parametry środowiska (--oil-bins: przedziały oleju w obserwacji; --reward-illegal,
 --reward-collapse, --dig-fraction, --dig-refund: nagrody w treningu; --mask-illegal:
-maskowanie akcji niedozwolonych) przyjmuje jedną lub kilka wartości. Domyślnie warianty to wszystkie kombinacje
+maskowanie akcji niedozwolonych; --bonus: premia za eksplorację) przyjmuje jedną lub
+kilka wartości. Domyślnie warianty to wszystkie kombinacje
 (siatka). Z --ofat pierwsza wartość każdego parametru tworzy wariant bazowy, a każda
 pozostała wartość daje wariant różniący się od bazowego tylko tym jednym parametrem
 („jeden czynnik naraz”). Każda kombinacja (mapa, algorytm, wariant, ziarno) to jedno
@@ -29,6 +30,10 @@ Pliki wynikowe:
 - summary.csv      - średnia i odchylenie standardowe po ziarnach dla każdego wariantu;
 - models/*.pkl     - tablice Q (TabularAgent.save), do podglądu w scripts/watch.py.
 
+Wynik każdego ukończonego uruchomienia jest od razu zapisywany w partial/. Ponowne
+uruchomienie tego samego polecenia pomija gotowe uruchomienia (wznowienie po przerwaniu).
+Po zapisaniu plików wynikowych katalog partial/ jest usuwany.
+
     python scripts/train.py --maps m1_stabilna --seeds 3 --q-init 0 10 20 --name pilot
     python scripts/train.py --ofat --q-init 10 30 60 --alpha 0.1 0.3 --name przeglad
 """
@@ -42,6 +47,8 @@ import json
 from multiprocessing import Pool
 import os
 from pathlib import Path
+import pickle
+import shutil
 import sys
 import time
 
@@ -62,10 +69,13 @@ EVAL_FIELDS = ["phase", "map", "agent", "param", "episode", "seed", "return", "l
 METRICS = ["mean_return", "std_return", "exit_rate", "collapse_rate", "oil_rate",
            "mean_value_out", "mean_length", "mean_max_depth"]
 # hiperparametr -> (skrót w nazwie wariantu i pliku modelu, wartość domyślna)
-PARAMS = {"q_init": ("q", 10.0), "alpha": ("a", 0.1), "gamma": ("g", 0.99),
+# Domyślne od 24.10.2026: Q0 = 30, nagrody gry z config.py (kara -2 / -10, premia 0,3) i maskowanie
+# akcji niedozwolonych. Wcześniejsze katalogi results/train/ mają zapisane parametry w config.json.
+PARAMS = {"q_init": ("q", 30.0), "alpha": ("a", 0.1), "gamma": ("g", 0.99),
           "eps_decay": ("d", 0.7), "eps_end": ("e", 0.05), "episodes": ("n", 50_000),
-          "oil_bins": ("o", 4), "reward_illegal": ("ri", -0.5), "reward_collapse": ("rc", -20.0),
-          "dig_fraction": ("df", 0.0), "dig_refund": ("dr", 0), "mask_illegal": ("m", 0)}
+          "oil_bins": ("o", 4), "reward_illegal": ("ri", -2.0), "reward_collapse": ("rc", -10.0),
+          "dig_fraction": ("df", 0.3), "dig_refund": ("dr", 0), "mask_illegal": ("m", 1),
+          "bonus": ("b", 0.0)}
 
 
 def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1], **rewards) -> MineEnv:
@@ -78,7 +88,7 @@ def train_env(job: dict) -> MineEnv:
     """Środowisko treningowe: nagrody wariantu zamiast domyślnych."""
     return make_env(job["map"], job["oil_bins"], reward_illegal=job["reward_illegal"],
                     reward_collapse=job["reward_collapse"], reward_dig_fraction=job["dig_fraction"],
-                    reward_dig_refund=bool(job["dig_refund"]))
+                    reward_dig_refund=bool(job["dig_refund"]), reward_shaping_gamma=job["gamma"])
 
 
 def variant_label(v: dict) -> str:
@@ -134,7 +144,7 @@ def run(job: dict) -> dict:
     episodes = job["episodes"]
     agent = ALGOS[job["algo"]](
         n_actions=env.action_space.n, alpha=job["alpha"], gamma=job["gamma"], q_init=job["q_init"],
-        mask_illegal=bool(job["mask_illegal"]),
+        mask_illegal=bool(job["mask_illegal"]), bonus_beta=job["bonus"],
         epsilon=EpsilonSchedule(job["eps_start"], job["eps_end"], int(job["eps_decay"] * episodes)),
         seed=job["seed"])
     train_seed = job["seed"] * TRAIN_SEED_STRIDE
@@ -198,6 +208,8 @@ def main() -> int:
                         help="1 = zwrot wypłaty za wydobycie przy końcu epizodu (kształtowanie potencjałowe)")
     parser.add_argument("--mask-illegal", type=int, nargs="+", default=[PARAMS["mask_illegal"][1]], choices=[0, 1],
                         help="1 = agent wybiera tylko akcje dozwolone")
+    parser.add_argument("--bonus", type=float, nargs="+", default=[PARAMS["bonus"][1]],
+                        help="premia za eksplorację β/√N(s,a) w treningu (0 = wyłączona)")
     parser.add_argument("--ofat", action="store_true",
                         help="warianty „jeden czynnik naraz” wokół pierwszych wartości zamiast siatki")
     parser.add_argument("--eval-every", type=int, default=500, help="co ile epizodów walidacja")
@@ -228,12 +240,24 @@ def main() -> int:
               "valid_seed": VALID_SEED, "game_config": {m: make_env(m).config.to_dict() for m in args.maps}}
     (out / "config.json").write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"{len(variants)} wariantów, {len(jobs)} uruchomień, {args.workers} procesów -> {out}")
+    partial = out / "partial"
+    partial.mkdir(exist_ok=True)
+    key = lambda j: f"{j['map']}_{j['algo']}_{j['variant']}_s{j['seed']}"  # noqa: E731
+    results = []
+    for j in jobs:
+        saved = partial / f"{key(j)}.pkl"
+        if saved.exists():
+            with saved.open("rb") as f:
+                results.append(pickle.load(f))
+    todo = [j for j in jobs if not (partial / f"{key(j)}.pkl").exists()]
+    print(f"{len(variants)} wariantów, {len(jobs)} uruchomień (gotowe wcześniej: {len(results)}), "
+          f"{args.workers} procesów -> {out}")
     start = time.perf_counter()
-    with Pool(min(args.workers, len(jobs))) as pool:
-        results = []
-        for r in pool.imap_unordered(run, jobs):
+    with Pool(max(1, min(args.workers, len(todo)))) as pool:
+        for r in pool.imap_unordered(run, todo):
             results.append(r)
+            with (partial / f"{key(r)}.pkl").open("wb") as f:
+                pickle.dump(r, f)
             s = summarize(r["final"])
             print(f"  [{len(results)}/{len(jobs)}] {r['map']} {r['algo']} {r['variant']} ziarno {r['seed']}: "
                   f"zwrot {s['mean_return']:.2f}, wyjścia {s['exit_rate']:.1%}, "
@@ -265,6 +289,7 @@ def main() -> int:
             row[f"{k}_sd"] = vals.std(ddof=1) if len(vals) > 1 else 0.0
         summary.append(row)
     write_csv(out / "summary.csv", summary)
+    shutil.rmtree(partial)
 
     print(f"\nEwaluacja końcowa ({args.final_episodes} epizodów, ziarna od {args.eval_seed}); "
           f"średnia ± odch. std. po {args.seeds} ziarnach, czas {time.perf_counter() - start:.0f} s")

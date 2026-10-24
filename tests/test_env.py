@@ -122,7 +122,7 @@ def test_entering_deposit_mines_it():
     assert st.stability == cfg.stability_start - cfg.dig_stability_cost
     assert st.mined == (1, 0)
     assert env.grid[1][1] == "." and env.last_dug == (1, 1)
-    assert r == pytest.approx(cfg.reward_step)
+    assert r == pytest.approx(cfg.reward_step + cfg.reward_dig_fraction * value)
 
 
 def test_mined_cell_is_plain_corridor_afterwards():
@@ -370,7 +370,8 @@ def test_map_rejects_bad_input():
 def test_defaults_match_report():
     cfg = GameConfig()
     assert (cfg.reward_step, cfg.reward_illegal, cfg.reward_collapse, cfg.reward_out_of_oil) \
-        == (-0.1, -0.5, -20.0, -20.0)
+        == (-0.1, -2.0, -10.0, -20.0)
+    assert (cfg.reward_dig_fraction, cfg.reward_dig_refund) == (0.3, False)
     assert (cfg.oil_start, cfg.oil_bins, cfg.props_start, cfg.props_max) == (100, 4, 2, 2)
     assert (cfg.stability_max, cfg.corridor_event_after, cfg.step_limit) == (5, 3, 300)
     assert cfg.deposit_values == {"c": 3, "s": 9, "g": 18, "k": 30}
@@ -452,9 +453,18 @@ def test_dig_reward_fraction():
     assert reward == pytest.approx(-0.1 + 0.5 * 3)
 
 
+def test_potential_shaping_with_discount():
+    g = 0.9
+    env, _, _ = make(**SAFE, reward_dig_fraction=0.5, reward_dig_refund=True, reward_shaping_gamma=g)
+    rewards = [env.step(a)[1] for a in [LEFT, RIGHT, UP]]   # węgiel (Φ: 0 -> 1,5), krok, wyjście
+    base = [-0.1, -0.1, -0.1 + 3]
+    shaping = [g * 1.5 - 0, g * 1.5 - 1.5, 0 - 1.5]
+    assert rewards == pytest.approx([b + s for b, s in zip(base, shaping)])
+
+
 def test_dig_refund_keeps_episode_return():
     totals = []
-    for extra in [{}, dict(reward_dig_fraction=0.5, reward_dig_refund=True)]:
+    for extra in [dict(reward_dig_fraction=0.0), dict(reward_dig_fraction=0.5, reward_dig_refund=True)]:
         env, _, _ = make(**SAFE, **extra)
         totals.append(sum(env.step(a)[1] for a in [LEFT, RIGHT, UP]))   # węgiel i wyjście
     assert totals[0] == pytest.approx(totals[1]) == pytest.approx(-0.3 + 3)
@@ -464,13 +474,13 @@ def test_dig_refund_on_collapse():
     env, _, _ = make(reward_dig_fraction=0.5, reward_dig_refund=True, collapse_prob=1.0)
     _, reward, terminated, _, info = env.step(LEFT)   # wydobycie i zawał w tym samym kroku
     assert terminated and info["collapsed"]
-    assert reward == pytest.approx(-0.1 + 1.5 - 20 - 1.5)
+    assert reward == pytest.approx(-0.1 + env.config.reward_collapse)   # Φ(s) = 0, Φ(terminal) = 0
 
 
 def test_dig_bonus_without_refund_is_kept_on_collapse():
     env, _, _ = make(reward_dig_fraction=0.5, collapse_prob=1.0)
     _, reward, *_ = env.step(LEFT)
-    assert reward == pytest.approx(-0.1 + 1.5 - 20)
+    assert reward == pytest.approx(-0.1 + 1.5 + env.config.reward_collapse)
 
 
 def test_action_mask_matches_legality():

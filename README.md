@@ -7,12 +7,12 @@ przekazany prowadzącemu), E2 wykonany. Raport zawiera opis problemu, formalizac
 MDP, opis środowiska, agentów bazowych z wynikami, opis algorytmów, plan eksperymentów,
 wyniki pilotażu oraz doboru hiperparametrów i diagnozy zachowania agenta (początek E3). Gotowe są: środowisko gry (logika, generator
 map, grafika, testy), agenci bazowi, Q-learning i SARSA (`miner_rl/agents/tabular.py`)
-oraz skrypty treningu i analizy. Agenci uczą się dopiero z optymistyczną
-inicjalizacją Q. Najlepsza konfiguracja (SARSA, Q0 = 30, większa kara za akcję
-niedozwoloną, mniejsza za zawał, premia za wydobycie, maskowanie akcji) działa
-stabilnie na wszystkich mapach, wyraźnie wygrywa z heurystyką na mapie kruchej,
-a na pozostałych traci do niej 4–9 pkt. Eksperymenty właściwe z planu
-(10 ziaren, kara za zawał, losowe mapy) nie zostały jeszcze przeprowadzone.
+oraz skrypty treningu i analizy. Od 24.10.2026 obowiązują zasady w wersji 3:
+kara za akcję niedozwoloną −2, za zawał −10, nagroda 0,3 · wartość złoża za
+wydobycie, a agenci maskują akcje niedozwolone. Eksperyment główny (10 ziaren,
+100 tys. epizodów): agenci RL wygrywają z heurystyką na mapie kruchej, remisują na
+głębokiej i przegrywają o 7–16 pkt na stabilnej i zawału korytarza. Pozostały
+eksperymenty 2 i 3 z planu (kara za zawał, losowe mapy).
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 
@@ -107,9 +107,9 @@ procesach, wyniki, krzywe uczenia, konfiguracja i modele `.pkl` w `results/train
 a potem wykres krzywych uczenia:
 
 ```powershell
-python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 3 --episodes 50000 --q-init 0 10 20 --name pilot
-python scripts/plot_training.py --name pilot
-python scripts/watch.py --map m1_stabilna --agent results/train/pilot/models/m1_stabilna_sarsa_q10_s0.pkl
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 10 --episodes 100000 --name glowny
+python scripts/plot_training.py --name glowny
+python scripts/watch.py --map m3_gleboka --agent results/train/glowny/models/m3_gleboka_q_learning_q30_n100000_s0.pkl
 ```
 
 Przegląd hiperparametrów: każdy z `--q-init`, `--alpha`, `--gamma`, `--eps-decay`,
@@ -133,6 +133,13 @@ używa domyślnych nagród gry. Zestawienie wariantów na wszystkich mapach:
 python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --q-init 30 --reward-illegal -2 --reward-collapse -10 --dig-fraction 0.3 --mask-illegal 0 1 --name nagrody_c
 python scripts/compare_runs.py --runs nagrody_a nagrody_b nagrody_c --out results/train/nagrody
 ```
+
+Domyślne parametry `train.py` odpowiadają zasadom w wersji 3 (Q0 = 30, maskowanie akcji).
+Przerwany trening można wznowić tym samym poleceniem: gotowe uruchomienia są zapisywane
+na bieżąco w `partial/` i pomijane. Wyniki w `results/train/` sprzed 24.10.2026
+(`pilot`, `przeglad_m1`, `q0_m1`, `olej_m1`, `q0_mapy`, `nagrody_*`) oceniano według
+zasad w wersji 2 (parametry w ich `config.json`, heurystyka: `results/baseline_summary_v2.csv`).
+Premia za eksplorację: `--bonus β`; kształtowanie potencjałowe: `--dig-refund 1`.
 
 Ziarna: trening uruchomienia `s` używa ziaren `s·100 000 + i`, walidacja w trakcie
 treningu ziaren od 2 000 000, a ewaluacja końcowa tych samych ziaren od 1 000 000
@@ -186,7 +193,7 @@ Każda nowa rozmowa wymaga zapisania jej pełnego przebiegu i aktualizacji rapor
 
 ## Najbliższy krok
 
-Etap E3: eksperymenty właściwe zgodnie z planem w raporcie (10 ziaren, `q_init` = 10,
-wpływ kary za zawał, stała a losowa mapa) oraz wyjaśnienie, dlaczego agenci RL
-wracają przed wydobyciem wszystkich złóż. Daty kalendarzowe bloków zajęć należy
+Etap E3: wybór polityki najlepszej według walidacji (usunięcie nieudanych uruchomień),
+eksperymenty 2 i 3 z planu (wpływ kary za zawał, mapa stała a losowa) oraz analiza
+i wnioski w raporcie. Daty kalendarzowe bloków zajęć należy
 wpisać po ich potwierdzeniu.

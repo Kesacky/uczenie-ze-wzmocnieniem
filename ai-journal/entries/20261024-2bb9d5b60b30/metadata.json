@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24",
+  "tool": "Claude Code (CLI)",
+  "model": "claude-opus-5-5",
+  "purpose": "Przyjęcie nowych zasad jako domyślnych i realizacja trzech pomysłów",
+  "scope": "Zmiany: config.py, mine_env.py, tabular.py (premia za eksplorację), train.py, testy, raport; ponowna ocena agentów bazowych i 240 treningów",
+  "verification": "Brak samodzielnej weryfikacji studenta (do uzupełnienia)",
+  "conversation_url": "",
+  "prompt_sha256": "b29a25efd9490f3293cb4bcb94612dd3503688346a5838abc617c8d4219ec480",
+  "response_sha256": "b3629170feeb0c368a9cfe2210052306da7d27f9d6d01baea8aac721604c3381",
+  "recorded_at_utc": "2026-10-24T21:58:14.670573+00:00"
+}
