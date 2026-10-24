@@ -44,9 +44,19 @@ commit i wysłanie zmian, poprawił automatyczne ustalanie daty w
 do agentów tablicowych parametr $Q_0$ (inicjalizacja optymistyczna), napisał
 skrypty treningu i wykresów (\texttt{scripts/train.py},
 \texttt{scripts/plot\_training.py}) z testem, uruchomił eksperyment pilotażowy
-i opisał jego wyniki w raporcie (sekcja \ref{sec:pilot}). Wybór $Q_0$ i liczby
+i opisał jego wyniki w raporcie (sekcja ef{sec:pilot}). Wybór $Q_0$ i liczby
 epizodów na eksperymenty właściwe zaproponował Claude na podstawie pilotażu.
 Zamknięcie etapu E1 wpisano na podstawie oświadczenia studenta.
+
+Po obejrzeniu agenta w grze student zauważył, że agent w każdym epizodzie wykonuje tę
+samą trasę i wydobywa tylko jedno złoże, i polecił przeprowadzić dodatkowe
+eksperymenty z nowym zakresem wartości. Claude rozszerzył skrypt treningu o przegląd
+hiperparametrów i parametr \texttt{oil\_bins}, napisał skrypty analizy zachowania
+(\texttt{scripts/analyze\_policy.py}) i wykresu wpływu $Q_0$
+(\texttt{scripts/plot\_q0.py}), dobrał zakresy wartości, uruchomił eksperymenty
+(łącznie 236 uruchomień treningu) i opisał wyniki oraz diagnozę w sekcji
+\ref{sec:dobor}. Hipoteza Claude o poprawie przez dokładny poziom oleju w obserwacji
+nie potwierdziła się i została opisana jako wynik negatywny.
 
 \subsection*{Weryfikacja studenta}
 Oświadczenie studenta z 24.10.2026: student zweryfikował całość dotychczasowych

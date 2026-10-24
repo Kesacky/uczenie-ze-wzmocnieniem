@@ -1,0 +1,1 @@
+To zeby to wyjasnij wykonaj wiecej eksperymentow, dobierz nowy zakres wartosci i wytestuj jak dla nich bedzie zachowywal sie agent bo aktualnie w kazdym z 5 symulacji zrobil dokladnie to samo idac tylko po ta 1 najbardziej wartosciwa rude na koncu tunelu po czym wrocil

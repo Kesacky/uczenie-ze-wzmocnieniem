@@ -3,14 +3,15 @@
 Repozytorium projektu z przedmiotu „Uczenie się ze wzmocnieniem”, WEiI PRz.
 
 **Stan na 24.10.2026:** etap E1 zamknięty (temat „Górnik w niestabilnej kopalni”
-przekazany prowadzącemu). Raport zawiera opis problemu, formalizację MDP, opis
-środowiska, agentów bazowych z wynikami, opis algorytmów, plan eksperymentów
-i wyniki eksperymentu pilotażowego. Gotowe są: środowisko gry (logika, generator
+przekazany prowadzącemu), E2 wykonany. Raport zawiera opis problemu, formalizację
+MDP, opis środowiska, agentów bazowych z wynikami, opis algorytmów, plan eksperymentów,
+wyniki pilotażu oraz doboru hiperparametrów i diagnozy zachowania agenta (początek E3). Gotowe są: środowisko gry (logika, generator
 map, grafika, testy), agenci bazowi, Q-learning i SARSA (`miner_rl/agents/tabular.py`)
-oraz skrypt treningu (`scripts/train.py`). Pilotaż (4 mapy, 3 ziarna) pokazał, że
-agenci uczą się dopiero z optymistyczną inicjalizacją Q i na razie ustępują
-heurystyce na trzech z czterech map. Eksperymenty właściwe (etap E3) nie zostały
-jeszcze przeprowadzone.
+oraz skrypty treningu i analizy. Agenci uczą się dopiero z optymistyczną
+inicjalizacją Q. Najlepsze ustawienia (Q0 = 20–30) mniej więcej podwajają wynik
+z pilotażu, ale agenci nadal ustępują heurystyce na wszystkich mapach poza kruchą,
+a część uruchomień kończy się zapętloną polityką. Eksperymenty właściwe z planu
+(10 ziaren, kara za zawał, losowe mapy) nie zostały jeszcze przeprowadzone.
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 
@@ -109,6 +110,19 @@ python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytar
 python scripts/plot_training.py --name pilot
 python scripts/watch.py --map m1_stabilna --agent results/train/pilot/models/m1_stabilna_sarsa_q10_s0.pkl
 ```
+
+Przegląd hiperparametrów: każdy z `--q-init`, `--alpha`, `--gamma`, `--eps-decay`,
+`--eps-end`, `--episodes`, `--oil-bins` przyjmuje kilka wartości (siatka kombinacji,
+a z `--ofat` zmiana jednego czynnika naraz). Analiza zachowania agenta (które złoża
+wydobywa, akcje niedozwolone, mapa cieplna odwiedzin) i wykres wpływu Q0:
+
+```powershell
+python scripts/train.py --ofat --maps m1_stabilna --q-init 10 30 60 --alpha 0.1 0.3 0.5 --name przeglad_m1
+python scripts/analyze_policy.py --map m1_stabilna --agent results/train/q0_mapy/models/m1_stabilna_sarsa_q30_s0.pkl --heatmap mapa.png
+python scripts/plot_q0.py --runs przeglad_m1 q0_m1 olej_m1 --map m1_stabilna
+```
+
+Agenta uczonego z `--oil-bins N` oglądamy i analizujemy z tą samą opcją `--oil-bins N`.
 
 Ziarna: trening uruchomienia `s` używa ziaren `s·100 000 + i`, walidacja w trakcie
 treningu ziaren od 2 000 000, a ewaluacja końcowa tych samych ziaren od 1 000 000

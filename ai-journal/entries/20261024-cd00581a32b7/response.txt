@@ -1,0 +1,59 @@
+# Etap E2: co zostało osiągnięte
+
+Wymaganie E2 (P00 §4): środowisko, baseline, plan badań i pierwsza działająca wersja. Wszystkie cztery elementy są w publicznym repo.
+
+## 1. Środowisko „Górnik w niestabilnej kopalni”
+- **`MineEnv`** (`miner_rl/env/mine_env.py`) z interfejsem Gymnasium: `reset(seed)` i `step(a)`, które zwracają obserwację, nagrodę, `terminated`, `truncated` i `info`.
+- **Stan:** `(x, y, stabilność 0–5, olej w 4 przedziałach, maska 5 złóż, liczba stempli)`, czyli około 304 tys. możliwych stanów na mapę.
+- **Akcje:** 4 ruchy (wejście w złoże oznacza wydobycie) i `podepnij` (stempel podnosi stabilność o 2).
+- **Dynamika:**
+  - wydobycie obniża stabilność;
+  - ryzyko zawału rośnie z osłabieniem stropu i z głębokością;
+  - olej ubywa co krok;
+  - po wydobyciu 3 złóż korytarz `X` może się zawalić.
+- **Nagrody:** −0,1 za krok, −0,5 za akcję niedozwoloną, −20 za zawał albo brak oleju (ładunek przepada), wartość ładunku przy wyjściu.
+- **Koniec epizodu:** wyjście, zawał lub brak oleju (`terminated`) albo limit 300 kroków (`truncated`).
+- **Konfiguracja:** wszystkie liczby są w jednym pliku `miner_rl/config.py`, więc zmiana parametrów nie wymaga zmian kodu.
+- **Mapy:** 4 stałe mapy 12×11 (stabilna, krucha, głęboka, zawał korytarza) oraz generator losowych kopalń z walidacją osiągalności.
+- **Grafika pygame:** gra dla człowieka (`graj.bat`), podgląd agenta i nagrywanie GIF-ów.
+- **Testy:** 190 testów. Obejmują reset i powtarzalność przy ziarnie, ruchy w skałę i poza mapę, wydobycie, stemple, wymuszony zawał, brak oleju, wyjście, limit kroków, zdarzenie korytarza i generator.
+
+Ważna decyzja, opisana w raporcie: pierwsza wersja parametrów była zbyt surowa (nawet najlepsza heurystyka miała ujemny wynik). Po zagraniu w grę i pomiarach zmieniono rozmiar map, wzór ryzyka i wartości złóż.
+
+## 2. Baseline
+- **Agent losowy:** dolne odniesienie, około −15 do −19 pkt na wszystkich mapach.
+- **Heurystyka progowa:** „kop do progu ładunku X, stawiaj stempel przy niskiej stabilności, potem wracaj najkrótszą drogą”. Wariant jest dobierany uczciwie, osobno dla każdej mapy, na ziarnach treningowych. Ocena odbywa się na 1000 epizodach na rozłącznych ziarnach.
+
+| Mapa | Losowy | Heurystyka |
+|---|---|---|
+| stabilna | −18,6 | 44,0 |
+| krucha | −14,5 | 5,0 |
+| głęboka | −15,8 | 58,2 |
+| zawał korytarza | −18,0 | 49,7 |
+
+## 3. Plan badań (raport)
+- **Porównanie:** losowy, heurystyka, Q-learning i SARSA na 4 mapach, po 10 ziaren na wariant.
+- **Eksperymenty:** wpływ kary za zawał (−5 / −20 / −50) oraz mapa stała vs losowa (uogólnianie).
+- **Hipotezy:** H1–H4.
+- **Metryki:** średni zwrot, odsetek bezpiecznych powrotów, zawały, brak oleju, wartość ładunku, długość epizodu, głębokość.
+- **Zaplanowane wykresy i tabele:** krzywe uczenia, tabela wyników końcowych, zależność odsetka zawałów i wartości ładunku od kary, mapa cieplna odwiedzin pól, analiza nieudanych epizodów.
+
+## 4. Pierwsza działająca wersja RL
+- **Q-learning i SARSA** (`miner_rl/agents/tabular.py`): tablica Q jako słownik, ε-zachłanność, bez bootstrapu w stanie terminalnym, z bootstrapem przy obcięciu. Poprawność sprawdzono na klasycznym Cliff Walking: Q-learning wybiera drogę przy urwisku, a SARSA bezpieczniejszą, zgodnie z literaturą.
+- **Trening** (`scripts/train.py`): trening, okresowa walidacja i ewaluacja końcowa na rozłącznych ziarnach. Ewaluacja używa tych samych ziaren co baseline. Skrypt zapisuje konfigurację, krzywe i wszystkie epizody, a uruchomienie jest w pełni odtwarzalne.
+- **Pilotaż:** 72 uruchomienia (4 mapy × 2 algorytmy × Q₀ ∈ {0, 10, 20} × 3 ziarna, po 50 000 epizodów).
+  - przy Q₀ = 0 agent uczy się „wyjść od razu” (lokalne optimum), co potwierdza ryzyko przewidziane w planie;
+  - optymistyczna inicjalizacja Q₀ = 10 to rozwiązuje: agenci schodzą głęboko i wracają bezpiecznie w 90–98% epizodów;
+  - na mapie kruchej SARSA pokonała heurystykę (14,4 vs 5,0);
+  - na pozostałych mapach agenci RL mają około połowy wyniku heurystyki, bo wracają przed wydobyciem wszystkich złóż;
+  - Q₀ = 20 jest niestabilne: polityka czasem chodzi w pętli, aż skończy się olej.
+- **Wykres** krzywych uczenia z linią heurystyki jest w raporcie.
+
+## Dokumentacja
+- **Raport:** zaktualizowany (14 stron). Sekcje do E3 („Eksperymenty właściwe”, „Analiza i wnioski”) są oznaczone jako „do uzupełnienia”.
+- **README:** instrukcja uruchomienia gry, baseline'u i treningu.
+- **Checklista** w `docs/etapy.md`.
+- **Dziennik AI** oraz sekcja „Wsparcie AI” w raporcie.
+
+## Co z tego wynika na E3
+Punkt wyjścia to Q₀ = 10 i 50 000 epizodów. Główne pytanie badawcze: dlaczego agenci RL wracają za wcześnie i czy dłuższy trening, eksploracja lub malejące α zbliżą ich do heurystyki. Potem idą eksperymenty właściwe z 10 ziarnami.

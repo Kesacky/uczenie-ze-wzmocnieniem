@@ -1,0 +1,18 @@
+Tak, wstępny agent jest gotowy i działa. Ma jednak wyraźne słabości, o których trzeba wiedzieć.
+
+**Co działa:**
+- Q-learning i SARSA uczą się na wszystkich 4 mapach. Przy Q₀ = 10 schodzą w głąb, wydobywają złoża i wracają bezpiecznie w 90–98% epizodów.
+- Wyniki są powtarzalne (ten sam wynik przy tym samym ziarnie) i stabilne między ziarnami.
+- Wytrenowane modele leżą lokalnie w `results/train/pilot/models/`. Można je obejrzeć w grze, np.:
+  ```
+  python scripts/watch.py --map m1_stabilna --agent results/train/pilot/models/m1_stabilna_sarsa_q10_s0.pkl
+  ```
+
+**Czego mu brakuje:**
+- Na 3 z 4 map ma mniej więcej połowę wyniku heurystyki (np. stabilna: 25 vs 44), bo wraca po wydobyciu tylko części złóż. Wygrywa tylko na mapie kruchej, i to przy 3 ziarnach.
+- Wymaga optymistycznej inicjalizacji. Bez niej (Q₀ = 0) uczy się tylko „wyjść od razu”.
+- Nie był jeszcze trenowany na losowych mapach.
+
+To wystarcza na „pierwszą działającą wersję” z E2. Do E3 trzeba go poprawić (dłuższy trening lub eksploracja, dobór α) i przeprowadzić pełne eksperymenty na 10 ziarnach.
+
+Uwaga: modele `.pkl` nie są w repo (są w `.gitignore`), więc po sklonowaniu repo trzeba je najpierw wytrenować poleceniem z README (`scripts/train.py`).

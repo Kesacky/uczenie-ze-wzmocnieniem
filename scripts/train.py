@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """Trening i ewaluacja Q-learningu i SARSA, wyniki do results/train/<nazwa>/.
 
-Każda kombinacja (mapa, algorytm, q_init, ziarno) to jedno niezależne uruchomienie.
+Każdy hiperparametr (--q-init, --alpha, --gamma, --eps-decay, --eps-end, --episodes)
+oraz liczba przedziałów oleju w obserwacji (--oil-bins, parametr środowiska)
+przyjmuje jedną lub kilka wartości. Domyślnie warianty to wszystkie kombinacje
+(siatka). Z --ofat pierwsza wartość każdego parametru tworzy wariant bazowy, a każda
+pozostała wartość daje wariant różniący się od bazowego tylko tym jednym parametrem
+(„jeden czynnik naraz”). Każda kombinacja (mapa, algorytm, wariant, ziarno) to jedno
+niezależne uruchomienie.
+
 Ziarna są rozłączne między fazami, zgodnie z planem eksperymentów w raporcie:
 - trening uruchomienia o ziarnie s: epizody z ziarnami s * 100 000 + i (i < 100 000);
 - walidacja w trakcie treningu (co --eval-every epizodów, polityka zachłanna):
@@ -10,14 +17,15 @@ Ziarna są rozłączne między fazami, zgodnie z planem eksperymentów w raporci
   (scripts/run_baselines.py), więc porównanie odbywa się na identycznych przebiegach.
 
 Pliki wynikowe:
-- config.json      - argumenty, hiperparametry i konfiguracja gry każdej mapy;
+- config.json      - argumenty, lista wariantów i konfiguracja gry każdej mapy;
 - curves.csv       - przebieg uczenia: średni zwrot treningowy w oknie i wyniki walidacji;
 - final_eval.csv   - wszystkie epizody ewaluacji końcowej (format jak baseline_*.csv);
 - runs.csv         - podsumowanie każdego uruchomienia;
-- summary.csv      - średnia i odchylenie standardowe po ziarnach;
+- summary.csv      - średnia i odchylenie standardowe po ziarnach dla każdego wariantu;
 - models/*.pkl     - tablice Q (TabularAgent.save), do podglądu w scripts/watch.py.
 
-    python scripts/train.py --maps m1_stabilna --seeds 3 --episodes 20000 --q-init 0 10 20
+    python scripts/train.py --maps m1_stabilna --seeds 3 --q-init 0 10 20 --name pilot
+    python scripts/train.py --ofat --q-init 10 30 60 --alpha 0.1 0.3 --name przeglad
 """
 
 from __future__ import annotations
@@ -48,10 +56,34 @@ EVAL_FIELDS = ["phase", "map", "agent", "param", "episode", "seed", "return", "l
                "collected", "collected_value", "lost_value", "collapsed", "max_depth"]
 METRICS = ["mean_return", "std_return", "exit_rate", "collapse_rate", "oil_rate",
            "mean_value_out", "mean_length", "mean_max_depth"]
+# hiperparametr -> (skrót w nazwie wariantu i pliku modelu, wartość domyślna)
+PARAMS = {"q_init": ("q", 10.0), "alpha": ("a", 0.1), "gamma": ("g", 0.99),
+          "eps_decay": ("d", 0.7), "eps_end": ("e", 0.05), "episodes": ("n", 50_000),
+          "oil_bins": ("o", 4)}
 
 
-def make_env(name: str) -> MineEnv:
-    return MineEnv(random_maps=True, obs_mode="local") if name == "losowa" else MineEnv(name)
+def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1]) -> MineEnv:
+    if name == "losowa":
+        return MineEnv(random_maps=True, obs_mode="local", oil_bins=oil_bins)
+    return MineEnv(name, oil_bins=oil_bins)
+
+
+def variant_label(v: dict) -> str:
+    """Krótka nazwa wariantu: q_init zawsze, pozostałe parametry tylko gdy różne od domyślnych."""
+    parts = [f"q{v['q_init']:g}"]
+    parts += [f"{short}{v[k]:g}" for k, (short, default) in PARAMS.items()
+              if k != "q_init" and v[k] != default]
+    return "_".join(parts)
+
+
+def make_variants(values: dict[str, list], ofat: bool) -> list[dict]:
+    if not ofat:
+        return [dict(zip(values, combo)) for combo in product(*values.values())]
+    base = {k: v[0] for k, v in values.items()}
+    variants = [base]
+    for k, vals in values.items():
+        variants += [{**base, k: x} for x in vals[1:]]
+    return variants
 
 
 def episode_row(result: dict, episode: int, seed: int) -> dict:
@@ -84,7 +116,7 @@ def evaluate_rows(env, agent, episodes: int, seed: int) -> list[dict]:
 
 def run(job: dict) -> dict:
     """Jedno uruchomienie: trening z okresową walidacją, potem ewaluacja końcowa i zapis modelu."""
-    env = make_env(job["map"])
+    env = make_env(job["map"], job["oil_bins"])
     episodes = job["episodes"]
     agent = ALGOS[job["algo"]](
         n_actions=env.action_space.n, alpha=job["alpha"], gamma=job["gamma"], q_init=job["q_init"],
@@ -109,13 +141,9 @@ def run(job: dict) -> dict:
             window = []
     train_time = time.perf_counter() - start
     final = evaluate_rows(env, agent, job["final_episodes"], job["eval_seed"])
-    model = Path(job["out"]) / "models" / f"{job['map']}_{job['algo']}_q{job['q_init']:g}_s{job['seed']}.pkl"
+    model = Path(job["out"]) / "models" / f"{job['map']}_{job['algo']}_{job['variant']}_s{job['seed']}.pkl"
     agent.save(model)
     return {**job, "curve": curve, "final": final, "states": len(agent.q), "train_time": train_time}
-
-
-def param_label(job: dict) -> str:
-    return f"q_init={job['q_init']:g};seed={job['seed']}"
 
 
 def write_csv(path: Path, rows: list[dict], fields: list[str] | None = None) -> None:
@@ -133,14 +161,20 @@ def main() -> int:
                         help="nazwy map z maps/ albo 'losowa' (nowa kopalnia w każdym epizodzie)")
     parser.add_argument("--algos", nargs="+", default=list(ALGOS), choices=list(ALGOS))
     parser.add_argument("--seeds", type=int, default=3, help="liczba uruchomień (ziarna 0..N-1)")
-    parser.add_argument("--episodes", type=int, default=20_000, help="epizody treningu na uruchomienie")
-    parser.add_argument("--alpha", type=float, default=0.1)
-    parser.add_argument("--gamma", type=float, default=0.99)
-    parser.add_argument("--q-init", type=float, nargs="+", default=[0.0],
-                        help="wartości początkowe Q (kilka = osobne warianty)")
+    parser.add_argument("--q-init", type=float, nargs="+", default=[PARAMS["q_init"][1]],
+                        help="wartości początkowe Q")
+    parser.add_argument("--alpha", type=float, nargs="+", default=[PARAMS["alpha"][1]])
+    parser.add_argument("--gamma", type=float, nargs="+", default=[PARAMS["gamma"][1]])
     parser.add_argument("--eps-start", type=float, default=1.0)
-    parser.add_argument("--eps-end", type=float, default=0.05)
-    parser.add_argument("--eps-decay", type=float, default=0.7, help="ułamek treningu, w którym ε maleje")
+    parser.add_argument("--eps-end", type=float, nargs="+", default=[PARAMS["eps_end"][1]])
+    parser.add_argument("--eps-decay", type=float, nargs="+", default=[PARAMS["eps_decay"][1]],
+                        help="ułamek treningu, w którym ε maleje")
+    parser.add_argument("--episodes", type=int, nargs="+", default=[PARAMS["episodes"][1]],
+                        help="epizody treningu na uruchomienie")
+    parser.add_argument("--oil-bins", type=int, nargs="+", default=[PARAMS["oil_bins"][1]],
+                        help="przedziały oleju w obserwacji (100 = dokładny poziom oleju)")
+    parser.add_argument("--ofat", action="store_true",
+                        help="warianty „jeden czynnik naraz” wokół pierwszych wartości zamiast siatki")
     parser.add_argument("--eval-every", type=int, default=500, help="co ile epizodów walidacja")
     parser.add_argument("--eval-episodes", type=int, default=100, help="epizody jednej walidacji")
     parser.add_argument("--final-episodes", type=int, default=1000, help="epizody ewaluacji końcowej")
@@ -149,40 +183,47 @@ def main() -> int:
     parser.add_argument("--name", default="pilot", help="podkatalog w results/train/")
     parser.add_argument("--out", type=Path, default=ROOT / "results" / "train")
     args = parser.parse_args()
-    if args.episodes > TRAIN_SEED_STRIDE:
+    if max(args.episodes) > TRAIN_SEED_STRIDE:
         parser.error(f"--episodes może wynosić najwyżej {TRAIN_SEED_STRIDE} (rozłączność ziaren)")
 
+    values = {k: getattr(args, k) for k in PARAMS}
+    variants = make_variants(values, args.ofat)
+    for v in variants:
+        v["variant"] = variant_label(v)
     out = args.out / args.name
     (out / "models").mkdir(parents=True, exist_ok=True)
-    jobs = [{"map": m, "algo": a, "q_init": q, "seed": s, "episodes": args.episodes, "alpha": args.alpha,
-             "gamma": args.gamma, "eps_start": args.eps_start, "eps_end": args.eps_end,
-             "eps_decay": args.eps_decay, "eval_every": args.eval_every, "eval_episodes": args.eval_episodes,
-             "final_episodes": args.final_episodes, "eval_seed": args.eval_seed, "out": str(out)}
-            for m, a, q, s in product(args.maps, args.algos, args.q_init, range(args.seeds))]
+    common = {"eps_start": args.eps_start, "eval_every": args.eval_every, "eval_episodes": args.eval_episodes,
+              "final_episodes": args.final_episodes, "eval_seed": args.eval_seed, "out": str(out)}
+    jobs = [{"map": m, "algo": a, "seed": s, **v, **common}
+            for m, a, v, s in product(args.maps, args.algos, variants, range(args.seeds))]
+    # najdłuższe uruchomienia najpierw, żeby procesy kończyły się mniej więcej razem
+    jobs.sort(key=lambda j: -j["episodes"])
     config = {"args": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
-              "train_seed": f"seed * {TRAIN_SEED_STRIDE} + epizod", "valid_seed": VALID_SEED,
-              "game_config": {m: make_env(m).config.to_dict() for m in args.maps}}
+              "variants": variants, "train_seed": f"seed * {TRAIN_SEED_STRIDE} + epizod",
+              "valid_seed": VALID_SEED, "game_config": {m: make_env(m).config.to_dict() for m in args.maps}}
     (out / "config.json").write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"{len(jobs)} uruchomień, {args.workers} procesów -> {out}")
+    print(f"{len(variants)} wariantów, {len(jobs)} uruchomień, {args.workers} procesów -> {out}")
     start = time.perf_counter()
     with Pool(min(args.workers, len(jobs))) as pool:
         results = []
         for r in pool.imap_unordered(run, jobs):
             results.append(r)
             s = summarize(r["final"])
-            print(f"  {r['map']} {r['algo']} q_init={r['q_init']:g} ziarno {r['seed']}: "
+            print(f"  [{len(results)}/{len(jobs)}] {r['map']} {r['algo']} {r['variant']} ziarno {r['seed']}: "
                   f"zwrot {s['mean_return']:.2f}, wyjścia {s['exit_rate']:.1%}, "
-                  f"{r['states']} stanów, {r['train_time']:.0f} s")
-    results.sort(key=lambda r: (r["map"], r["algo"], r["q_init"], r["seed"]))
+                  f"{r['states']} stanów, {r['train_time']:.0f} s", flush=True)
+    order = {v["variant"]: i for i, v in enumerate(variants)}
+    results.sort(key=lambda r: (r["map"], r["algo"], order[r["variant"]], r["seed"]))
 
     curves, final_rows, runs = [], [], []
     for r in results:
-        key = {"map": r["map"], "agent": r["algo"], "q_init": r["q_init"], "seed": r["seed"]}
+        key = {"map": r["map"], "agent": r["algo"], "variant": r["variant"],
+               **{k: r[k] for k in PARAMS}, "seed": r["seed"]}
         curves += [{**key, **c} for c in r["curve"]]
         for row in r["final"]:
             final_rows.append({"phase": "eval", "map": r["map"], "agent": r["algo"],
-                               "param": param_label(r), **row})
+                               "param": f"{r['variant']};seed={r['seed']}", **row})
         runs.append({**key, "states": r["states"], "train_time_s": round(r["train_time"], 1),
                      **summarize(r["final"])})
     write_csv(out / "curves.csv", curves)
@@ -190,9 +231,9 @@ def main() -> int:
     write_csv(out / "runs.csv", runs)
 
     summary = []
-    for (m, a, q) in dict.fromkeys((r["map"], r["agent"], r["q_init"]) for r in runs):
-        group = [r for r in runs if (r["map"], r["agent"], r["q_init"]) == (m, a, q)]
-        row = {"map": m, "agent": a, "q_init": q, "seeds": len(group), "episodes": args.episodes}
+    for (m, a, v) in dict.fromkeys((r["map"], r["agent"], r["variant"]) for r in runs):
+        group = [r for r in runs if (r["map"], r["agent"], r["variant"]) == (m, a, v)]
+        row = {"map": m, "agent": a, "variant": v, **{k: group[0][k] for k in PARAMS}, "seeds": len(group)}
         for k in METRICS:
             vals = np.array([g[k] for g in group], dtype=float)
             row[f"{k}_mean"] = vals.mean()
@@ -202,11 +243,12 @@ def main() -> int:
 
     print(f"\nEwaluacja końcowa ({args.final_episodes} epizodów, ziarna od {args.eval_seed}); "
           f"średnia ± odch. std. po {args.seeds} ziarnach, czas {time.perf_counter() - start:.0f} s")
-    print(f"{'mapa':<20}{'agent':<12}{'q_init':>7}{'zwrot':>9}{'±':>7}{'wyjście':>9}{'zawał':>8}{'olej':>7}")
+    print(f"{'mapa':<20}{'agent':<12}{'wariant':<26}{'zwrot':>9}{'±':>7}{'wyjście':>9}{'zawał':>8}"
+          f"{'olej':>7}{'wartość':>9}")
     for r in summary:
-        print(f"{r['map']:<20}{r['agent']:<12}{r['q_init']:>7g}{r['mean_return_mean']:>9.2f}"
+        print(f"{r['map']:<20}{r['agent']:<12}{r['variant']:<26}{r['mean_return_mean']:>9.2f}"
               f"{r['mean_return_sd']:>7.2f}{r['exit_rate_mean']:>9.1%}{r['collapse_rate_mean']:>8.1%}"
-              f"{r['oil_rate_mean']:>7.1%}")
+              f"{r['oil_rate_mean']:>7.1%}{r['mean_value_out_mean']:>9.2f}")
     return 0
 
 

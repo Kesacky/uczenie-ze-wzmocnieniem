@@ -1,0 +1,21 @@
+Częściowo tak, ale to nie jest cały E3 ani nawet jego najważniejsza część.
+
+E3 (P00 §4, P01 §4) to **finalne rozwiązanie, eksperymenty zgodne z planem, wyniki i analiza**. Prowadzący ocenia przede wszystkim, czy eksperymenty są rzetelne i czy umiesz wyjaśnić wyniki. Nie wymaga, żeby agent RL koniecznie pokonał heurystykę. Uczciwie opisany wynik „RL przegrywa na 3 mapach, bo…” jest wartościowy. Wynik naciągnięty nie jest.
+
+## Plan E3 w kolejności
+1. **Zrozumieć, dlaczego agent wraca za wcześnie** (krótka diagnoza, zanim zaczniemy stroić). Możliwe przyczyny:
+   - za mało eksploracji głęboko: kryształ na dnie rzadko jest osiągany losowo, więc agent nie wie, ile jest wart;
+   - stała α = 0,1 przy losowych zawałach daje „rozedrgane” wartości;
+   - olej w 4 przedziałach to zgrubna informacja, więc agent może przeceniać ryzyko jego wyczerpania.
+   Sprawdzę to na wartościach Q wzdłuż trasy agenta i na odwiedzanych stanach.
+2. **Poprawić agenta w rozsądnym zakresie:** dłuższy trening lub wolniej malejące ε, malejące α, ewentualnie korekta Q₀. Każda zmiana z zapisem, ile dała. Sam proces strojenia też trafia do raportu.
+3. **Eksperymenty właściwe z planu**, 10 ziaren na wariant:
+   - porównanie: losowy, heurystyka, Q-learning i SARSA na 4 mapach;
+   - wpływ kary za zawał (−5 / −20 / −50) na skłonność do ryzyka;
+   - mapa stała vs losowa (uogólnianie).
+4. **Wyniki i analiza:** tabele, krzywe uczenia, rozkład przyczyn porażek, mapa cieplna odwiedzin, odpowiedzi na hipotezy H1–H4 oraz ograniczenia.
+5. **Domknięcie:** raport zgodny z kodem, uruchamianie z czystego repo, bibliografia, sekcja AI, Twoja weryfikacja.
+
+Uwaga do mojej poprzedniej wypowiedzi: „agent uznał, że kryształ nie jest wart ryzyka” to na razie hipoteza. Właśnie to sprawdza punkt 1.
+
+Mam zacząć od diagnozy (punkt 1)?

@@ -1,0 +1,15 @@
+Uruchomiłem. Na ekranie powinno się otworzyć okno gry, w którym agent SARSA (Q₀ = 10, ziarno 0) gra 5 epizodów na mapie stabilnej. Epizody mają te same ziarna co ewaluacja (od 1 000 000).
+
+Sterowanie w oknie: `Spacja` pauza, `+` / `-` tempo, `Esc` lub zamknięcie okna kończy podgląd.
+
+Na co zwrócić uwagę:
+- schodzi w głąb i wydobywa część złóż, ale wraca, zanim zbierze wszystkie (dlatego ma ~25 pkt, a heurystyka ~44);
+- może czasem wykonać ruch w ścianę (kara −0,5), bo w rzadko odwiedzanych stanach tablica Q jest słabo nauczona (tego nie sprawdzałem na tych epizodach);
+- w części epizodów może trafić go zawał, bo to zdarzenie losowe.
+
+Inne warianty do obejrzenia:
+```
+python scripts/watch.py --map m2_krucha --agent results/train/pilot/models/m2_krucha_sarsa_q10_s1.pkl --episodes 5
+python scripts/watch.py --map m4_zawal_korytarza --agent results/train/pilot/models/m4_zawal_korytarza_sarsa_q20_s1.pkl --episodes 5
+```
+Pierwszy to najlepszy agent na mapie kruchej, drugi to wariant Q₀ = 20 z mapy zawału korytarza (średnio najlepszy wynik pilotażu).

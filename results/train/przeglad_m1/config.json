@@ -1,0 +1,193 @@
+{
+  "args": {
+    "maps": [
+      "m1_stabilna"
+    ],
+    "algos": [
+      "q_learning",
+      "sarsa"
+    ],
+    "seeds": 3,
+    "q_init": [
+      10.0,
+      30.0,
+      60.0
+    ],
+    "alpha": [
+      0.1,
+      0.3,
+      0.5
+    ],
+    "gamma": [
+      0.99,
+      0.95,
+      1.0
+    ],
+    "eps_start": 1.0,
+    "eps_end": [
+      0.05,
+      0.01,
+      0.15
+    ],
+    "eps_decay": [
+      0.7,
+      0.4,
+      0.9
+    ],
+    "episodes": [
+      50000,
+      100000
+    ],
+    "ofat": true,
+    "eval_every": 500,
+    "eval_episodes": 100,
+    "final_episodes": 1000,
+    "eval_seed": 1000000,
+    "workers": 15,
+    "name": "przeglad_m1",
+    "out": "C:\\Users\\Marcin\\Desktop\\Uczenie ze wzmocnieniem\\results\\train"
+  },
+  "variants": [
+    {
+      "q_init": 10.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q10"
+    },
+    {
+      "q_init": 30.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q30"
+    },
+    {
+      "q_init": 60.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q60"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.3,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q10_a0.3"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.5,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q10_a0.5"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.1,
+      "gamma": 0.95,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q10_g0.95"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.1,
+      "gamma": 1.0,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q10_g1"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.4,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q10_d0.4"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.9,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "variant": "q10_d0.9"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.01,
+      "episodes": 50000,
+      "variant": "q10_e0.01"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.15,
+      "episodes": 50000,
+      "variant": "q10_e0.15"
+    },
+    {
+      "q_init": 10.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 100000,
+      "variant": "q10_n100000"
+    }
+  ],
+  "train_seed": "seed * 100000 + epizod",
+  "valid_seed": 2000000,
+  "game_config": {
+    "m1_stabilna": {
+      "deposit_values": {
+        "c": 3,
+        "s": 9,
+        "g": 18,
+        "k": 30
+      },
+      "max_deposits": 5,
+      "stability_max": 5,
+      "stability_start": 5,
+      "dig_stability_cost": 1,
+      "prop_stability_gain": 2,
+      "props_start": 2,
+      "props_max": 2,
+      "collapse_floor": 0.001,
+      "collapse_base": 0.003,
+      "collapse_power": 2.0,
+      "collapse_prob": null,
+      "oil_start": 100,
+      "oil_per_step": 1,
+      "oil_bins": 4,
+      "corridor_event_after": 3,
+      "reward_step": -0.1,
+      "reward_illegal": -0.5,
+      "reward_collapse": -20.0,
+      "reward_out_of_oil": -20.0,
+      "reward_exit_multiplier": 1.0,
+      "step_limit": 300
+    }
+  }
+}

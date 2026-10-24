@@ -1,0 +1,44 @@
+Zrobione: 4 serie eksperymentów (236 treningów), diagnoza zachowania i opis w raporcie. Commit jest lokalny, jeszcze bez pusha.
+
+## Dlaczego agent szedł tylko po kryształ
+Twoja obserwacja się potwierdziła. Analiza 300 epizodów: kryształ wydobyty w 99,3% epizodów, pozostałe 4 złoża w 0%. Do tego średnio 5,8 wejść w ścianę na epizod. Ze śledzenia wartości Q krok po kroku wynikają dwie przyczyny:
+1. **Za mały optymizm.** Znana trasa do kryształu była warta ~25 pkt, a nieodwiedzone odgałęzienia startowały z Q₀ = 10. Wyglądały więc na gorsze i agent przestał je sprawdzać. Optymistyczna inicjalizacja działa tylko wtedy, gdy Q₀ jest co najmniej tak duże jak osiągalny zwrot.
+2. **Wejścia w ścianę** zdarzały się w stanach rzadko odwiedzanych w treningu, czyli słabo nauczonych.
+
+## Eksperymenty (mapa stabilna, potem wszystkie)
+1. **Przegląd hiperparametrów** (zmiana jednego naraz): Q₀ 10/30/60, α 0,1/0,3/0,5, γ 0,95/0,99/1,0, harmonogram ε, 50 vs 100 tys. epizodów. **Liczy się tylko Q₀.** SARSA z Q₀ = 30 daje 41,0 ± 0,9 (wcześniej 24,7, heurystyka 44,0). Pozostałe parametry nie pomagają albo szkodzą; α = 0,5 wraca do „wyjdź od razu”.
+2. **Q₀ 20/30/40/60 × 50/100 tys. epizodów.** Uruchomienia są dwumodalne: albo działają (~95% wyjść), albo całkowicie zawodzą (0% wyjść, kończy się olej). Im wyższe Q₀, tym więcej porażek, a dłuższy trening tego nie naprawia. Mechanizm: polityka powtarza akcję niedozwoloną albo krąży między dwoma polami. Przy oleju w 4 przedziałach przez 25 kroków stan się nie zmienia, więc pętla jest dla agenta „niewidoczna”.
+3. **Moja hipoteza: dokładny olej w obserwacji (100 przedziałów).** **Nie potwierdziła się**, wyniki są gorsze przy każdym Q₀. Tablica rośnie z 8 do 83 tys. stanów i agent trafia do stanów nigdy niewidzianych, w których wszystkie akcje mają wartość dokładnie Q₀. To typowe ograniczenie metod tablicowych (brak uogólniania). Opisałem to w raporcie jako wynik negatywny.
+4. **Q₀ 20 i 30 na wszystkich mapach, 5 ziaren:**
+
+| Mapa | Najlepszy RL | wcześniej (Q₀=10) | Heurystyka |
+|---|---|---|---|
+| stabilna | 38,9 (SARSA, 30) | 24,7 | 44,0 |
+| krucha | 6,0 (Q-l., 20) | **14,4** | 5,0 |
+| głęboka | 46,3 (SARSA, 30) | 25,1 | 58,2 |
+| zawał korytarza | 29,2 (SARSA, 20) | 15,8 | 49,7 |
+
+Na 3 mapach wynik mniej więcej się podwoił. Agent z Q₀ = 30 na mapie stabilnej wydobywa już **złoto + kryształ** (97% epizodów), ale nadal pomija srebro i węgiel i nadal przegrywa z heurystyką. Na mapie kruchej większy optymizm szkodzi: agent schodzi głębiej i zawał trafia go w 19–27% epizodów. Nie ma jednego Q₀ najlepszego dla wszystkich map.
+
+## Co dodałem
+- `train.py`: przegląd wielu wartości (siatka albo `--ofat`), parametr `--oil-bins`;
+- `scripts/analyze_policy.py`: które złoża agent wydobywa, akcje niedozwolone, mapa cieplna;
+- `scripts/plot_q0.py`: wykres wpływu Q₀ (każde ziarno jako punkt);
+- `--oil-bins` w podglądzie gry;
+- raport: nowa sekcja „Dobór hiperparametrów i diagnoza zachowania agenta” z tabelami i wykresem, zaktualizowane ograniczenia. README, sekcja AI i checklista też zaktualizowane.
+- Testy: 191 passed, raport się kompiluje (16 stron).
+
+## Wnioski na obronę i dalsze kroki
+Ograniczeniem nie są α, γ ani ε, lecz **eksploracja w dużej tablicy Q i pętle w słabo nauczonych stanach**. Sensowne następne kroki to:
+- maskowanie akcji niedozwolonych (agent nie może wejść w ścianę);
+- premia za eksplorację zależna od liczby odwiedzin stanu zamiast stałego Q₀;
+- ewentualnie DQN (uogólnianie między podobnymi stanami).
+
+Pierwsze to mała zmiana, ale zmienia formalizację (dziś akcja niedozwolona ma karę). To Twoja decyzja.
+
+Agenta z Q₀ = 30 możesz obejrzeć:
+```
+python scripts/watch.py --map m1_stabilna --agent results/train/q0_mapy/models/m1_stabilna_sarsa_q30_s0.pkl --episodes 5
+```
+
+Mam wypchnąć zmiany na GitHub?

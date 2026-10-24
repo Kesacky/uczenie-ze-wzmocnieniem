@@ -378,7 +378,7 @@ Parametr & Wartość \\
 współczynnik uczenia $\alpha$ & $0{,}1$ \\
 dyskonto $\gamma$ & $0{,}99$ \\
 $\varepsilon$ & liniowo od $1{,}0$ do $0{,}05$ w ciągu 70\% epizodów \\
-wartość początkowa $Q_0$ & $10$ (wybrana w pilotażu spośród $0$, $10$, $20$) \\
+wartość początkowa $Q_0$ & $20$--$30$ (sekcja \ref{sec:dobor}; w pilotażu $10$) \\
 liczba epizodów treningu & $50\,000$ na uruchomienie (po pilotażu; wcześniej $20\,000$) \\
 liczba niezależnych uruchomień & 10 ziaren na każdą kombinację agent--mapa (pilotaż: 3) \\
 \bottomrule
@@ -517,11 +517,128 @@ pasmo: $\pm$ odchylenie standardowe. Linia przerywana: heurystyka progowa.}
   do 50\,000 epizodów.
 \end{itemize}
 
-\textbf{Decyzje na eksperymenty właściwe.} $Q_0=10$ jako wartość domyślna,
-50\,000 epizodów treningu. Do sprawdzenia: czy dłuższy trening, dłuższa
+\textbf{Decyzje po pilotażu.} $Q_0=10$ jako wartość wyjściowa (zmienione po
+dalszych eksperymentach, sekcja \ref{sec:dobor}), 50\,000 epizodów treningu. Do sprawdzenia: czy dłuższy trening, dłuższa
 eksploracja lub malejące $\alpha$ zbliżą agentów do heurystyki na mapach
 stabilnej, głębokiej i zawału korytarza oraz dlaczego agenci wracają przed
 wydobyciem wszystkich złóż.
+
+\subsection{Dobór hiperparametrów i diagnoza zachowania agenta}\label{sec:dobor}
+\textbf{Obserwacja wyjściowa.} Podgląd agenta SARSA z pilotażu ($Q_0=10$) na mapie
+stabilnej pokazał, że w każdym epizodzie wykonuje on tę samą trasę: schodzi szybem na
+dno, wydobywa tylko kryształ (30 pkt) i wraca. Analiza 300 epizodów
+(\texttt{scripts/analyze\_policy.py}) potwierdziła to ilościowo: kryształ wydobyty
+w 99,3\% epizodów, pozostałe cztery złoża w 0\%, średnio 5,8 akcji niedozwolonych na
+epizod. Heurystyka wydobywa wszystkie złoża w 87,7\% epizodów, ale ma zawał w 17,3\%
+epizodów, a agent w 3,7\%. Śledzenie wartości $Q$ wzdłuż trasy pokazało dwie
+przyczyny:
+\begin{itemize}
+  \item Wartości $Q$ na znanej trasie (ok. 25 pkt) przewyższają $Q_0=10$, więc
+  nieodwiedzone odgałęzienia (złoto, srebro) wyglądają na gorsze od znanej trasy
+  i agent przestaje je sprawdzać. Inicjalizacja optymistyczna działa tylko wtedy,
+  gdy $Q_0$ jest nie mniejsze od osiągalnego zwrotu (na mapie stabilnej do ok. 60).
+  \item Na drodze powrotnej agent kilka razy wchodzi w ścianę. Polityka zachłanna
+  wraca szybciej niż polityka eksplorująca w treningu, więc trafia do stanów
+  z wyższym przedziałem oleju, rzadko odwiedzanych i słabo nauczonych.
+\end{itemize}
+
+\textbf{Przegląd hiperparametrów (mapa stabilna).} Zmieniano jeden parametr naraz
+względem konfiguracji z pilotażu (Q-learning i SARSA, 3 ziarna, ewaluacja na 1000
+epizodach). Polecenie:
+\begin{verbatim}
+python scripts/train.py --ofat --maps m1_stabilna --seeds 3
+    --q-init 10 30 60 --alpha 0.1 0.3 0.5 --gamma 0.99 0.95 1.0
+    --eps-decay 0.7 0.4 0.9 --eps-end 0.05 0.01 0.15
+    --episodes 50000 100000 --name przeglad_m1
+\end{verbatim}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Wariant (zmiana względem bazowego) & Q-learning & SARSA \\
+\midrule
+bazowy: $Q_0=10$, $\alpha=0{,}1$, $\gamma=0{,}99$, $\varepsilon$: 70\%, $0{,}05$, 50 tys. & $25{,}0 \pm 0{,}3$ & $24{,}7 \pm 1{,}5$ \\
+$Q_0=30$ & $6{,}3 \pm 47{,}7$ & $\mathbf{41{,}0 \pm 0{,}9}$ \\
+$Q_0=60$ & $-47{,}0 \pm 9{,}9$ & $-59{,}3 \pm 6{,}6$ \\
+$\alpha=0{,}3$ / $0{,}5$ & $18{,}0$ / $-7{,}8$ & $5{,}2$ / $-0{,}1$ \\
+$\gamma=0{,}95$ / $1{,}0$ & $26{,}7$ / $16{,}3$ & $8{,}8$ / $20{,}3$ \\
+spadek $\varepsilon$ w 40\% / 90\% treningu & $20{,}4$ / $22{,}9$ & $25{,}7$ / $24{,}4$ \\
+końcowe $\varepsilon=0{,}01$ / $0{,}15$ & $25{,}5$ / $16{,}0$ & $24{,}0$ / $24{,}6$ \\
+100 tys. epizodów & $15{,}1 \pm 10{,}6$ & $5{,}2 \pm 34{,}0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Średni zwrot (średnia $\pm$ odchylenie standardowe po 3 ziarnach). Heurystyka: $44{,}0$.
+Jedynym parametrem, który wyraźnie poprawił wynik, jest $Q_0$. Większe $\alpha$
+prowadziło z powrotem do polityki „wyjdź od razu” (SARSA, $\alpha=0{,}5$: wszystkie
+3 ziarna). Dłuższy trening przy $Q_0=10$ nie pomógł.
+
+\textbf{Wpływ $Q_0$ i rozdzielczości oleju.} Następnie zbadano $Q_0\in\{10,20,30,40,60\}$
+przy 50 i 100 tys. epizodów oraz wariant, w którym olej jest obserwowany dokładnie
+(100 przedziałów zamiast 4, parametr \texttt{oil\_bins}). Uzasadnienie: przy 4
+przedziałach stan nie zmienia się przez 25 kroków, jeśli agent stoi w miejscu lub
+krąży, więc pętla jest dla niego niewidoczna. Wyniki przedstawia rysunek
+\ref{fig:q0}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../results/train/q0_m1/q0_wplyw.png}
+\caption{Wpływ $Q_0$ na średni zwrot w ewaluacji końcowej (mapa stabilna). Duże
+punkty: średnia po 3 ziarnach, małe punkty: pojedyncze uruchomienia. Linia
+przerywana: heurystyka progowa.}\label{fig:q0}
+\end{figure}
+
+Wnioski z tych eksperymentów:
+\begin{itemize}
+  \item Uruchomienia są dwumodalne: polityka albo działa (90--97\% bezpiecznych
+  wyjść), albo całkowicie zawodzi (0\% wyjść, olej wyczerpuje się w 70--85\%
+  epizodów). Udział nieudanych uruchomień rośnie z $Q_0$ i nie maleje przy
+  dłuższym treningu.
+  \item Mechanizm porażki (śledzenie $Q$): polityka zachłanna wybiera akcję
+  niedozwoloną (np. stempel przy pełnej stabilności) albo krąży między dwoma polami.
+  Stan się nie zmienia, a wartości tych akcji w rzadko odwiedzanych stanach wciąż
+  są bliskie optymistycznemu $Q_0$, więc agent powtarza je do wyczerpania oleju.
+  \item Dokładny olej w obserwacji pogorszył wyniki dla każdego $Q_0$. Tablica Q
+  rośnie z ok. 8 tys. do ok. 83 tys. stanów, każdy poziom oleju trzeba nauczyć się
+  osobno i agent szybko trafia do stanów nigdy niewidzianych w treningu, w których
+  wszystkie akcje mają wartość dokładnie $Q_0$. Jest to ograniczenie metod
+  tablicowych (brak uogólniania między podobnymi stanami), które mogłaby usunąć
+  aproksymacja funkcji wartości (np. DQN).
+  \item Najlepszy wynik na mapie stabilnej: SARSA, $Q_0=30$, 4 przedziały oleju,
+  50 tys. epizodów: $41{,}0 \pm 0{,}9$. Agent wydobywa wtedy złoto i kryształ
+  (97\% epizodów, 48 pkt), nadal pomija srebro i węgiel.
+\end{itemize}
+
+\textbf{Sprawdzenie na wszystkich mapach.} $Q_0\in\{20, 30\}$, 5 ziaren, 50 tys.
+epizodów (\texttt{results/train/q0\_mapy/}):
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Mapa & Q-l. $Q_0{=}20$ & Q-l. $Q_0{=}30$ & SARSA $Q_0{=}20$ & SARSA $Q_0{=}30$ & Heur. \\
+\midrule
+stabilna & $27{,}4 \pm 3{,}7$ & $0{,}3 \pm 49{,}7$ & $11{,}2 \pm 30{,}7$ & $\mathbf{38{,}9 \pm 4{,}7}$ & $44{,}0$ \\
+krucha & $6{,}0 \pm 14{,}3$ & $4{,}4 \pm 22{,}1$ & $4{,}1 \pm 21{,}4$ & $4{,}3 \pm 25{,}0$ & $5{,}0$ \\
+głęboka & $30{,}2 \pm 22{,}8$ & $43{,}7 \pm 10{,}6$ & $24{,}4 \pm 32{,}6$ & $\mathbf{46{,}3 \pm 10{,}2}$ & $58{,}2$ \\
+zawał kor. & $-2{,}3 \pm 35{,}7$ & $-10{,}2 \pm 39{,}8$ & $\mathbf{29{,}2 \pm 11{,}6}$ & $7{,}1 \pm 42{,}8$ & $49{,}7$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Średni zwrot, średnia $\pm$ odchylenie standardowe po 5 ziarnach. Względem $Q_0=10$
+(pilotaż) większe $Q_0$ mniej więcej podwaja wynik na mapach stabilnej, głębokiej
+i zawału korytarza, ale na żadnej mapie agent nie dorównuje heurystyce. Na mapie
+kruchej większy optymizm szkodzi: agent schodzi głębiej i ma zawał w 19--27\%
+epizodów (przy $Q_0=10$ ok. 10\%), a najlepszy wynik pozostaje dla SARSA z $Q_0=10$
+($14{,}4$). Nie ma jednej wartości $Q_0$ najlepszej dla wszystkich map, a wysokie
+odchylenia wynikają z nieudanych uruchomień (od 0 do 3 z 5 na wariant). SARSA daje
+najlepszy wynik na trzech mapach, ale nie jest konsekwentnie stabilniejsza od
+Q-learningu: rozrzut między ziarnami zależy bardziej od mapy i $Q_0$ niż od algorytmu.
+
+\textbf{Wnioski do dalszych prac.} Głównym ograniczeniem nie jest dobór
+$\alpha$, $\gamma$ czy harmonogramu $\varepsilon$, lecz eksploracja w dużej
+przestrzeni stanów tablicy Q i pętle polityki zachłannej w słabo nauczonych stanach.
+Rozważane kierunki: maskowanie akcji niedozwolonych, premia za eksplorację zależna
+od liczby odwiedzin stanu zamiast stałego $Q_0$, aproksymacja funkcji wartości.
 
 \subsection{Eksperymenty właściwe}
 \doUzupelnienia{wyniki eksperymentów 1--3 z planu (10 ziaren), przebieg uczenia,
@@ -532,9 +649,11 @@ porównania, zmienność wyników i przypadki niepowodzeń.}
 co poprawia lub pogarsza wyniki oraz własne wnioski studenta.}
 
 \section{Ograniczenia rozwiązania}
-Na obecnym etapie wyniki agentów uczących się pochodzą tylko z pilotażu
-(3 ziarna), a agenci RL ustępują heurystyce na trzech z czterech map.
-Wyniki zależą silnie od wartości początkowej $Q_0$ (sekcja \ref{sec:pilot}).
+Na obecnym etapie wyniki agentów uczących się pochodzą z pilotażu i doboru
+hiperparametrów (3--5 ziaren), a agenci RL ustępują heurystyce na trzech z czterech
+map. Wyniki zależą silnie od wartości początkowej $Q_0$, a część uruchomień kończy
+się polityką zapętloną (sekcja \ref{sec:dobor}). Tablica Q nie uogólnia między
+podobnymi stanami, co ogranicza dokładność obserwacji (np. poziomu oleju).
 Wariant z losową mapą jest częściowo obserwowalny (agent widzi tylko otoczenie
 $5\times 5$). Model zawału jest umowny i nie odwzorowuje rzeczywistej mechaniki
 górotworu.

@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24",
+  "tool": "Claude Code (CLI)",
+  "model": "claude-opus-5-5",
+  "purpose": "Dodatkowe eksperymenty: dobór hiperparametrów i diagnoza zachowania agenta",
+  "scope": "Zmiany: scripts/train.py (przegląd wariantów, oil_bins), scripts/analyze_policy.py, scripts/plot_q0.py, scripts/plot_training.py, miner_rl/render/cli.py, testy, raport (nowa sekcja), README, sekcja AI, docs/etapy.md; 236 uruchomień treningu",
+  "verification": "Brak samodzielnej weryfikacji studenta (do uzupełnienia)",
+  "conversation_url": "",
+  "prompt_sha256": "9d0988d8372474927dadf0532b286eba6856032e3fa09f00eb9f97eca5848962",
+  "response_sha256": "690218044a4e8603235c12a559b55a09cd827f24935564d596dfd6389647aeb3",
+  "recorded_at_utc": "2026-10-24T18:17:20.764676+00:00"
+}

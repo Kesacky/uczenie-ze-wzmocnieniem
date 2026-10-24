@@ -1,0 +1,188 @@
+{
+  "args": {
+    "maps": [
+      "m1_stabilna",
+      "m2_krucha",
+      "m3_gleboka",
+      "m4_zawal_korytarza"
+    ],
+    "algos": [
+      "q_learning",
+      "sarsa"
+    ],
+    "seeds": 5,
+    "q_init": [
+      20.0,
+      30.0
+    ],
+    "alpha": [
+      0.1
+    ],
+    "gamma": [
+      0.99
+    ],
+    "eps_start": 1.0,
+    "eps_end": [
+      0.05
+    ],
+    "eps_decay": [
+      0.7
+    ],
+    "episodes": [
+      50000
+    ],
+    "oil_bins": [
+      4
+    ],
+    "ofat": false,
+    "eval_every": 500,
+    "eval_episodes": 100,
+    "final_episodes": 1000,
+    "eval_seed": 1000000,
+    "workers": 15,
+    "name": "q0_mapy",
+    "out": "C:\\Users\\Marcin\\Desktop\\Uczenie ze wzmocnieniem\\results\\train"
+  },
+  "variants": [
+    {
+      "q_init": 20.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "oil_bins": 4,
+      "variant": "q20"
+    },
+    {
+      "q_init": 30.0,
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 50000,
+      "oil_bins": 4,
+      "variant": "q30"
+    }
+  ],
+  "train_seed": "seed * 100000 + epizod",
+  "valid_seed": 2000000,
+  "game_config": {
+    "m1_stabilna": {
+      "deposit_values": {
+        "c": 3,
+        "s": 9,
+        "g": 18,
+        "k": 30
+      },
+      "max_deposits": 5,
+      "stability_max": 5,
+      "stability_start": 5,
+      "dig_stability_cost": 1,
+      "prop_stability_gain": 2,
+      "props_start": 2,
+      "props_max": 2,
+      "collapse_floor": 0.001,
+      "collapse_base": 0.003,
+      "collapse_power": 2.0,
+      "collapse_prob": null,
+      "oil_start": 100,
+      "oil_per_step": 1,
+      "oil_bins": 4,
+      "corridor_event_after": 3,
+      "reward_step": -0.1,
+      "reward_illegal": -0.5,
+      "reward_collapse": -20.0,
+      "reward_out_of_oil": -20.0,
+      "reward_exit_multiplier": 1.0,
+      "step_limit": 300
+    },
+    "m2_krucha": {
+      "deposit_values": {
+        "c": 3,
+        "s": 9,
+        "g": 18,
+        "k": 30
+      },
+      "max_deposits": 5,
+      "stability_max": 5,
+      "stability_start": 3,
+      "dig_stability_cost": 1,
+      "prop_stability_gain": 2,
+      "props_start": 1,
+      "props_max": 2,
+      "collapse_floor": 0.001,
+      "collapse_base": 0.003,
+      "collapse_power": 2.0,
+      "collapse_prob": null,
+      "oil_start": 100,
+      "oil_per_step": 1,
+      "oil_bins": 4,
+      "corridor_event_after": 3,
+      "reward_step": -0.1,
+      "reward_illegal": -0.5,
+      "reward_collapse": -20.0,
+      "reward_out_of_oil": -20.0,
+      "reward_exit_multiplier": 1.0,
+      "step_limit": 300
+    },
+    "m3_gleboka": {
+      "deposit_values": {
+        "c": 3,
+        "s": 9,
+        "g": 18,
+        "k": 30
+      },
+      "max_deposits": 5,
+      "stability_max": 5,
+      "stability_start": 5,
+      "dig_stability_cost": 1,
+      "prop_stability_gain": 2,
+      "props_start": 2,
+      "props_max": 2,
+      "collapse_floor": 0.001,
+      "collapse_base": 0.003,
+      "collapse_power": 2.0,
+      "collapse_prob": null,
+      "oil_start": 100,
+      "oil_per_step": 1,
+      "oil_bins": 4,
+      "corridor_event_after": 3,
+      "reward_step": -0.1,
+      "reward_illegal": -0.5,
+      "reward_collapse": -20.0,
+      "reward_out_of_oil": -20.0,
+      "reward_exit_multiplier": 1.0,
+      "step_limit": 300
+    },
+    "m4_zawal_korytarza": {
+      "deposit_values": {
+        "c": 3,
+        "s": 9,
+        "g": 18,
+        "k": 30
+      },
+      "max_deposits": 5,
+      "stability_max": 5,
+      "stability_start": 5,
+      "dig_stability_cost": 1,
+      "prop_stability_gain": 2,
+      "props_start": 2,
+      "props_max": 2,
+      "collapse_floor": 0.001,
+      "collapse_base": 0.003,
+      "collapse_power": 2.0,
+      "collapse_prob": null,
+      "oil_start": 100,
+      "oil_per_step": 1,
+      "oil_bins": 4,
+      "corridor_event_after": 3,
+      "reward_step": -0.1,
+      "reward_illegal": -0.5,
+      "reward_collapse": -20.0,
+      "reward_out_of_oil": -20.0,
+      "reward_exit_multiplier": 1.0,
+      "step_limit": 300
+    }
+  }
+}
