@@ -27,6 +27,7 @@ Thumbs.db
 /tmp/
 /data/local/
 /results/raw/
+/results/train/*/models/
 /models/
 *.aux
 *.log

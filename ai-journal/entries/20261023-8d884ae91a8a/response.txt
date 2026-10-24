@@ -1,0 +1,3 @@
+Gotowe. `scripts/log_ai.py` sam ustala teraz datę w strefie Europe/Warsaw, także na Windowsie bez bazy tzdata. Liczy ją według reguł czasu letniego UE, więc `--date` nie jest już potrzebne. Sprawdziłem to na granicach zmiany czasu (29.03, 25.10, sylwester).
+
+Zapisałem w pamięci, żeby logować każdą rozmowę w tle i nie wspominać o tym w odpowiedziach. Odezwę się tylko wtedy, gdy zapis się nie uda. Poprawki skryptu nie commitowałem; wyślę ją razem z kolejnym pushem albo od razu, jeśli chcesz.

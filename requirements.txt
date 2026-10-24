@@ -1,8 +1,9 @@
 # Gra „Górnik w niestabilnej kopalni” (Python 3.10+). Przetestowano na:
-# gymnasium 1.4.0, numpy 2.5.3, pygame 2.6.1, pillow 12.3.0, imageio 2.38.0, pytest 9.1.1
+# gymnasium 1.4.0, numpy 2.5.3, pygame 2.6.1, pillow 12.3.0, imageio 2.38.0, pytest 9.1.1, matplotlib 3.11.2
 gymnasium>=1.0
 numpy>=1.26
 pygame>=2.5
 pillow>=10.0
 imageio>=2.31
 pytest>=8.0
+matplotlib>=3.8

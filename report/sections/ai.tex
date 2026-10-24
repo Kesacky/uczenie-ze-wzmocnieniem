@@ -34,6 +34,20 @@ zapisano w \texttt{assets/sheets.json} i w dzienniku). Zmiany rozmiaru map,
 modelu ryzyka i wartości złóż (sekcja „Zmiany względem wersji wstępnej”) wynikały
 z decyzji i uwag studenta po zagraniu w grę oraz z pomiarów i propozycji Claude.
 
+\subsection*{22--24 października 2026 -- repozytorium, trening i pilotaż}
+\textbf{Narzędzia:} Claude (Anthropic, Cowork i Claude Code CLI, model
+claude-opus-5-5).
+
+\textbf{Cel i zakres pomocy:} Claude sprawdził połączenie z GitHubem, przygotował
+commit i wysłanie zmian, poprawił automatyczne ustalanie daty w
+\texttt{scripts/log\_ai.py}, ocenił stan projektu względem etapów E1--E4, dodał
+do agentów tablicowych parametr $Q_0$ (inicjalizacja optymistyczna), napisał
+skrypty treningu i wykresów (\texttt{scripts/train.py},
+\texttt{scripts/plot\_training.py}) z testem, uruchomił eksperyment pilotażowy
+i opisał jego wyniki w raporcie (sekcja \ref{sec:pilot}). Wybór $Q_0$ i liczby
+epizodów na eksperymenty właściwe zaproponował Claude na podstawie pilotażu.
+Zamknięcie etapu E1 wpisano na podstawie oświadczenia studenta.
+
 \subsection*{Weryfikacja studenta}
 Do uzupełnienia przez studenta (np. ręczne zagranie w grę, obejrzenie nagrań
 epizodów, przegląd formalizacji i kodu).

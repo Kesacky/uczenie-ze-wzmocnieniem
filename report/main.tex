@@ -14,6 +14,7 @@
 \usepackage{microtype}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
 \setlength{\parindent}{0pt}
@@ -22,15 +23,15 @@
 \newcommand{\doUzupelnienia}[1]{\textbf{Do uzupełnienia:} #1}
 \title{Uczenie się ze wzmocnieniem\\Sprawozdanie z projektu}
 \author{Autor: do uzupełnienia przez studenta}
-\date{Wersja robocza: 21 października 2026}
+\date{Wersja robocza: 24 października 2026}
 \begin{document}
 \maketitle
 \textbf{Status dokumentu.} Wersja robocza rozwijana równolegle z projektem.
-Temat „Górnik w niestabilnej kopalni” jest propozycją zgłaszaną do akceptacji
-prowadzącego (etap E1). Formalizacja jest wstępna i może zostać skorygowana po
-pierwszych testach środowiska. Gotowe są: środowisko gry z grafiką, generator
-map, agenci bazowi z wynikami oraz implementacja algorytmów Q-learning i SARSA.
-Nie przeprowadzono jeszcze eksperymentów z agentami uczącymi się.
+Temat „Górnik w niestabilnej kopalni” został przekazany prowadzącemu (etap E1).
+Gotowe są: środowisko gry z grafiką, generator map, agenci bazowi z wynikami,
+algorytmy Q-learning i SARSA, skrypt treningu oraz eksperyment pilotażowy
+na czterech stałych mapach (3 ziarna, sekcja \ref{sec:pilot}). Eksperymenty
+właściwe (10 ziaren, wpływ kary, losowe mapy) nie zostały jeszcze przeprowadzone.
 \tableofcontents
 
 \section{Opis problemu}
@@ -339,7 +340,9 @@ stabilności. Właśnie to porównanie motywuje wybór tych dwóch algorytmów.
 $\varepsilon$-zachłanną z liniowo malejącym $\varepsilon$, a remisy wartości
 rozstrzygane losowo. Stan terminalny (wyjście, zawał, brak oleju) nie jest
 bootstrapowany. Obcięcie epizodu limitem kroków jest bootstrapowane, bo nie jest
-prawdziwym końcem zadania. Faza uczenia jest oddzielona od ewaluacji: ewaluacja
+prawdziwym końcem zadania. Wartość początkowa $Q_0$ nowych stanów jest
+parametrem: $Q_0>0$ (inicjalizacja optymistyczna) zachęca do odwiedzania stanów,
+których agent jeszcze nie zna (sekcja \ref{sec:pilot}). Faza uczenia jest oddzielona od ewaluacji: ewaluacja
 używa polityki zachłannej ($\varepsilon=0$), bez aktualizacji tablicy Q i na
 ziarnach losowych rozłącznych z treningiem. Implementacja:
 \texttt{miner\_rl/agents/tabular.py}.
@@ -375,8 +378,9 @@ Parametr & Wartość \\
 współczynnik uczenia $\alpha$ & $0{,}1$ \\
 dyskonto $\gamma$ & $0{,}99$ \\
 $\varepsilon$ & liniowo od $1{,}0$ do $0{,}05$ w ciągu 70\% epizodów \\
-liczba epizodów treningu & $20\,000$ na uruchomienie (do korekty po pierwszych testach) \\
-liczba niezależnych uruchomień & 10 ziaren na każdą kombinację agent--mapa \\
+wartość początkowa $Q_0$ & $10$ (wybrana w pilotażu spośród $0$, $10$, $20$) \\
+liczba epizodów treningu & $50\,000$ na uruchomienie (po pilotażu; wcześniej $20\,000$) \\
+liczba niezależnych uruchomień & 10 ziaren na każdą kombinację agent--mapa (pilotaż: 3) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -424,9 +428,9 @@ W pierwszym teście integracyjnym (poprzednia wersja parametrów, 20\,000 epizod
 jedno ziarno) Q-learning i SARSA nauczyły się natychmiastowego wyjścia z kopalni.
 Losowa eksploracja często kończyła się zawałem lub brakiem oleju (kara $-20$),
 więc wartości stanów w głębi kopalni szybko stawały się ujemne, a wyjście było
-bezpiecznym lokalnym optimum. Przed eksperymentami właściwymi zostanie to
-sprawdzone przy nowych parametrach. W razie potrzeby rozważone zostaną:
-optymistyczna inicjalizacja tablicy Q, dłuższa eksploracja i dobór $\alpha$.
+bezpiecznym lokalnym optimum. Pilotaż (sekcja \ref{sec:pilot}) potwierdził ten
+problem przy obecnych parametrach dla $Q_0=0$. Rozwiązaniem okazała się
+optymistyczna inicjalizacja tablicy Q ($Q_0=10$).
 
 \subsection{Planowane wykresy i tabele}
 Krzywe uczenia (średnia z pasmem odchylenia z 10 ziaren, oś X: epizod, oś Y:
@@ -437,17 +441,100 @@ nieudanych epizodów: zestawienie przyczyn porażek oraz nagrania wybranych
 epizodów.
 
 \section{Wyniki}
-Nie przeprowadzono jeszcze eksperymentów. Nie ma wyników liczbowych do przedstawienia.
-\doUzupelnienia{wyniki odtwarzalne z kodu lub danych, przebieg uczenia,
-porównania, zmienność wyników i przypadki niepowodzeń.
-Wykresy muszą mieć opisane osie, jednostki i legendy.}
+\subsection{Eksperyment pilotażowy (etap E2)}\label{sec:pilot}
+Cel pilotażu: sprawdzić, czy agenci w ogóle uczą się przy obecnych parametrach
+gry, oraz dobrać liczbę epizodów i wartość początkową $Q_0$ przed eksperymentami
+właściwymi. Konfiguracja: cztery stałe mapy, Q-learning i SARSA,
+$Q_0\in\{0, 10, 20\}$, 3 ziarna (0, 1, 2), 50\,000 epizodów treningu,
+pozostałe hiperparametry jak w planie. Walidacja zachłanna co 500 epizodów na 100
+epizodach (ziarna od 2\,000\,000), ewaluacja końcowa na 1000 epizodach na tych
+samych ziarnach co agenci bazowi (od 1\,000\,000). Łącznie 72 uruchomienia,
+około 8,5 minuty na 15 procesach. Polecenie:
+\begin{verbatim}
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka
+    m4_zawal_korytarza --seeds 3 --episodes 50000 --q-init 0 10 20
+    --name pilot
+python scripts/plot_training.py --name pilot
+\end{verbatim}
+Dane: \texttt{results/train/pilot/} (konfiguracja, krzywe, wszystkie epizody
+ewaluacji, podsumowania). Wykonano 24.10.2026.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Mapa & Agent & $Q_0=0$ & $Q_0=10$ & $Q_0=20$ & Wyjścia ($Q_0{=}10$) & Heurystyka \\
+\midrule
+stabilna & Q-learning & $-0{,}1$ & $25{,}0 \pm 0{,}3$ & $28{,}7 \pm 4{,}4$ & 96,6\% & $44{,}0$ \\
+         & SARSA      & $-0{,}1$ & $24{,}7 \pm 1{,}5$ & $1{,}5 \pm 39{,}0$ & 97,1\% & \\
+krucha   & Q-learning & $-0{,}1$ & $4{,}5 \pm 9{,}5$ & $-3{,}7 \pm 7{,}3$ & 90,7\% & $5{,}0$ \\
+         & SARSA      & $-0{,}1$ & $14{,}4 \pm 8{,}1$ & $6{,}0 \pm 24{,}0$ & 90,3\% & \\
+głęboka  & Q-learning & $-0{,}1$ & $23{,}9 \pm 2{,}9$ & $15{,}7 \pm 15{,}8$ & 94,5\% & $58{,}2$ \\
+         & SARSA      & $-0{,}1$ & $25{,}1 \pm 1{,}5$ & $15{,}1 \pm 40{,}4$ & 96,0\% & \\
+zawał kor. & Q-learning & $4{,}2 \pm 7{,}5$ & $14{,}9 \pm 1{,}5$ & $11{,}4 \pm 36{,}4$ & 97,7\% & $49{,}7$ \\
+         & SARSA      & $-0{,}1$ & $15{,}8 \pm 0{,}1$ & $35{,}7 \pm 9{,}8$ & 98,3\% & \\
+\bottomrule
+\end{tabular}
+\end{center}
+Wartości to średni zwrot w ewaluacji końcowej: średnia $\pm$ odchylenie
+standardowe po 3 ziarnach (każde ziarno: 1000 epizodów). Kolumna „Heurystyka”
+to najlepszy wariant heurystyki progowej z sekcji \ref{sec:baseline}
+(ten sam zestaw ziaren ewaluacji).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../results/train/pilot/curves.png}
+\caption{Przebieg uczenia w pilotażu: średni zwrot walidacji zachłannej
+(100 epizodów) w funkcji epizodu treningu. Linia: średnia po 3 ziarnach,
+pasmo: $\pm$ odchylenie standardowe. Linia przerywana: heurystyka progowa.}
+\end{figure}
+
+\textbf{Obserwacje.}
+\begin{itemize}
+  \item Przy $Q_0=0$ prawie wszystkie uruchomienia (23 z 24) kończą się polityką
+  „wyjdź od razu” (zwrot $-0{,}1$, jeden krok). Potwierdza to ryzyko opisane
+  w planie eksperymentów.
+  \item Przy $Q_0=10$ oba algorytmy na wszystkich mapach uczą się schodzić
+  w głąb, wydobywać złoża i wracać (90--98\% bezpiecznych wyjść). Wyniki są
+  stabilne między ziarnami (odchylenie poniżej 3 pkt poza mapą kruchą).
+  Na mapach stabilnej i głębokiej agenci schodzą tak samo głęboko jak heurystyka
+  (średnio ok. 9 poziomów), ale wynoszą mniej (ok. 29--31 pkt wobec 52--64 pkt
+  heurystyki), czyli wracają po wydobyciu tylko części złóż.
+  \item Na mapie kruchej SARSA ($Q_0=10$) uzyskała wyższy średni zwrot niż
+  najlepsza heurystyka ($14{,}4$ wobec $5{,}0$). Na pozostałych mapach agenci
+  RL są wyraźnie poniżej heurystyki. Przy 3 ziarnach to obserwacja wstępna,
+  a nie rozstrzygnięcie hipotezy H1.
+  \item $Q_0=20$ daje duży rozrzut. W 3 z 24 uruchomień polityka zachłanna
+  wpada w pętlę między stanami i 72--91\% epizodów ewaluacji kończy się
+  wyczerpaniem oleju: zbyt optymistyczne wartości rzadko odwiedzanych stanów nie
+  zdążyły się urealnić. Jednocześnie jedno ustawienie z $Q_0=20$ (SARSA, zawał
+  korytarza) dało najlepszy wynik pilotażu względem pozostałych agentów RL
+  ($35{,}7$).
+  \item Krzywe uczenia rosną dopiero po około 15\,000--25\,000 epizodów, gdy
+  $\varepsilon$ spada mniej więcej poniżej $0{,}5$. Przy 20\,000 epizodów
+  (wartość z planu wyjściowego) część uruchomień, zwłaszcza na mapach głębokiej
+  i zawału korytarza, dopiero zaczynała się uczyć, dlatego trening wydłużono
+  do 50\,000 epizodów.
+\end{itemize}
+
+\textbf{Decyzje na eksperymenty właściwe.} $Q_0=10$ jako wartość domyślna,
+50\,000 epizodów treningu. Do sprawdzenia: czy dłuższy trening, dłuższa
+eksploracja lub malejące $\alpha$ zbliżą agentów do heurystyki na mapach
+stabilnej, głębokiej i zawału korytarza oraz dlaczego agenci wracają przed
+wydobyciem wszystkich złóż.
+
+\subsection{Eksperymenty właściwe}
+\doUzupelnienia{wyniki eksperymentów 1--3 z planu (10 ziaren), przebieg uczenia,
+porównania, zmienność wyników i przypadki niepowodzeń.}
 
 \section{Analiza i wnioski}
 \doUzupelnienia{interpretacja faktycznych wyników, odpowiedzi na hipotezy,
 co poprawia lub pogarsza wyniki oraz własne wnioski studenta.}
 
 \section{Ograniczenia rozwiązania}
-Na obecnym etapie ograniczeniem jest brak wyników agentów uczących się.
+Na obecnym etapie wyniki agentów uczących się pochodzą tylko z pilotażu
+(3 ziarna), a agenci RL ustępują heurystyce na trzech z czterech map.
+Wyniki zależą silnie od wartości początkowej $Q_0$ (sekcja \ref{sec:pilot}).
 Wariant z losową mapą jest częściowo obserwowalny (agent widzi tylko otoczenie
 $5\times 5$). Model zawału jest umowny i nie odwzorowuje rzeczywistej mechaniki
 górotworu.
@@ -472,7 +559,18 @@ Raport kompiluje się poleceniem \texttt{pdflatex main.tex} lub
 \texttt{xelatex main.tex} z katalogu \texttt{report} (dwukrotnie, aby
 uaktualnić spis treści), a dziennik AI poleceniem \texttt{xelatex main.tex}
 z katalogu \texttt{ai-journal}.
-\doUzupelnienia{polecenia treningu i odtworzenia wyników agentów uczących się.}
+Trening, krzywe uczenia i podgląd wytrenowanego agenta (pełne polecenie
+pilotażu w sekcji \ref{sec:pilot}):
+\begin{verbatim}
+python scripts/train.py --maps m1_stabilna --seeds 3 --episodes 50000
+    --q-init 10 --name nazwa
+python scripts/plot_training.py --name nazwa
+python scripts/watch.py --map m1_stabilna
+    --agent results/train/nazwa/models/m1_stabilna_sarsa_q10_s0.pkl
+\end{verbatim}
+Wyniki trafiają do \texttt{results/train/nazwa/}. Tablice Q
+(\texttt{models/*.pkl}) nie są przechowywane w repozytorium, bo odtwarza je
+to samo polecenie.
 
 \section{Wsparcie AI}\label{sec:ai}
 \input{sections/ai.tex}

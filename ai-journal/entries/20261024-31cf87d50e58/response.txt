@@ -1,0 +1,22 @@
+## Gdzie jest projekt (24.10.2026)
+
+**E1 (do końca P2): treść gotowa, formalnie niezamknięty.** Temat, opis problemu, uzasadnienie RL, MDP i publiczne repo są gotowe. Nigdzie nie zapisano jednak, że temat zaakceptował prowadzący ani że dostał link do repo (`docs/etapy.md`: „Potwierdzenie przekazania linku: brak”). To największe ryzyko: każdy rozpoczęty tydzień spóźnienia to −10 pkt (P00 §5).
+
+**E2 (do P4): w toku, mniej więcej w 70%.**
+- Gotowe: środowisko Gymnasium, generator map, 4 stałe mapy, gra w pygame, agenci bazowi (losowy i progowy) z wynikami z 1000 epizodów na mapę, plan eksperymentów w raporcie. Testy przechodzą: `pytest -q` daje 188 passed (uruchomione teraz).
+- Brakuje:
+  - **pierwszej działającej wersji rozwiązania RL.** `miner_rl/agents/tabular.py` ma Q-learning i SARSA z `train()`/`evaluate()`, ale nie ma skryptu treningowego i żaden agent nie był jeszcze trenowany. Raport sam to przyznaje („brak wyników agentów uczących się”).
+  - sprawdzenia uruchomienia z czystego klonu repo.
+  - Twojej weryfikacji w dokumentacji AI: wszystkie wpisy mają status „Brak samodzielnej weryfikacji studenta”. Autor w raporcie to nadal „do uzupełnienia”.
+
+**E3/E4:** jeszcze nierozpoczęte.
+
+**Repo:** zgodne z `origin/main`. Niezacommitowana jest tylko poprawka daty w `scripts/log_ai.py` i jeden nowy wpis dziennika.
+
+## Następny krok
+
+1. **Ty, i to pilne:** wyślij prowadzącemu temat „Górnik w niestabilnej kopalni” z linkiem https://github.com/Kesacky/uczenie-ze-wzmocnieniem. Potem podaj mi datę i odpowiedź, a wpiszę je do `docs/etapy.md`. Tego nie mogę zrobić za Ciebie ani uznać za zrobione bez potwierdzenia.
+2. **Technicznie (domyka E2):** dopisać `scripts/train.py`. Skrypt trenowałby Q-learning i SARSA na `m1_stabilna` na kilku ziarnach, zapisywał krzywe uczenia i modele `.pkl` do `results/`, a potem ewaluował je na ziarnach od 1 000 000. Wynik trzeba porównać z baseline'em progowym (m1: średni zwrot 43,96, wyjście 82,7%). To pokaże, czy przy obecnych nagrodach agent w ogóle się uczy, zanim uruchomimy pełne eksperymenty z planu.
+3. Przy okazji zacommitować poprawkę `log_ai.py`.
+
+Mam zacząć od punktu 2?

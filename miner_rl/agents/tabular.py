@@ -45,11 +45,17 @@ class EpsilonSchedule:
 
 @dataclass
 class TabularAgent:
-    """Wspólna część Q-learningu i SARSA: tablica Q, polityka ε-zachłanna, zapis i odczyt."""
+    """Wspólna część Q-learningu i SARSA: tablica Q, polityka ε-zachłanna, zapis i odczyt.
+
+    `q_init` to wartość początkowa Q(s,a) dla nowego stanu. Wartość dodatnia
+    (optymistyczna inicjalizacja) zachęca do odwiedzania nieznanych stanów: dopóki
+    agent ich nie pozna, wyglądają lepiej niż natychmiastowe wyjście z kopalni.
+    """
     n_actions: int
     alpha: float = 0.1
     gamma: float = 0.99
     epsilon: EpsilonSchedule = field(default_factory=EpsilonSchedule)
+    q_init: float = 0.0
     seed: int | None = None
     key_fn: Callable = default_key
     q: dict = field(default_factory=dict)
@@ -64,7 +70,7 @@ class TabularAgent:
     def values(self, obs) -> np.ndarray:
         key = self.key_fn(obs)
         if key not in self.q:
-            self.q[key] = np.zeros(self.n_actions, dtype=np.float64)
+            self.q[key] = np.full(self.n_actions, self.q_init, dtype=np.float64)
         return self.q[key]
 
     def greedy_action(self, obs) -> int:
@@ -97,7 +103,7 @@ class TabularAgent:
     # --- zapis i odczyt --------------------------------------------------
     def save(self, path: str | Path) -> None:
         data = {"class": type(self).__name__, "n_actions": self.n_actions, "alpha": self.alpha,
-                "gamma": self.gamma, "q": {k: v.tolist() for k, v in self.q.items()}}
+                "gamma": self.gamma, "q_init": self.q_init, "q": {k: v.tolist() for k, v in self.q.items()}}
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump(data, f)
@@ -109,7 +115,7 @@ class TabularAgent:
             data = pickle.load(f)
         cls = {"QLearningAgent": QLearningAgent, "SarsaAgent": SarsaAgent}[data["class"]]
         agent = cls(n_actions=data["n_actions"], alpha=data["alpha"], gamma=data["gamma"],
-                    epsilon=EpsilonSchedule(0.0, 0.0, 0))
+                    epsilon=EpsilonSchedule(0.0, 0.0, 0), q_init=data.get("q_init", 0.0))
         agent.q = {k: np.array(v, dtype=np.float64) for k, v in data["q"].items()}
         agent.current_epsilon = 0.0
         return agent
@@ -152,11 +158,12 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
     """
     obs, info = env.reset(seed=seed)
     action = agent.act(obs, greedy=greedy)
-    total, steps = 0.0, 0
+    total, steps, max_depth = 0.0, 0, 0
     while True:
         next_obs, reward, terminated, truncated, info = env.step(action)
         total += reward
         steps += 1
+        max_depth = max(max_depth, info.get("depth", 0))
         done = terminated or truncated or steps >= max_steps
         next_action = None if terminated else agent.act(next_obs, greedy=greedy)
         if learn:
@@ -164,7 +171,8 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
         if done:
             break
         obs, action = next_obs, next_action
-    return {"return": total, "length": steps, "terminated": bool(terminated), "info": info}
+    return {"return": total, "length": steps, "terminated": bool(terminated), "max_depth": max_depth,
+            "info": info}
 
 
 def train(env, agent: TabularAgent, episodes: int, seed: int = 0,

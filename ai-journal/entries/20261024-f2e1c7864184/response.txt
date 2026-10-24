@@ -1,0 +1,33 @@
+E1 jest oznaczony jako zamknięty, a E2 domknięty. Zmiany są w dwóch lokalnych commitach, jeszcze bez pusha.
+
+## E1
+W `docs/etapy.md` E1 ma status „zamknięty (oświadczenie studenta, 24.10.2026)”. Nie znam daty ani formy przekazania tematu, więc w checkliście jest „do uzupełnienia”. Gdy je podasz, dopiszę.
+
+## E2: co zrobiłem
+- **Agent:** nowy parametr `q_init` (optymistyczna inicjalizacja Q) w `miner_rl/agents/tabular.py`, zapisywany w modelu `.pkl`.
+- **`scripts/train.py`:** trening Q-learningu i SARSA równolegle na wielu procesach. W trakcie treningu robi okresową walidację, na końcu ewaluację na tych samych ziarnach co agenci bazowi. Zapisuje konfigurację, krzywe uczenia, wszystkie epizody ewaluacji i podsumowanie po ziarnach. Ziarna treningu, walidacji i ewaluacji są rozłączne.
+- **`scripts/plot_training.py`:** krzywe uczenia z opisanymi osiami, legendą i linią heurystyki.
+- **Test** `tests/test_train.py`: kompletność plików wynikowych, ziarna ewaluacji, powtarzalność. Wszystkie testy: **190 passed**.
+- **Pilotaż:** 4 mapy × 2 algorytmy × Q₀ ∈ {0, 10, 20} × 3 ziarna, 50 000 epizodów, razem 72 uruchomienia (~8,5 min). Wyniki są w `results/train/pilot/`.
+- **Raport:** nowa sekcja „Eksperyment pilotażowy” z tabelą, wykresem i obserwacjami. Zaktualizowałem też hiperparametry, „Znane ryzyko”, ograniczenia, instrukcję uruchomienia i sekcję AI. Kompiluje się bez błędów (14 stron).
+- **Czysty klon** repo: testy i skrypt baseline działają bez zmian ścieżek.
+- **README** i `docs/etapy.md`: E2 ma status „wykonany, czeka na weryfikację prowadzącego”.
+
+## Wyniki pilotażu (ważne na obronę)
+| Mapa | Q-learning, Q₀=10 | SARSA, Q₀=10 | Heurystyka |
+|---|---|---|---|
+| stabilna | 25,0 ± 0,3 | 24,7 ± 1,5 | 44,0 |
+| krucha | 4,5 ± 9,5 | **14,4 ± 8,1** | 5,0 |
+| głęboka | 23,9 ± 2,9 | 25,1 ± 1,5 | 58,2 |
+| zawał korytarza | 14,9 ± 1,5 | 15,8 ± 0,1 | 49,7 |
+
+- Przy **Q₀=0** agenci w 23 z 24 uruchomień uczą się „wyjść od razu”. To potwierdza ryzyko opisane wcześniej w raporcie. Optymistyczna inicjalizacja to rozwiązuje.
+- Przy **Q₀=10** agenci schodzą głęboko i bezpiecznie wracają (90–98%), ale wynoszą mniej niż heurystyka. Wygrywają tylko na mapie kruchej, i to przy 3 ziarnach, więc to wynik wstępny.
+- **Q₀=20** jest niestabilne: w 3 uruchomieniach polityka zachłanna krąży w pętli, aż skończy się olej.
+
+## Decyzje i sprawy dla Ciebie
+1. **Push:** commity są tylko lokalnie. Napisz, jeśli mam wypchnąć.
+2. **Modele `.pkl`** (19 MB) są w `.gitignore`, bo odtwarza je to samo polecenie. Jeśli prowadzący ma oglądać agentów bez treningu, mogę dodać kilka wybranych.
+3. **Matplotlib** doszedł do `requirements.txt`.
+4. **Do samodzielnej weryfikacji:** obejrzyj wykres `results/train/pilot/curves.png` i agenta, np. `python scripts/watch.py --map m2_krucha --agent results/train/pilot/models/m2_krucha_sarsa_q10_s1.pkl`. Przeczytaj też sekcję pilotażu. Potem wpisz w raporcie, co zostało przez Ciebie samodzielnie sprawdzone. Moich testów nie można uznać za Twoją weryfikację.
+5. Pozostaje do uzupełnienia: autor raportu i daty kalendarzowe etapów.

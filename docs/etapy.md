@@ -1,6 +1,6 @@
 # Etapy i lista kontrolna
 
-Stan na 21.10.2026 (wieczór): wybrano proponowany temat „Górnik w niestabilnej kopalni”, raport zawiera opis problemu i formalizację MDP. Gotowe są środowisko gry, generator map, agenci bazowi z wynikami oraz implementacja Q-learningu i SARSA. Nie potwierdzono akceptacji tematu ani przekazania linku prowadzącemu. **E1 nie jest ukończony** (brak akceptacji); prace E2 są w toku.
+Stan na 24.10.2026: **E1 zamknięty** według oświadczenia studenta z 24.10.2026 (temat „Górnik w niestabilnej kopalni” i link do repozytorium przekazane prowadzącemu; data i forma przekazania nie zostały zapisane). Prace E2 są w toku: gotowe są środowisko gry, generator map, agenci bazowi z wynikami, Q-learning i SARSA oraz skrypt treningu z pierwszymi wynikami (`results/train/pilot/`).
 
 Publiczne repozytorium: [Kesacky/uczenie-ze-wzmocnieniem](https://github.com/Kesacky/uczenie-ze-wzmocnieniem). Samo umieszczenie linku w dokumentacji nie oznacza przekazania go prowadzącemu ani zaliczenia etapu.
 
@@ -10,8 +10,8 @@ Publiczne repozytorium: [Kesacky/uczenie-ze-wzmocnieniem](https://github.com/Kes
 
 | Etap | Termin względny | Data kalendarzowa | Wymagany rezultat | Status |
 | --- | --- | --- | --- | --- |
-| E1 | do końca P2 | do potwierdzenia | temat, link do repo, opis problemu, wstępna formalizacja | czeka na akceptację tematu |
-| E2 | do P4 | do potwierdzenia | środowisko, baseline, plan badań, pierwsza działająca wersja | w toku |
+| E1 | do końca P2 | do potwierdzenia | temat, link do repo, opis problemu, wstępna formalizacja | zamknięty (oświadczenie studenta, 24.10.2026) |
+| E2 | do P4 | do potwierdzenia | środowisko, baseline, plan badań, pierwsza działająca wersja | wykonany (24.10.2026), czeka na weryfikację prowadzącego |
 | E3 | do P6 | do potwierdzenia | finalny projekt, raport, eksperymenty, wyniki i analiza | nierozpoczęty |
 | E4 | P7 | do potwierdzenia | poprawki wskazane przez prowadzącego, domknięcie | oczekuje na uwagi |
 
@@ -26,12 +26,12 @@ Każdy rozpoczęty tydzień opóźnienia może kosztować 10 punktów, osobno dl
 - [x] Przeczytać zasady i checklistę projektu.
 - [x] Spisać wymagania i etapy wraz ze źródłami.
 - [x] Potwierdzić, że publiczne repo GitHub zostało utworzone i jest dostępne (21.10.2026, GitHub potwierdził widoczność `public`).
-- [ ] Przekazać link prowadzącemu wskazaną przez niego drogą i zapisać datę/czynność.
+- [x] Przekazać link prowadzącemu wskazaną przez niego drogą i zapisać datę/czynność (wykonane według oświadczenia studenta z 24.10.2026; dokładna data i forma: do uzupełnienia).
 - [x] Dodać README z prawdziwym opisem aktualnego stanu (`README.md`).
 - [x] Dodać szkielet sprawozdania `report/main.tex` i sprawdzić jego kompilację (21.10.2026, kompilator edytora: sukces).
 - [x] Wykonać pierwszy commit rzeczywiście utworzonych materiałów (commit inicjujący dokumentację i narzędzie dziennika, 21.10.2026).
 - [x] Sprawdzić przed publikacją, czy brak sekretów, danych wrażliwych i materiałów bez prawa rozpowszechniania; oryginalne PDF-y zostawić lokalnie (kontrola plików i `git check-ignore`).
-- [x] Wybrać i jednoznacznie opisać temat (raport, sekcja 1). Uzgodnić temat z prowadzącym: **do zrobienia**.
+- [x] Wybrać i jednoznacznie opisać temat (raport, sekcja 1). Uzgodnić temat z prowadzącym: zamknięte według oświadczenia studenta z 24.10.2026.
 - [x] Zapisać cel agenta i uzasadnienie sekwencyjnego charakteru problemu oraz zastosowania RL (raport, sekcje 1–2).
 - [x] Opisać agenta, środowisko i stan/obserwację (raport, sekcja 3).
 - [x] Zdefiniować dostępne akcje, nagrody i warunki końca epizodu (raport, sekcja 3).
@@ -40,14 +40,14 @@ Każdy rozpoczęty tydzień opóźnienia może kosztować 10 punktów, osobno dl
 - [ ] Udokumentować dotychczasową pomoc AI i wskazać rzeczywistą weryfikację studenta.
 - [ ] Uzupełnić termin kalendarzowy E1 oraz wynik weryfikacji prowadzącego.
 
-Potwierdzenie przekazania linku: **brak**. Temat/akceptacja: **brak**. Wynik weryfikacji E1: **brak**.
+Potwierdzenie przekazania linku i akceptacja tematu: oświadczenie studenta z 24.10.2026 (bez zapisanej daty i formy przekazania). Wynik weryfikacji E1 przez prowadzącego: nie zapisano.
 
 ## E2 — środowisko, baseline i plan eksperymentów
 
 Źródła: P00 §4, s. 3; P01 §3, s. 2–4.
 
 - [x] Przygotować czytelną strukturę kodu i plik zależności/środowiska (`miner_rl/`, `requirements.txt`).
-- [ ] Zaktualizować instrukcję uruchomienia i sprawdzić czysty checkout bez ręcznych zmian ścieżek.
+- [x] Zaktualizować instrukcję uruchomienia i sprawdzić czysty checkout bez ręcznych zmian ścieżek (24.10.2026, Claude Code: `git clone` do katalogu tymczasowego, `pytest` i `run_baselines.py` bez zmian ścieżek; użyto zainstalowanych już pakietów z `.venv`, bez świeżej instalacji `requirements.txt`).
 - [x] Wprowadzić obsługę ziaren losowych, gdy wpływają na powtarzalność (`reset(seed)`, test powtarzalności).
 - [x] Zaimplementować inicjalizację epizodu i krok środowiska (`miner_rl/env/mine_env.py`).
 - [x] Zdefiniować obsługę poprawnych i niedozwolonych akcji.
@@ -58,8 +58,8 @@ Potwierdzenie przekazania linku: **brak**. Temat/akceptacja: **brak**. Wynik wer
 - [x] Przygotować plan porównań, wariantów i hiperparametrów (raport, sekcja „Plan eksperymentów”).
 - [x] Wybrać metryki jakości i plan tabel/wykresów.
 - [x] Zaplanować kilka uruchomień albo zapisać uzasadnienie odstępstwa (10 ziaren na wariant).
-- [ ] Przygotować pierwszą działającą wersję rozwiązania.
-- [ ] Uzupełnić raport, dziennik decyzji i dokumentację AI w trakcie prac.
+- [x] Przygotować pierwszą działającą wersję rozwiązania (`scripts/train.py`; pilotaż 24.10.2026: Q-learning i SARSA, 4 mapy, 3 ziarna, 50 000 epizodów, `results/train/pilot/`, raport sekcja „Eksperyment pilotażowy”).
+- [x] Uzupełnić raport, dziennik decyzji i dokumentację AI w trakcie prac (raport i `report/sections/ai.tex` zaktualizowane 24.10.2026; weryfikacja studenta nadal do wpisania).
 - [ ] Uzupełnić termin kalendarzowy E2 oraz wynik weryfikacji prowadzącego.
 
 ## E3 — finalne rozwiązanie i analiza

@@ -2,12 +2,15 @@
 
 Repozytorium projektu z przedmiotu „Uczenie się ze wzmocnieniem”, WEiI PRz.
 
-**Stan na 21.10.2026:** proponowany temat „Górnik w niestabilnej kopalni” czeka na
-akceptację prowadzącego. Raport zawiera opis problemu, formalizację MDP, opis
-środowiska, agentów bazowych z wynikami, opis algorytmów i plan eksperymentów.
-Gotowe są: środowisko gry (logika, generator map, grafika, testy), agenci bazowi
-oraz implementacja Q-learningu i SARSA (`miner_rl/agents/tabular.py`).
-Eksperymenty z agentami uczącymi się nie zostały jeszcze przeprowadzone.
+**Stan na 24.10.2026:** etap E1 zamknięty (temat „Górnik w niestabilnej kopalni”
+przekazany prowadzącemu). Raport zawiera opis problemu, formalizację MDP, opis
+środowiska, agentów bazowych z wynikami, opis algorytmów, plan eksperymentów
+i wyniki eksperymentu pilotażowego. Gotowe są: środowisko gry (logika, generator
+map, grafika, testy), agenci bazowi, Q-learning i SARSA (`miner_rl/agents/tabular.py`)
+oraz skrypt treningu (`scripts/train.py`). Pilotaż (4 mapy, 3 ziarna) pokazał, że
+agenci uczą się dopiero z optymistyczną inicjalizacją Q i na razie ustępują
+heurystyce na trzech z czterech map. Eksperymenty właściwe (etap E3) nie zostały
+jeszcze przeprowadzone.
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 
@@ -25,7 +28,7 @@ Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 | `miner_rl/` | Środowisko (`env/`), grafika pygame (`render/`), agenci (`agents/`), konfiguracja |
 | `maps/` | Stałe mapy kopalni 12×11 (stabilna, krucha, kusząca głębia, zawał korytarza) |
 | `assets/` | Tekstury pixel art (wygenerowane przez AI) i manifest arkuszy |
-| `results/` | Wyniki agentów bazowych (CSV) i nagrania epizodów (`gifs/`) |
+| `results/` | Wyniki agentów bazowych (CSV), treningu (`train/`) i nagrania epizodów (`gifs/`) |
 | `tests/` | Testy pytest |
 
 Źródłem wymagań są „Zasady realizacji projektu” i „Lista kontrolna projektu”,
@@ -97,6 +100,20 @@ progu na ziarnach 0..999, ewaluacja na ziarnach od 1 000 000; wyniki w
 python scripts/run_baselines.py --episodes 1000
 ```
 
+Trening Q-learningu i SARSA (`scripts/train.py`; uruchomienia równolegle na kilku
+procesach, wyniki, krzywe uczenia, konfiguracja i modele `.pkl` w `results/train/<nazwa>/`),
+a potem wykres krzywych uczenia:
+
+```powershell
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 3 --episodes 50000 --q-init 0 10 20 --name pilot
+python scripts/plot_training.py --name pilot
+python scripts/watch.py --map m1_stabilna --agent results/train/pilot/models/m1_stabilna_sarsa_q10_s0.pkl
+```
+
+Ziarna: trening uruchomienia `s` używa ziaren `s·100 000 + i`, walidacja w trakcie
+treningu ziaren od 2 000 000, a ewaluacja końcowa tych samych ziaren od 1 000 000
+co agenci bazowi.
+
 Wspólne opcje grafiki: `--scale auto|1|1.5|2` (domyślnie dopasowanie do ekranu),
 `--no-textures` (kolorowe zastępniki zamiast tekstur), `--no-lamp` (bez ciemności poza
 światłem lampy). Bez okna, np. na serwerze: zmienna środowiskowa `SDL_VIDEODRIVER=dummy`.
@@ -106,8 +123,7 @@ Tekstury w `assets/` wygenerowano narzędziem AI (szczegóły i odtwarzanie:
 
 ## Uruchomienie dokumentacji
 
-Instrukcja gry i agentów bazowych jest w sekcji „Uruchomienie gry”. Trening
-i konfiguracje eksperymentów RL zostaną opisane wraz z ich wykonaniem.
+Instrukcja gry, agentów bazowych i treningu jest w sekcji „Uruchomienie gry”.
 
 Do narzędzia dziennika wystarczy Python 3.10 lub nowszy, bez dodatkowych bibliotek:
 
@@ -146,7 +162,7 @@ Każda nowa rozmowa wymaga zapisania jej pełnego przebiegu i aktualizacji rapor
 
 ## Najbliższy krok
 
-Zgłosić temat prowadzącemu wraz z linkiem do repozytorium (etap E1). Następnie
-sprawdzić uczenie Q-learningu i SARSA przy obecnych parametrach gry i rozpocząć
-eksperymenty zgodnie z planem w raporcie. Daty kalendarzowe bloków zajęć należy
+Etap E3: eksperymenty właściwe zgodnie z planem w raporcie (10 ziaren, `q_init` = 10,
+wpływ kary za zawał, stała a losowa mapa) oraz wyjaśnienie, dlaczego agenci RL
+wracają przed wydobyciem wszystkich złóż. Daty kalendarzowe bloków zajęć należy
 wpisać po ich potwierdzeniu.

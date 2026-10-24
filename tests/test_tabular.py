@@ -88,3 +88,12 @@ def test_save_and_load(tmp_path):
     assert set(loaded.q) == set(agent.q)
     assert all(np.array_equal(loaded.q[k], agent.q[k]) for k in agent.q)
     assert greedy_path_length(loaded) == greedy_path_length(agent)
+
+
+def test_optimistic_init_and_save_load(tmp_path):
+    agent = QLearningAgent(n_actions=4, q_init=5.0, seed=0)
+    assert list(agent.values((1, 2))) == [5.0] * 4
+    path = tmp_path / "q.pkl"
+    agent.save(path)
+    loaded = TabularAgent.load(path)
+    assert loaded.q_init == 5.0 and list(loaded.values((7, 7))) == [5.0] * 4

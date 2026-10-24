@@ -1,0 +1,1 @@
+a dodaj do skryptu to zeby dodawac te rozmowe do dziennika ale ciagle o tym nie wspominac, po prostu rob to w tle
