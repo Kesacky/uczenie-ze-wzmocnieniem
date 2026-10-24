@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -56,13 +56,25 @@ def parse_date(value: str) -> str:
         raise argparse.ArgumentTypeError("Niepoprawna data kalendarzowa.") from error
 
 
-def warsaw_date() -> str:
+def last_sunday_utc(year: int, month: int) -> datetime:
+    """Ostatnia niedziela miesiąca, godz. 01:00 UTC (moment zmiany czasu w UE)."""
+    day = datetime(year, month + 1, 1, 1, tzinfo=timezone.utc) - timedelta(days=1)
+    return day - timedelta(days=(day.weekday() + 1) % 7)
+
+
+def warsaw_offset(now_utc: datetime) -> timedelta:
+    """Przesunięcie Europe/Warsaw według reguł UE, gdy brak bazy tzdata (np. Windows)."""
+    year = now_utc.year
+    summer = last_sunday_utc(year, 3) <= now_utc < last_sunday_utc(year, 10)
+    return timedelta(hours=2 if summer else 1)
+
+
+def warsaw_date(now_utc: datetime | None = None) -> str:
+    now_utc = now_utc or datetime.now(timezone.utc)
     try:
-        return datetime.now(ZoneInfo("Europe/Warsaw")).date().isoformat()
-    except ZoneInfoNotFoundError as error:
-        raise ValueError(
-            "Brak systemowej bazy stref czasowych Europe/Warsaw; podaj --date YYYY-MM-DD."
-        ) from error
+        return now_utc.astimezone(ZoneInfo("Europe/Warsaw")).date().isoformat()
+    except ZoneInfoNotFoundError:
+        return (now_utc + warsaw_offset(now_utc)).date().isoformat()
 
 
 def read_utf8(path: Path) -> bytes:
