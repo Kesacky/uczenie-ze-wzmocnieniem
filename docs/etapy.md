@@ -67,7 +67,7 @@ Potwierdzenie przekazania linku i akceptacja tematu: oświadczenie studenta z 24
 Źródła: P00 §4, s. 3; §8–10, s. 4–6; P01 §4, s. 4–5.
 
 - [ ] Zaimplementować i uruchomić właściwego agenta RL/DRL zgodnego z formalizacją.
-- [ ] Zapisać hiperparametry, sposób reprezentacji Q-tab albo architekturę DRL (w toku: przegląd hiperparametrów i wpływ Q0 w raporcie, sekcja „Dobór hiperparametrów i diagnoza zachowania agenta”, 24.10.2026).
+- [ ] Zapisać hiperparametry, sposób reprezentacji Q-tab albo architekturę DRL (w toku: przegląd hiperparametrów, wpływ Q0, zmiany nagrody i maskowanie akcji w raporcie, sekcje „Dobór hiperparametrów…” i „Zmiany funkcji nagrody…”, 24.10.2026; do decyzji, czy pakiet nagród staje się domyślny).
 - [ ] Rozdzielić uczenie i ewaluację; zabezpieczyć niedozwolone akcje i nieskończone epizody.
 - [ ] Przeprowadzić eksperymenty zgodnie z planem i uczciwie porównać baseline.
 - [ ] Zachować dane lub skrypty wystarczające do odtworzenia wyników.

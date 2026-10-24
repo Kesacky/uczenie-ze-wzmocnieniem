@@ -49,9 +49,26 @@ def test_ofat_variants():
     sys.path.insert(0, str(ROOT / "scripts"))
     from train import make_variants, variant_label
     values = {"q_init": [10.0, 30.0], "alpha": [0.1, 0.3, 0.5], "gamma": [0.99],
-              "eps_decay": [0.7], "eps_end": [0.05], "episodes": [50_000], "oil_bins": [4]}
+              "eps_decay": [0.7], "eps_end": [0.05], "episodes": [50_000], "oil_bins": [4],
+              "reward_illegal": [-0.5], "reward_collapse": [-20.0], "dig_fraction": [0.0],
+              "dig_refund": [0], "mask_illegal": [0]}
     ofat = make_variants(values, ofat=True)
     assert len(ofat) == 1 + 1 + 2                       # bazowy + zmiany pojedynczych czynników
     assert all(sum(v[k] != ofat[0][k] for k in values) <= 1 for v in ofat)
     assert len(make_variants(values, ofat=False)) == 2 * 3
     assert [variant_label(v) for v in ofat] == ["q10", "q30", "q10_a0.3", "q10_a0.5"]
+
+
+def test_reward_variants_are_evaluated_with_default_rewards(tmp_path):
+    out = tmp_path / "r"
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "train.py"), "--maps", "m1_stabilna",
+                    "--algos", "sarsa", "--seeds", "1", "--episodes", "40", "--ofat",
+                    "--reward-collapse", "-20", "-5", "--mask-illegal", "0", "1", "--eval-every", "40",
+                    "--eval-episodes", "5", "--final-episodes", "10", "--workers", "2",
+                    "--name", "r", "--out", str(out)], check=True, capture_output=True)
+    runs = {r["variant"]: r for r in rows(out / "r" / "runs.csv")}
+    assert set(runs) == {"q10_n40", "q10_n40_rc-5", "q10_n40_m1"}
+    final = rows(out / "r" / "final_eval.csv")
+    collapsed = [float(r["return"]) for r in final if r["param"].startswith("q10_n40_rc-5") and r["reason"] == "collapse"]
+    assert all(v <= -20 for v in collapsed)            # ewaluacja z domyślną karą -20
+    assert TabularAgent.load(out / "r" / "models" / "m1_stabilna_sarsa_q10_n40_m1_s0.pkl").mask_illegal

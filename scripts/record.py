@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from miner_rl.render.cli import parser, create, positive
 from miner_rl.agents.loader import make_agent
+from miner_rl.agents.tabular import act_in_env
 import imageio.v2 as imageio
 
 
@@ -36,7 +37,7 @@ def main(argv=None) -> list[Path]:
             getattr(agent, 'reset', lambda: None)()
             frames = [renderer.frame_array(renderer.draw())]
             while True:
-                obs, _, terminated, truncated, info = env.step(agent.act(obs, greedy=True))
+                obs, _, terminated, truncated, info = env.step(act_in_env(agent, env, obs))
                 frames.append(renderer.frame_array(renderer.draw()))
                 if terminated or truncated:
                     break

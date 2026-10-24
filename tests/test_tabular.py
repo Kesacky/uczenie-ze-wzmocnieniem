@@ -97,3 +97,30 @@ def test_optimistic_init_and_save_load(tmp_path):
     agent.save(path)
     loaded = TabularAgent.load(path)
     assert loaded.q_init == 5.0 and list(loaded.values((7, 7))) == [5.0] * 4
+
+
+def test_masked_agent_never_takes_illegal_actions():
+    from miner_rl.env import MineEnv
+    env = MineEnv("m1_stabilna")
+    agent = SarsaAgent(n_actions=5, q_init=30.0, mask_illegal=True,
+                       epsilon=EpsilonSchedule(1.0, 0.05, 150), seed=0)
+    illegal = []
+    for i in range(200):
+        agent.start_episode(i)
+        obs, _ = env.reset(seed=i)
+        action, done = agent.act(obs, mask=env.action_mask()), False
+        while not done:
+            obs2, r, term, trunc, info = env.step(action)
+            illegal.append(info["illegal"])
+            mask = None if term else env.action_mask()
+            action2 = None if term else agent.act(obs2, mask=mask)
+            agent.update(obs, action, r, obs2, action2, term, mask)
+            obs, action, done = obs2, action2, term or trunc
+    assert not any(illegal)
+
+
+def test_q_learning_target_uses_only_legal_actions():
+    agent = QLearningAgent(n_actions=3, alpha=1.0, gamma=1.0, mask_illegal=True)
+    agent.values((1,))[:] = [100.0, 2.0, 3.0]          # akcja 0 niedozwolona
+    agent.update((0,), 0, 0.0, (1,), None, False, np.array([False, True, True]))
+    assert agent.values((0,))[0] == 3.0

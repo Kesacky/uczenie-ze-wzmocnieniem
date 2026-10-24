@@ -8,9 +8,10 @@ MDP, opis środowiska, agentów bazowych z wynikami, opis algorytmów, plan eksp
 wyniki pilotażu oraz doboru hiperparametrów i diagnozy zachowania agenta (początek E3). Gotowe są: środowisko gry (logika, generator
 map, grafika, testy), agenci bazowi, Q-learning i SARSA (`miner_rl/agents/tabular.py`)
 oraz skrypty treningu i analizy. Agenci uczą się dopiero z optymistyczną
-inicjalizacją Q. Najlepsze ustawienia (Q0 = 20–30) mniej więcej podwajają wynik
-z pilotażu, ale agenci nadal ustępują heurystyce na wszystkich mapach poza kruchą,
-a część uruchomień kończy się zapętloną polityką. Eksperymenty właściwe z planu
+inicjalizacją Q. Najlepsza konfiguracja (SARSA, Q0 = 30, większa kara za akcję
+niedozwoloną, mniejsza za zawał, premia za wydobycie, maskowanie akcji) działa
+stabilnie na wszystkich mapach, wyraźnie wygrywa z heurystyką na mapie kruchej,
+a na pozostałych traci do niej 4–9 pkt. Eksperymenty właściwe z planu
 (10 ziaren, kara za zawał, losowe mapy) nie zostały jeszcze przeprowadzone.
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
@@ -123,6 +124,15 @@ python scripts/plot_q0.py --runs przeglad_m1 q0_m1 olej_m1 --map m1_stabilna
 ```
 
 Agenta uczonego z `--oil-bins N` oglądamy i analizujemy z tą samą opcją `--oil-bins N`.
+
+Zmiany nagrody w treningu (`--reward-illegal`, `--reward-collapse`, `--dig-fraction`,
+`--dig-refund`) i maskowanie akcji niedozwolonych (`--mask-illegal 1`); ewaluacja zawsze
+używa domyślnych nagród gry. Zestawienie wariantów na wszystkich mapach:
+
+```powershell
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --q-init 30 --reward-illegal -2 --reward-collapse -10 --dig-fraction 0.3 --mask-illegal 0 1 --name nagrody_c
+python scripts/compare_runs.py --runs nagrody_a nagrody_b nagrody_c --out results/train/nagrody
+```
 
 Ziarna: trening uruchomienia `s` używa ziaren `s·100 000 + i`, walidacja w trakcie
 treningu ziaren od 2 000 000, a ewaluacja końcowa tych samych ziaren od 1 000 000

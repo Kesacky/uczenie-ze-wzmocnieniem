@@ -56,6 +56,7 @@ class TabularAgent:
     gamma: float = 0.99
     epsilon: EpsilonSchedule = field(default_factory=EpsilonSchedule)
     q_init: float = 0.0
+    mask_illegal: bool = False           # wybór tylko spośród akcji dozwolonych (env.action_mask())
     seed: int | None = None
     key_fn: Callable = default_key
     q: dict = field(default_factory=dict)
@@ -73,28 +74,41 @@ class TabularAgent:
             self.q[key] = np.full(self.n_actions, self.q_init, dtype=np.float64)
         return self.q[key]
 
-    def greedy_action(self, obs) -> int:
+    def best_value(self, obs, mask=None) -> float:
         v = self.values(obs)
+        return float(v.max() if mask is None or not self.mask_illegal else v[mask].max())
+
+    def greedy_action(self, obs, mask=None) -> int:
+        v = self.values(obs)
+        if mask is not None and self.mask_illegal:
+            v = np.where(mask, v, -np.inf)
         best = np.flatnonzero(v == v.max())  # losowe rozstrzyganie remisów
         return int(self.rng.choice(best))
 
-    def act(self, obs, greedy: bool = False) -> int:
-        """Polityka ε-zachłanna (lub zachłanna przy ewaluacji)."""
+    def act(self, obs, greedy: bool = False, mask=None) -> int:
+        """Polityka ε-zachłanna (lub zachłanna przy ewaluacji).
+
+        Przy `mask_illegal` i podanej masce agent wybiera tylko akcje dozwolone,
+        także w ruchach losowych.
+        """
         if not greedy and self.rng.random() < self.current_epsilon:
+            if mask is not None and self.mask_illegal:
+                return int(self.rng.choice(np.flatnonzero(mask)))
             return int(self.rng.integers(self.n_actions))
-        return self.greedy_action(obs)
+        return self.greedy_action(obs, mask)
 
     def start_episode(self, episode: int) -> None:
         self.current_epsilon = self.epsilon.value(episode)
 
     # --- aktualizacja (implementują podklasy) ----------------------------
-    def td_target(self, reward: float, next_obs, next_action: int | None, terminated: bool) -> float:
+    def td_target(self, reward: float, next_obs, next_action: int | None, terminated: bool,
+                  next_mask=None) -> float:
         raise NotImplementedError
 
     def update(self, obs, action: int, reward: float, next_obs, next_action: int | None,
-               terminated: bool) -> float:
+               terminated: bool, next_mask=None) -> float:
         """Jedna aktualizacja TD. Zwraca błąd TD (do diagnostyki)."""
-        target = self.td_target(reward, next_obs, next_action, terminated)
+        target = self.td_target(reward, next_obs, next_action, terminated, next_mask)
         v = self.values(obs)
         td_error = target - v[action]
         v[action] += self.alpha * td_error
@@ -103,7 +117,7 @@ class TabularAgent:
     # --- zapis i odczyt --------------------------------------------------
     def save(self, path: str | Path) -> None:
         data = {"class": type(self).__name__, "n_actions": self.n_actions, "alpha": self.alpha,
-                "gamma": self.gamma, "q_init": self.q_init, "q": {k: v.tolist() for k, v in self.q.items()}}
+                "gamma": self.gamma, "q_init": self.q_init, "mask_illegal": self.mask_illegal, "q": {k: v.tolist() for k, v in self.q.items()}}
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump(data, f)
@@ -115,7 +129,8 @@ class TabularAgent:
             data = pickle.load(f)
         cls = {"QLearningAgent": QLearningAgent, "SarsaAgent": SarsaAgent}[data["class"]]
         agent = cls(n_actions=data["n_actions"], alpha=data["alpha"], gamma=data["gamma"],
-                    epsilon=EpsilonSchedule(0.0, 0.0, 0), q_init=data.get("q_init", 0.0))
+                    epsilon=EpsilonSchedule(0.0, 0.0, 0), q_init=data.get("q_init", 0.0),
+                    mask_illegal=data.get("mask_illegal", False))
         agent.q = {k: np.array(v, dtype=np.float64) for k, v in data["q"].items()}
         agent.current_epsilon = 0.0
         return agent
@@ -128,10 +143,10 @@ class QLearningAgent(TabularAgent):
     """
     name = "q_learning"
 
-    def td_target(self, reward, next_obs, next_action, terminated):
+    def td_target(self, reward, next_obs, next_action, terminated, next_mask=None):
         if terminated:
             return reward
-        return reward + self.gamma * float(self.values(next_obs).max())
+        return reward + self.gamma * self.best_value(next_obs, next_mask)
 
 
 class SarsaAgent(TabularAgent):
@@ -143,7 +158,7 @@ class SarsaAgent(TabularAgent):
     """
     name = "sarsa"
 
-    def td_target(self, reward, next_obs, next_action, terminated):
+    def td_target(self, reward, next_obs, next_action, terminated, next_mask=None):
         if terminated:
             return reward
         return reward + self.gamma * float(self.values(next_obs)[next_action])
@@ -157,7 +172,9 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
     (obcięcie limitem kroków: cel TD nadal szacuje wartość stanu następnego).
     """
     obs, info = env.reset(seed=seed)
-    action = agent.act(obs, greedy=greedy)
+    use_mask = getattr(agent, "mask_illegal", False)
+    mask = env.action_mask() if use_mask else None
+    action = agent.act(obs, greedy=greedy, mask=mask)
     total, steps, max_depth = 0.0, 0, 0
     while True:
         next_obs, reward, terminated, truncated, info = env.step(action)
@@ -165,9 +182,10 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
         steps += 1
         max_depth = max(max_depth, info.get("depth", 0))
         done = terminated or truncated or steps >= max_steps
-        next_action = None if terminated else agent.act(next_obs, greedy=greedy)
+        next_mask = env.action_mask() if use_mask and not terminated else None
+        next_action = None if terminated else agent.act(next_obs, greedy=greedy, mask=next_mask)
         if learn:
-            agent.update(obs, action, reward, next_obs, next_action, terminated)
+            agent.update(obs, action, reward, next_obs, next_action, terminated, next_mask)
         if done:
             break
         obs, action = next_obs, next_action
@@ -198,3 +216,10 @@ def evaluate(env, agent: TabularAgent, episodes: int, seed: int = 1_000_000) -> 
         return [run_episode(env, agent, learn=False, seed=seed + i, greedy=True) for i in range(episodes)]
     finally:
         agent.current_epsilon = saved
+
+
+def act_in_env(agent, env, obs, greedy: bool = True) -> int:
+    """Akcja agenta w środowisku; agentom z `mask_illegal` przekazuje maskę akcji dozwolonych."""
+    if getattr(agent, "mask_illegal", False):
+        return agent.act(obs, greedy=greedy, mask=env.action_mask())
+    return agent.act(obs, greedy=greedy)

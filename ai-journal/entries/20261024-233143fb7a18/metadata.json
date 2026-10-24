@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24",
+  "tool": "Claude Code (CLI)",
+  "model": "claude-opus-5-5",
+  "purpose": "Zmiany funkcji nagrody i maskowanie akcji niedozwolonych: implementacja i eksperymenty",
+  "scope": "Zmiany: miner_rl/config.py, miner_rl/env/mine_env.py (premia za wydobycie, action_mask), miner_rl/agents/tabular.py (mask_illegal), scripts/train.py, scripts/compare_runs.py, watch/record/analyze_policy, testy, raport, README, sekcja AI, docs/etapy.md; 192 treningi",
+  "verification": "Brak samodzielnej weryfikacji studenta (do uzupełnienia)",
+  "conversation_url": "",
+  "prompt_sha256": "15e7dcc2b04b079879a4f98fc05bd5584379e02d3a35338cb9ad2d9a5c1e92eb",
+  "response_sha256": "7fd43052826902a8d775b073b9893f4c09401992c24f366701f0e3a8464342e4",
+  "recorded_at_utc": "2026-10-24T19:16:50.950885+00:00"
+}

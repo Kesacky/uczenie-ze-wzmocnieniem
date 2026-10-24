@@ -25,6 +25,7 @@ sys.path.insert(0, str(ROOT))
 
 from miner_rl.agents.baselines import ThresholdAgent  # noqa: E402
 from miner_rl.agents.loader import make_agent  # noqa: E402
+from miner_rl.agents.tabular import act_in_env  # noqa: E402
 from miner_rl.env import MineEnv  # noqa: E402
 
 NAMES = {"c": "węgiel", "s": "srebro", "g": "złoto", "k": "kryształ"}
@@ -42,7 +43,7 @@ def analyze(env: MineEnv, agent, episodes: int, seed: int) -> dict:
         visits[env.pos[1], env.pos[0]] += 1
         done, total, n_illegal, n_props = False, 0.0, 0, 0
         while not done:
-            obs, reward, term, trunc, info = env.step(agent.act(obs, greedy=True))
+            obs, reward, term, trunc, info = env.step(act_in_env(agent, env, obs))
             total += reward
             n_illegal += int(info["illegal"])
             n_props += int(info["action"] == "podepnij" and not info["illegal"])

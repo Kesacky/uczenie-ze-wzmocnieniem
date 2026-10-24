@@ -1,0 +1,24 @@
+Wszystkie wartości są w `miner_rl/config.py`, a logika w `step()` w `miner_rl/env/mine_env.py`. Składniki w jednym kroku się sumują.
+
+## Nagrody i kary
+| Zdarzenie | Wartość | Kiedy |
+|---|---|---|
+| każdy krok | **−0,1** | zawsze, także przy wyjściu |
+| akcja niedozwolona | **−0,5** (razem z krokiem −0,6) | ruch w skałę lub poza mapę; stempel bez stempli albo przy pełnej stabilności. Stan się nie zmienia, ale czas płynie |
+| wyjście z kopalni | **+ wartość ładunku** | wejście na pole wyjścia; koniec epizodu |
+| zawał | **−20**, ładunek przepada | losowo w każdym kroku (poza krokiem wyjścia); koniec epizodu |
+| brak oleju | **−20**, ładunek przepada | po 100 krokach; koniec epizodu |
+| limit 300 kroków | brak dodatkowej kary | obcięcie epizodu (w praktyce olej kończy się wcześniej) |
+
+Wartości złóż: węgiel 3, srebro 9, złoto 18, kryształ 30.
+
+## Ważne konsekwencje (dobrze je znać na obronę)
+- **Samo wydobycie nie daje nagrody.** Złoże tylko zwiększa ładunek, a punkty agent dostaje dopiero przy wyjściu. Nagroda jest więc opóźniona, co jest jednym z powodów, dla których nauka jest trudna.
+- **Zawał kosztuje więcej niż −20.** Przepada też ładunek. Z ładunkiem 48 zawał oznacza różnicę 68 pkt względem bezpiecznego wyjścia. To dylemat „kopać czy wracać”.
+- **Wydobycie ma ukryty koszt:** obniża stabilność stropu o 1, a to zwiększa ryzyko zawału w każdym następnym kroku:
+  `p = 0,001 + 0,003 · (5 − stabilność)² · (1 + głębokość / wysokość mapy)`
+  Przykład: przy pełnej stabilności p = 0,1% na krok. Przy stabilności 3 na dnie (głębokość 9 z 11) p ≈ 2,3% na krok, czyli 20 kroków na tej głębokości to około 37% szans na zawał (przy wychodzeniu w górę ryzyko maleje).
+- **Stempel (`podepnij`)** sam nie daje nagrody, ale podnosi stabilność o 2 (są 2 stemple, na mapie kruchej 1).
+- **Koszt kroku −0,1 jest mały** w porównaniu ze złożami, więc droga po dodatkowe złoże prawie zawsze się opłaca, jeśli nie rośnie przy tym ryzyko zawału.
+
+To wyjaśnia też obserwacje z eksperymentów: agent, który bierze tylko kryształ, ponosi małe ryzyko. Przy pełnej stabilności i jednym wydobyciu p na powrocie jest niewielkie, więc ma mało zawałów (3–5%), ale też mało punktów.

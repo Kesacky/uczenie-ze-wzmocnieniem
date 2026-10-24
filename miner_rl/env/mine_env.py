@@ -172,6 +172,8 @@ class MineEnv(gym.Env):
         legal = self._apply(action)
         if not legal:
             reward += cfg.reward_illegal
+        if self.last_dug is not None:
+            reward += cfg.reward_dig_fraction * self._deposit_value[self._deposit_index[self.last_dug]]
 
         terminated = False
         reason = None
@@ -196,6 +198,8 @@ class MineEnv(gym.Env):
                 terminated, reason = True, REASON_OIL
                 self.lost_value = self.load_value
 
+        if terminated and cfg.reward_dig_refund:
+            reward -= cfg.reward_dig_fraction * self.load_value     # zwrot „zaliczki” za wydobycie
         truncated = not terminated and self.steps >= cfg.step_limit
         if truncated:
             reason = REASON_LIMIT
@@ -229,6 +233,18 @@ class MineEnv(gym.Env):
         self.last_action: int | None = None
         self.last_dug: tuple[int, int] | None = None
         self.last_info: dict[str, Any] = {}
+
+    def action_mask(self) -> np.ndarray:
+        """Które akcje są w bieżącym stanie dozwolone (te same warunki co w `_apply`)."""
+        cfg = self.config
+        mask = np.zeros(self.action_space.n, dtype=bool)
+        for action, (dx, dy) in DIRECTIONS.items():
+            tx, ty = self.pos[0] + dx, self.pos[1] + dy
+            if 0 <= tx < self.width and 0 <= ty < self.height:
+                target = self.grid[ty][tx]
+                mask[action] = target in DEPOSITS or target in WALKABLE
+        mask[PROP] = self.props > 0 and self.stability < cfg.stability_max
+        return mask
 
     def _apply(self, action: int) -> bool:
         """Wykonaj akcję; zwraca, czy była dozwolona."""

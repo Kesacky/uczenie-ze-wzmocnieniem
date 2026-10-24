@@ -5,6 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from miner_rl.render.cli import parser, create
 from miner_rl.agents.loader import make_agent
+from miner_rl.agents.tabular import act_in_env
 from miner_rl.render.ui import TITLES
 
 
@@ -54,7 +55,7 @@ def main(argv=None) -> int:
                 if not controls():
                     return 0
                 if not paused:
-                    obs, _, terminated, truncated, _ = env.step(agent.act(obs, greedy=True))
+                    obs, _, terminated, truncated, _ = env.step(act_in_env(agent, env, obs))
                     done = terminated or truncated
                 frame = renderer.draw()
                 if not args.headless:

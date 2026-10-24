@@ -1,0 +1,34 @@
+Zrobione: Twoje trzy zmiany nagrody plus moja propozycja maskowania akcji, 192 treningi na wszystkich mapach i nowa sekcja w raporcie. Commit jest lokalny, jeszcze bez pusha.
+
+## Co dodałem (wszystko jako opcje, domyślna gra bez zmian)
+- **Środowisko:** premia za wydobycie (`reward_dig_fraction`) z opcjonalnym zwrotem przy końcu epizodu (`reward_dig_refund`) oraz `action_mask()`, czyli które akcje są dozwolone.
+- **Agent:** opcja `mask_illegal`. Wybiera tylko akcje dozwolone, a Q-learning liczy maksimum tylko po nich.
+- **`train.py`:** `--reward-illegal`, `--reward-collapse`, `--dig-fraction`, `--dig-refund`, `--mask-illegal`. **Zmienione nagrody działają tylko w treningu. Ocena zawsze odbywa się według oryginalnych zasad gry**, więc wyniki da się uczciwie porównać z heurystyką.
+- **`scripts/compare_runs.py`:** tabela i wykres „wariant × mapa” z liczbą nieudanych uruchomień.
+- Testy (199 passed) i raport: nowa sekcja „Zmiany funkcji nagrody i maskowanie akcji” (18 stron).
+
+## Wyniki (SARSA, Q₀ = 30, 3 ziarna, średni zwrot wg oryginalnych zasad)
+| Wariant | stabilna | krucha | głęboka | zawał kor. |
+|---|---|---|---|---|
+| bez zmian | 41,0 | −4,7 | 49,5 | 10,9 |
+| kara niedozwolona −2 | 17,6 | 17,3 | 52,3 | 10,8 |
+| zawał −10 | 36,0 | −11,7 | 50,1 | 38,8 |
+| premia za wydobycie 30% | 38,6 | 18,4 | 41,6 | 28,2 |
+| maskowanie | 41,2 | 21,9 | 54,1 | 34,6 |
+| **Twój pakiet + maskowanie** | **40,2 ± 2,2** | **26,7 ± 0,6** | **54,4 ± 2,1** | **40,6 ± 2,6** |
+| heurystyka | 44,0 | 5,0 | 58,2 | 49,7 |
+
+- **Pakiet z maskowaniem jest najlepszy:** 0 nieudanych uruchomień na 12, rozrzut między ziarnami 0,6–2,6 pkt (wcześniej nawet 45). Agent w ogóle nie wchodzi w ściany.
+- **Na mapie kruchej agent bije heurystykę ponad 5×** (26,7 vs 5,0), i to dzięki innej strategii. Heurystyka bierze najbliższe tanie złoża (12 pkt, zawał 14%). Agent schodzi po złoto i kryształ (48 pkt) i akceptuje zawał w 27% epizodów, co w wartości oczekiwanej wychodzi dużo lepiej. To dobry przykład na obronę, czego RL uczy się lepiej niż prosta reguła.
+- Na pozostałych mapach traci do heurystyki 4–9 pkt. Na mapie stabilnej bierze złoto i kryształ, ale pomija tanie węgiel i srebro.
+- Pojedyncze zmiany działają różnie. Kara −2 bardzo pomaga Q-learningowi (np. stabilna 6,3 → 34,1). Zawał −10 pomaga na mapie zawału korytarza, ale na kruchej agent zaczyna za bardzo ryzykować (zawał w 43% epizodów).
+- **Wynik negatywny, mój błąd projektowy:** wariant „zaliczka ze zwrotem” wypadł najgorzej. Zwrot odejmowałem przy końcu epizodu, co jest poprawne tylko przy γ = 1. Przy γ = 0,99 opłaca się odwlekać koniec: odroczenie zwrotu 14,4 pkt o 25 kroków „oszczędza” 3,2 pkt, a kroki kosztują 2,5. Agent uczy się więc zwlekać, aż skończy się olej. Opisałem to w raporcie z wyjaśnieniem.
+
+## Do Twojej decyzji
+1. **Czy pakiet nagród + maskowanie ma się stać domyślną formalizacją gry?** Wtedy zaktualizuję sekcję MDP w raporcie (nagrody, zbiór akcji). Na razie obowiązuje tylko w treningu, a ocena jest wg starych zasad. Obie drogi są do obrony.
+2. **Push na GitHub:** są 2 lokalne commity (poprzednie eksperymenty i ten).
+
+Kolejne pomysły, jeśli chcesz iść dalej:
+- premia za eksplorację zależna od liczby odwiedzin stanu zamiast stałego Q₀;
+- poprawna wersja „zaliczki” ze składnikiem (γ−1)·Φ;
+- dłuższy trening najlepszej konfiguracji na 10 ziarnach jako eksperyment właściwy E3.

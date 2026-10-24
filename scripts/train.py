@@ -2,12 +2,17 @@
 """Trening i ewaluacja Q-learningu i SARSA, wyniki do results/train/<nazwa>/.
 
 Każdy hiperparametr (--q-init, --alpha, --gamma, --eps-decay, --eps-end, --episodes)
-oraz liczba przedziałów oleju w obserwacji (--oil-bins, parametr środowiska)
-przyjmuje jedną lub kilka wartości. Domyślnie warianty to wszystkie kombinacje
+oraz parametry środowiska (--oil-bins: przedziały oleju w obserwacji; --reward-illegal,
+--reward-collapse, --dig-fraction, --dig-refund: nagrody w treningu; --mask-illegal:
+maskowanie akcji niedozwolonych) przyjmuje jedną lub kilka wartości. Domyślnie warianty to wszystkie kombinacje
 (siatka). Z --ofat pierwsza wartość każdego parametru tworzy wariant bazowy, a każda
 pozostała wartość daje wariant różniący się od bazowego tylko tym jednym parametrem
 („jeden czynnik naraz”). Każda kombinacja (mapa, algorytm, wariant, ziarno) to jedno
 niezależne uruchomienie.
+
+Zmienione nagrody obowiązują tylko w treningu. Walidacja i ewaluacja końcowa zawsze używają
+domyślnych nagród gry (te same zasady co dla agentów bazowych), więc zwroty wszystkich
+wariantów są porównywalne. W curves.csv kolumny train_* liczone są z nagród treningowych.
 
 Ziarna są rozłączne między fazami, zgodnie z planem eksperymentów w raporcie:
 - trening uruchomienia o ziarnie s: epizody z ziarnami s * 100 000 + i (i < 100 000);
@@ -59,13 +64,21 @@ METRICS = ["mean_return", "std_return", "exit_rate", "collapse_rate", "oil_rate"
 # hiperparametr -> (skrót w nazwie wariantu i pliku modelu, wartość domyślna)
 PARAMS = {"q_init": ("q", 10.0), "alpha": ("a", 0.1), "gamma": ("g", 0.99),
           "eps_decay": ("d", 0.7), "eps_end": ("e", 0.05), "episodes": ("n", 50_000),
-          "oil_bins": ("o", 4)}
+          "oil_bins": ("o", 4), "reward_illegal": ("ri", -0.5), "reward_collapse": ("rc", -20.0),
+          "dig_fraction": ("df", 0.0), "dig_refund": ("dr", 0), "mask_illegal": ("m", 0)}
 
 
-def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1]) -> MineEnv:
+def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1], **rewards) -> MineEnv:
     if name == "losowa":
-        return MineEnv(random_maps=True, obs_mode="local", oil_bins=oil_bins)
-    return MineEnv(name, oil_bins=oil_bins)
+        return MineEnv(random_maps=True, obs_mode="local", oil_bins=oil_bins, **rewards)
+    return MineEnv(name, oil_bins=oil_bins, **rewards)
+
+
+def train_env(job: dict) -> MineEnv:
+    """Środowisko treningowe: nagrody wariantu zamiast domyślnych."""
+    return make_env(job["map"], job["oil_bins"], reward_illegal=job["reward_illegal"],
+                    reward_collapse=job["reward_collapse"], reward_dig_fraction=job["dig_fraction"],
+                    reward_dig_refund=bool(job["dig_refund"]))
 
 
 def variant_label(v: dict) -> str:
@@ -116,10 +129,12 @@ def evaluate_rows(env, agent, episodes: int, seed: int) -> list[dict]:
 
 def run(job: dict) -> dict:
     """Jedno uruchomienie: trening z okresową walidacją, potem ewaluacja końcowa i zapis modelu."""
-    env = make_env(job["map"], job["oil_bins"])
+    env = train_env(job)
+    eval_env = make_env(job["map"], job["oil_bins"])    # domyślne nagrody gry
     episodes = job["episodes"]
     agent = ALGOS[job["algo"]](
         n_actions=env.action_space.n, alpha=job["alpha"], gamma=job["gamma"], q_init=job["q_init"],
+        mask_illegal=bool(job["mask_illegal"]),
         epsilon=EpsilonSchedule(job["eps_start"], job["eps_end"], int(job["eps_decay"] * episodes)),
         seed=job["seed"])
     train_seed = job["seed"] * TRAIN_SEED_STRIDE
@@ -130,7 +145,7 @@ def run(job: dict) -> dict:
         result = run_episode(env, agent, learn=True, seed=train_seed + i)
         window.append(result)
         if (i + 1) % job["eval_every"] == 0 or i + 1 == episodes:
-            valid = summarize(evaluate_rows(env, agent, job["eval_episodes"], VALID_SEED))
+            valid = summarize(evaluate_rows(eval_env, agent, job["eval_episodes"], VALID_SEED))
             curve.append({
                 "episode": i + 1, "epsilon": round(agent.current_epsilon, 4),
                 "train_mean_return": round(float(np.mean([w["return"] for w in window])), 4),
@@ -140,7 +155,7 @@ def run(job: dict) -> dict:
             })
             window = []
     train_time = time.perf_counter() - start
-    final = evaluate_rows(env, agent, job["final_episodes"], job["eval_seed"])
+    final = evaluate_rows(eval_env, agent, job["final_episodes"], job["eval_seed"])
     model = Path(job["out"]) / "models" / f"{job['map']}_{job['algo']}_{job['variant']}_s{job['seed']}.pkl"
     agent.save(model)
     return {**job, "curve": curve, "final": final, "states": len(agent.q), "train_time": train_time}
@@ -173,6 +188,16 @@ def main() -> int:
                         help="epizody treningu na uruchomienie")
     parser.add_argument("--oil-bins", type=int, nargs="+", default=[PARAMS["oil_bins"][1]],
                         help="przedziały oleju w obserwacji (100 = dokładny poziom oleju)")
+    parser.add_argument("--reward-illegal", type=float, nargs="+", default=[PARAMS["reward_illegal"][1]],
+                        help="kara za akcję niedozwoloną w treningu")
+    parser.add_argument("--reward-collapse", type=float, nargs="+", default=[PARAMS["reward_collapse"][1]],
+                        help="kara za zawał w treningu")
+    parser.add_argument("--dig-fraction", type=float, nargs="+", default=[PARAMS["dig_fraction"][1]],
+                        help="ułamek wartości złoża wypłacany przy wydobyciu w treningu")
+    parser.add_argument("--dig-refund", type=int, nargs="+", default=[PARAMS["dig_refund"][1]], choices=[0, 1],
+                        help="1 = zwrot wypłaty za wydobycie przy końcu epizodu (kształtowanie potencjałowe)")
+    parser.add_argument("--mask-illegal", type=int, nargs="+", default=[PARAMS["mask_illegal"][1]], choices=[0, 1],
+                        help="1 = agent wybiera tylko akcje dozwolone")
     parser.add_argument("--ofat", action="store_true",
                         help="warianty „jeden czynnik naraz” wokół pierwszych wartości zamiast siatki")
     parser.add_argument("--eval-every", type=int, default=500, help="co ile epizodów walidacja")

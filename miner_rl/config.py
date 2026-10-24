@@ -58,6 +58,12 @@ class GameConfig:
     reward_collapse: float = -20.0       # zawał, ładunek przepada
     reward_out_of_oil: float = -20.0     # wyczerpanie oleju, ładunek przepada
     reward_exit_multiplier: float = 1.0  # nagroda przy wyjściu = mnożnik * wartość ładunku
+    # Kształtowanie nagrody (domyślnie wyłączone): przy wydobyciu wypłacany jest ułamek wartości
+    # złoża. Z `reward_dig_refund` ta „zaliczka” jest odejmowana przy końcu epizodu (wyjście,
+    # zawał, brak oleju), więc suma nagród za epizod się nie zmienia (kształtowanie potencjałowe,
+    # Ng i in. 1999, przy γ = 1); bez zwrotu jest to dodatkowa premia za samo wydobycie.
+    reward_dig_fraction: float = 0.0
+    reward_dig_refund: bool = False
 
     # --- Epizod ---
     step_limit: int = 300                # techniczny limit kroków (truncated)

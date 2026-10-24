@@ -156,6 +156,9 @@ Koszt kroku zniechęca do zbędnego krążenia. Kara za niedozwoloną akcję
 przyspiesza naukę ograniczeń mapy. Stała kara $-20$ sprawia, że porażka jest
 dotkliwa także wtedy, gdy agent nie niesie ładunku. W eksperymentach zostanie
 zbadany wpływ jej wartości (np. $-5$, $-20$, $-50$) na skłonność agenta do ryzyka.
+Konfiguracja pozwala też na premię za samo wydobycie złoża (ułamek jego wartości)
+oraz maskowanie akcji niedozwolonych. Są to opcje eksperymentalne, domyślnie
+wyłączone (sekcja \ref{sec:nagrody}).
 
 \subsection{Warunki zakończenia epizodu}
 Epizod kończy się, gdy górnik wyjdzie z kopalni, nastąpi zawał albo skończy się
@@ -637,8 +640,102 @@ Q-learningu: rozrzut między ziarnami zależy bardziej od mapy i $Q_0$ niż od a
 \textbf{Wnioski do dalszych prac.} Głównym ograniczeniem nie jest dobór
 $\alpha$, $\gamma$ czy harmonogramu $\varepsilon$, lecz eksploracja w dużej
 przestrzeni stanów tablicy Q i pętle polityki zachłannej w słabo nauczonych stanach.
-Rozważane kierunki: maskowanie akcji niedozwolonych, premia za eksplorację zależna
-od liczby odwiedzin stanu zamiast stałego $Q_0$, aproksymacja funkcji wartości.
+Rozważane kierunki: maskowanie akcji niedozwolonych i zmiany nagrody (zbadane
+w sekcji \ref{sec:nagrody}), premia za eksplorację zależna od liczby odwiedzin stanu
+zamiast stałego $Q_0$, aproksymacja funkcji wartości.
+
+\subsection{Zmiany funkcji nagrody i maskowanie akcji}\label{sec:nagrody}
+Na podstawie diagnozy z sekcji \ref{sec:dobor} student zaproponował zmiany nagrody
+w treningu: większą karę za akcję niedozwoloną, nagrodę za samo wydobycie złoża
+i mniejszą karę za zawał (aby zachęcić do eksploracji zamiast szybkiej ucieczki).
+Dodatkowo zbadano maskowanie akcji niedozwolonych: agent wybiera akcję tylko spośród
+dozwolonych (\texttt{MineEnv.action\_mask()}), także w ruchach losowych, a cel
+Q-learningu bierze maksimum tylko po akcjach dozwolonych. Wszystkie zmiany są
+opcjami konfiguracji, a wartości domyślne gry pozostały bez zmian.
+
+\textbf{Warianty} (wszystkie z $Q_0=30$, 50 tys. epizodów, 3 ziarna, cztery mapy):
+\begin{itemize}
+  \item kara za akcję niedozwoloną $-2$ zamiast $-0{,}5$ (\texttt{ri-2});
+  \item kara za zawał $-10$ zamiast $-20$ (\texttt{rc-10});
+  \item premia za wydobycie: 30\% wartości złoża wypłacane od razu, ładunek nadal
+  wypłacany przy wyjściu (\texttt{df0.3});
+  \item „zaliczka”: 30\% wartości przy wydobyciu, odejmowane przy końcu epizodu, tak
+  aby suma nagród za epizod się nie zmieniała (\texttt{df0.3\_dr1});
+  \item maskowanie akcji niedozwolonych (\texttt{m1});
+  \item pakiet: $-2$, $-10$, premia 30\%, bez maskowania i z maskowaniem.
+\end{itemize}
+Zmienione nagrody obowiązują tylko w treningu. Walidacja i ewaluacja końcowa używają
+domyślnych nagród gry, więc zwroty są porównywalne między wariantami i z heurystyką.
+Polecenia: \texttt{scripts/train.py} z opcjami \texttt{--reward-illegal},
+\texttt{--reward-collapse}, \texttt{--dig-fraction}, \texttt{--dig-refund},
+\texttt{--mask-illegal} (katalogi \texttt{results/train/nagrody\_a}, \texttt{\_b},
+\texttt{\_c}); zestawienie: \texttt{scripts/compare\_runs.py}
+(\texttt{results/train/nagrody/}).
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Wariant (SARSA) & stabilna & krucha & głęboka & zawał kor. \\
+\midrule
+bez zmian ($Q_0=30$) & $41{,}0 \pm 0{,}9$ & $-4{,}7 \pm 30{,}4$ & $49{,}5 \pm 6{,}5$ & $10{,}9 \pm 45{,}0$ \\
+kara niedozwolona $-2$ & $17{,}6 \pm 40{,}8$ & $17{,}3 \pm 2{,}8$ & $52{,}3 \pm 0{,}9$ & $10{,}8 \pm 51{,}9$ \\
+kara za zawał $-10$ & $36{,}0 \pm 4{,}3$ & $-11{,}7 \pm 30{,}6$ & $50{,}1 \pm 1{,}5$ & $38{,}8 \pm 2{,}8$ \\
+premia za wydobycie & $38{,}6 \pm 2{,}1$ & $18{,}4 \pm 11{,}6$ & $41{,}6 \pm 10{,}5$ & $28{,}2 \pm 18{,}0$ \\
+zaliczka ze zwrotem & $-19{,}8 \pm 32{,}1$ & $-7{,}6 \pm 33{,}1$ & $45{,}2 \pm 7{,}4$ & $-19{,}0 \pm 49{,}5$ \\
+maskowanie & $41{,}2 \pm 1{,}0$ & $21{,}9 \pm 1{,}7$ & $54{,}1 \pm 0{,}3$ & $34{,}6 \pm 10{,}2$ \\
+pakiet bez maskowania & $37{,}8 \pm 4{,}5$ & $25{,}6 \pm 2{,}7$ & $51{,}4 \pm 2{,}9$ & $36{,}0 \pm 7{,}2$ \\
+\textbf{pakiet z maskowaniem} & $\mathbf{40{,}2 \pm 2{,}2}$ & $\mathbf{26{,}7 \pm 0{,}6}$ & $\mathbf{54{,}4 \pm 2{,}1}$ & $\mathbf{40{,}6 \pm 2{,}6}$ \\
+\midrule
+heurystyka progowa & $44{,}0$ & $5{,}0$ & $58{,}2$ & $49{,}7$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Średni zwrot w ewaluacji końcowej z domyślnymi nagrodami (średnia $\pm$ odchylenie
+standardowe po 3 ziarnach). Wyniki Q-learningu są w \texttt{comparison.csv}; dla
+pakietu z maskowaniem: $39{,}1$, $20{,}0$, $56{,}1$, $37{,}5$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../results/train/nagrody/sarsa.png}
+\caption{Wpływ zmian nagrody i maskowania na średni zwrot SARSA w ewaluacji
+końcowej (domyślne nagrody gry). Słupki: średnia po 3 ziarnach, wąsy: $\pm$
+odchylenie standardowe, linia przerywana: heurystyka progowa.}\label{fig:nagrody}
+\end{figure}
+
+\textbf{Obserwacje.}
+\begin{itemize}
+  \item Pakiet z maskowaniem jest najlepszy i najstabilniejszy: żadne z 12
+  uruchomień SARSA nie zakończyło się polityką zapętloną, a odchylenie między
+  ziarnami spadło do 0,6--2,6 pkt (wcześniej do 45 pkt). Agent nie wykonuje akcji
+  niedozwolonych (0 na epizod).
+  \item Na mapie kruchej agent RL wyraźnie przewyższa heurystykę ($26{,}7$ wobec
+  $5{,}0$). Analiza 300 epizodów pokazuje różnicę strategii: heurystyka wydobywa
+  najbliższe tanie złoża (węgiel i srebro, 12 pkt) i ma zawał w 14\% epizodów,
+  a agent schodzi po złoto i kryształ (48 pkt) i akceptuje zawał w 27\% epizodów.
+  Wyższe ryzyko opłaca się w wartości oczekiwanej. To przykład kompromisu ryzyka
+  i nagrody, którego prosta heurystyka „najbliższe złoże” nie uwzględnia.
+  \item Na pozostałych mapach agent zbliżył się do heurystyki (różnica 4--9 pkt),
+  ale jej nie przewyższa. Na mapie stabilnej wydobywa złoto i kryształ (96\%
+  epizodów), a pomija tanie złoża węgla i srebra, które heurystyka zbiera.
+  \item Pojedyncze zmiany działają różnie: większa kara za akcję niedozwoloną
+  poprawia Q-learning na wszystkich mapach (np. stabilna: $34{,}1$ wobec $6{,}3$),
+  ale u SARSA nie usuwa zapętleń; mniejsza kara za zawał pomaga na mapie zawału
+  korytarza, a szkodzi na mapie kruchej, gdzie agent zaczyna ryzykować zbyt
+  mocno (zawał w 43\% epizodów).
+  \item Wariant „zaliczka ze zwrotem” wypadł najgorzej (wynik negatywny). Zwrot
+  odejmowany jest przy końcu epizodu, co odpowiada kształtowaniu potencjałowemu
+  tylko przy $\gamma=1$. Przy $\gamma=0{,}99$ odroczenie zwrotu się opłaca:
+  odroczenie zwrotu 14,4 pkt (30\% z 48) o 25 kroków zmniejsza jego wartość
+  zdyskontowaną o ok. 3,2 pkt, a 25 kroków kosztuje tylko 2,5 pkt. Agent uczy się
+  więc zwlekać z wyjściem i w części epizodów wyczerpuje olej. Poprawne
+  kształtowanie potencjałowe wymagałoby dodatkowego składnika $(\gamma-1)\Phi(s)$
+  w każdym kroku.
+\end{itemize}
+
+\textbf{Do decyzji.} Zmiana domyślnych nagród gry zmienia formalizację MDP
+(sekcja 3), dlatego na razie pakiet obowiązuje tylko w treningu, a ocena odbywa
+się według pierwotnych zasad.
 
 \subsection{Eksperymenty właściwe}
 \doUzupelnienia{wyniki eksperymentów 1--3 z planu (10 ziaren), przebieg uczenia,

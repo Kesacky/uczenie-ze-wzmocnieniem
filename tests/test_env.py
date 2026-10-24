@@ -442,3 +442,46 @@ def test_map_seed_option_separates_map_from_game():
     assert env.map.rows == rows                     # ta sama kopalnia, inne losowanie zawałów
     env.reset(seed=1, options={"map_seed": 43})
     assert env.map.rows != rows
+
+
+# --- kształtowanie nagrody i maska akcji -------------------------------------------
+
+def test_dig_reward_fraction():
+    env, _, _ = make(**SAFE, reward_dig_fraction=0.5)
+    _, reward, *_ = env.step(LEFT)                     # wydobycie węgla (3)
+    assert reward == pytest.approx(-0.1 + 0.5 * 3)
+
+
+def test_dig_refund_keeps_episode_return():
+    totals = []
+    for extra in [{}, dict(reward_dig_fraction=0.5, reward_dig_refund=True)]:
+        env, _, _ = make(**SAFE, **extra)
+        totals.append(sum(env.step(a)[1] for a in [LEFT, RIGHT, UP]))   # węgiel i wyjście
+    assert totals[0] == pytest.approx(totals[1]) == pytest.approx(-0.3 + 3)
+
+
+def test_dig_refund_on_collapse():
+    env, _, _ = make(reward_dig_fraction=0.5, reward_dig_refund=True, collapse_prob=1.0)
+    _, reward, terminated, _, info = env.step(LEFT)   # wydobycie i zawał w tym samym kroku
+    assert terminated and info["collapsed"]
+    assert reward == pytest.approx(-0.1 + 1.5 - 20 - 1.5)
+
+
+def test_dig_bonus_without_refund_is_kept_on_collapse():
+    env, _, _ = make(reward_dig_fraction=0.5, collapse_prob=1.0)
+    _, reward, *_ = env.step(LEFT)
+    assert reward == pytest.approx(-0.1 + 1.5 - 20)
+
+
+def test_action_mask_matches_legality():
+    rng = np.random.default_rng(0)
+    for name in ["m1_stabilna", "m2_krucha"]:
+        env = MineEnv(name, collapse_prob=0.0)
+        env.reset(seed=1)
+        for _ in range(400):
+            mask = env.action_mask()
+            action = int(rng.integers(5))
+            *_, terminated, truncated, info = env.step(action)
+            assert mask[action] == (not info["illegal"])
+            if terminated or truncated:
+                env.reset(seed=int(rng.integers(1000)))
