@@ -1,0 +1,22 @@
+Jasne, prościej:
+
+**Co już mamy:** gra działa, agent się uczy i porównaliśmy go z prostym „sztywnym” graczem (heurystyką). Na jednej mapie agent jest lepszy, na jednej tak samo dobry, a na dwóch gorszy.
+
+**Co zostało do zrobienia:**
+
+1. **Naprawić „psucie się” agenta pod koniec nauki.**
+   Czasem agent uczy się dobrze, ale w ostatnich chwilach treningu nagle się psuje i zaczyna chodzić w kółko. Rozwiązanie: w trakcie nauki co jakiś czas sprawdzamy, jak gra, i zapamiętujemy jego najlepszą wersję. Na koniec używamy tej najlepszej, a nie ostatniej.
+
+2. **Sprawdzić, jak kara za zawał zmienia zachowanie agenta.**
+   Uczymy agenta z małą, średnią i dużą karą za zawał. Pytanie: czy przy większej karze będzie ostrożniejszy i wyniesie mniej rudy?
+
+3. **Sprawdzić, czy agent radzi sobie na nowych mapach.**
+   Do tej pory uczył się zawsze na tej samej mapie. Teraz damy mu za każdym razem inną. Pewnie wypadnie słabo, bo „zapamiętuje” mapę, zamiast rozumieć grę. To też jest dobry wynik do raportu, trzeba go tylko uczciwie opisać.
+
+4. **Napisać wnioski w raporcie.**
+   Ja dam liczby i wykresy, ale wnioski najlepiej napisać samodzielnie, bo prowadzący zapyta o nie na obronie.
+
+5. **Sprawdzić całość przed oddaniem.**
+   Czy projekt uruchamia się po pobraniu z GitHuba, czy raport się kompiluje, czy liczby w raporcie zgadzają się z wynikami. Do tego Twoje własne sprawdzenie projektu i zapisanie, co dokładnie zostało sprawdzone. Bez tego w raporcie zostaje „brak samodzielnej weryfikacji”, a to może kosztować punkty.
+
+Proponuję zacząć od punktu 1. Zacząć?

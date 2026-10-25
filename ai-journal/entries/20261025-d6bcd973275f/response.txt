@@ -1,0 +1,28 @@
+Dobra obserwacja. Pierwsza rzecz jest normalna, druga **nie powinna tak wyglądać**, i to ważne odkrycie.
+
+**1. „Za każdym razem robi to samo” — to jest normalne.**
+W ocenie agent zawsze wybiera najlepszą akcję ze swojej tabeli, bez losowania. Mapa jest stała, więc w tej samej sytuacji robi to samo. Losowe są tylko zawały: jeśli zawału nie ma, gra wygląda identycznie.
+
+**2. Kręcenie się w kółko — to jest błąd agenta.** Prześledziłem grę krok po kroku:
+- agent wydobywa trzy kryształy na dnie (90 pkt wartości) i idzie do wyjścia;
+- w połowie drogi w górę zaczyna chodzić góra–dół między dwoma polami (14 kroków);
+- pętla kończy się dopiero wtedy, gdy olej spadnie poniżej 50%. Agent widzi olej tylko w 4 przedziałach, więc wtedy „widzi” inną sytuację i idzie do wyjścia.
+
+W tym miejscu tabela Q ma prawie same wartości początkowe (ok. 30). Agent **nigdy się tam porządnie nie nauczył**, co robić, i wyszedł z pętli przez przypadek.
+
+**Dlaczego tak się stało:** to wersja „najlepsza według walidacji”, a na tej mapie najlepsza wersja pochodzi z ok. 1/3 treningu, kiedy agent był jeszcze niedouczony. Porównałem na 200 grach:
+
+| wersja agenta | gry z pętlą | wynik w tej grze |
+|---|---|---|
+| najlepsza według walidacji | 94,5% (średnio 12 zbędnych kroków) | 111,5 pkt |
+| ostatnia (po pełnym treningu) | 0% | 78,4 pkt |
+
+Wersja najlepsza ma więcej punktów, ale częściowo **dzięki szczęściu**: pętla zawsze rozwiązuje się sama, bo olej spada w ten sam sposób. Na stałej mapie to działa, ale nie jest to dobrze nauczona strategia. Wersja w pełni wytrenowana nie robi pętli, ale gra ostrożniej i wydobywa mniej (63 zamiast 90 pkt wartości).
+
+**Co to znaczy dla wyników:** wzrost z 75 do 95 pkt na mapie głębokiej trzeba w raporcie opisać z tym zastrzeżeniem. Nie należy go przedstawiać jako czystego sukcesu.
+
+**Co proponuję:**
+1. Zmierzyć pętle we **wszystkich** modelach (każda mapa, każdy wariant) i dodać to do tabeli wyników. Wtedy będzie wiadomo, gdzie wynik „najlepszej wersji” jest uczciwy.
+2. Zmienić wybór najlepszej wersji: brać pod uwagę tylko wersje z końca treningu (np. ostatnie 30%, gdy ε jest już małe), żeby nie wybierać agenta niedouczonego.
+
+Zacząć od punktu 1? To kilka minut liczenia, bez nowego treningu.

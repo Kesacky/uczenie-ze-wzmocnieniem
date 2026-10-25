@@ -1,0 +1,23 @@
+Dobre pytanie. Intuicja „im dłużej się uczy, tym lepiej” jest prawdziwa **średnio**, ale nie musi być prawdziwa w każdej chwili.
+
+**Jak agent podejmuje decyzję.** Dla każdego miejsca w kopalni (i stanu stropu, oleju itd.) agent ma w tabeli kilka liczb: „ile się opłaca iść w górę, w dół, w lewo, w prawo, postawić stempel”. Gra zawsze wybiera akcję z największą liczbą.
+
+**Dlaczego to się może nagle zepsuć:**
+
+1. **Agent uczy się do samego końca.** Po każdym ruchu trochę zmienia liczby w tabeli (o 10% różnicy, bo α = 0,1). Ta zmiana nie maleje z czasem, więc tabela nigdy się nie „zamraża”.
+
+2. **Gra jest losowa.** Zawał zdarza się z pewnym prawdopodobieństwem. Jeśli agent kilka razy pod rząd miał pecha w jakimś miejscu, liczba dla dobrej akcji spada i przez chwilę inna akcja wygląda na lepszą.
+
+3. **Wystarczy jedna zła liczba.** Jeżeli w jednym miejscu najlepszą akcją stanie się „w lewo”, a w miejscu obok „w prawo”, agent zaczyna chodzić tam i z powrotem, aż skończy mu się olej. Jedna drobna zmiana w tabeli psuje całą grę.
+
+4. **Do końca robi trochę losowych ruchów** (5%), więc trafia też do rzadkich sytuacji, w których tabela jest słabo nauczona, i tam też zmienia liczby.
+
+**Co dokładnie widzieliśmy:** w dwóch uruchomieniach SARSA na mapie stabilnej agent grał dobrze (50–58 pkt) aż do epizodu 99 500 ze 100 000. W ostatnich 500 epizodach właśnie tak się zapętlił i w ocenie dostał ok. −15 pkt. Gdyby trening skończył się chwilę wcześniej, wynik byłby dobry.
+
+**Porównanie:** to jak uczeń, który dobrze zna drogę do szkoły, ale raz trafił na korek i następnego dnia skręca w złą ulicę. Średnio z czasem jeździ lepiej, ale jednego dnia może pojechać gorzej.
+
+**Jak to naprawić:**
+- **zapamiętać najlepszą wersję** agenta w trakcie nauki (to mój punkt 1). Jest to proste i pewne;
+- albo **zmniejszać tempo nauki** (α) pod koniec treningu, żeby tabela przestała się zmieniać. Teoria mówi, że wtedy Q-learning zbiega do dobrego wyniku, ale wymaga to dodatkowego dostrojenia.
+
+Można zrobić oba i porównać w raporcie. To też dobry temat na pytanie z obrony: „dlaczego wynik końcowy zależy od momentu zatrzymania treningu?”.

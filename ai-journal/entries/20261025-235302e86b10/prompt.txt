@@ -1,0 +1,1 @@
+a dlaczego agent psuje sie pod koniec uczenia czy nie powinien byc coraz lepszy zamiast pod koniec byc gorszy ?

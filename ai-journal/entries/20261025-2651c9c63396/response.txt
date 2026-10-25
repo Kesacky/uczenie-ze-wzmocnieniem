@@ -1,0 +1,20 @@
+[komunikat pośredni] Tak, ponowny trening ma sens. Kara za krok to jednak nie wszystko, więc zmienię trzy rzeczy naraz i każdą z nich sprawdzę:
+
+[komunikat pośredni] Testy przechodzą (205 z 205). Uruchamiam trening: 4 mapy × 2 algorytmy × 3 kary za krok (−0,1 / −0,25 / −0,5) × 10 ziaren = 240 uruchomień.
+
+[odpowiedź końcowa]
+Trening ruszył. Zmieniłem trzy rzeczy:
+
+**1. Kara za krok (Twój pomysł)** — nowa opcja `--reward-step`. Sprawdzam trzy wartości: −0,1 (obecna), −0,25 i −0,5. Działa tylko w treningu; ocena końcowa liczy punkty według zwykłych zasad gry, więc wyniki da się porównać z heurystyką.
+
+Uczciwie: sama kara za krok może **nie wystarczyć**. Pętla powstała w miejscu, którego agent prawie nie odwiedzał w treningu, więc kara za krok nie miała tam okazji niczego nauczyć. Dlatego dodałem też punkt 2.
+
+**2. Wybór najlepszej wersji tylko z końca treningu** — tylko spośród wersji po zakończeniu spadku ε (ostatnie 30% treningu). Wcześniej najlepsza wersja na mapie głębokiej pochodziła z ok. 1/3 treningu, gdy agent był niedouczony.
+
+**3. Licznik pętli** — przy każdej grze w ocenie liczę, ile razy agent wrócił do sytuacji, w której już był w tej grze. W wynikach pojawią się dwie nowe kolumny: odsetek gier z pętlą i średnia liczba powtórzeń. Dzięki temu nie trzeba będzie oglądać gier, żeby wykryć kręcenie się.
+
+**Sprawdzenie, czy agent nie wychodzi od razu:** w wynikach jest odsetek wyjść, średnia wartość wyniesionego ładunku i średnia długość gry. Jeżeli przy większej karze agent zacznie uciekać z kopalni bez rudy, zobaczymy to jako spadek wartości ładunku prawie do zera i bardzo krótkie gry.
+
+Wszystkie warianty używają malejącego α (najlepsze z poprzedniego treningu). Dodałem testy nowych opcji; 205 testów przechodzi.
+
+240 uruchomień potrwa ok. 65–70 minut. Dam znać z wynikami i porównaniem z poprzednim treningiem.

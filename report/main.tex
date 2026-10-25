@@ -30,8 +30,9 @@
 Temat „Górnik w niestabilnej kopalni” został przekazany prowadzącemu (etap E1).
 Gotowe są: środowisko gry z grafiką, generator map, agenci bazowi, algorytmy
 Q-learning i SARSA, skrypty treningu i analizy, pilotaż, dobór hiperparametrów,
-zmiany funkcji nagrody (zasady w wersji 3) oraz eksperyment główny na czterech
-stałych mapach z 10 ziarnami (sekcja \ref{sec:glowny}). Nie przeprowadzono jeszcze
+zmiany funkcji nagrody (zasady w wersji 3), eksperyment główny na czterech
+stałych mapach z 10 ziarnami (sekcja \ref{sec:glowny}) oraz stabilizacja treningu
+i usunięcie zapętleń (sekcja \ref{sec:stabil}). Nie przeprowadzono jeszcze
 eksperymentów 2 i 3 z planu (wpływ kary za zawał, mapa stała a losowa).
 \tableofcontents
 
@@ -413,12 +414,13 @@ Cztery stałe mapy opisane w sekcji „Środowisko” oraz wariant z losową map
 \toprule
 Parametr & Wartość \\
 \midrule
-współczynnik uczenia $\alpha$ & $0{,}1$ \\
+współczynnik uczenia $\alpha$ & $0{,}1$; od 25.10.2026 malejące liniowo do $0{,}01$ (sekcja \ref{sec:stabil}) \\
 dyskonto $\gamma$ & $0{,}99$ \\
 $\varepsilon$ & liniowo od $1{,}0$ do $0{,}05$ w ciągu 70\% epizodów \\
 wartość początkowa $Q_0$ & $30$ (sekcja \ref{sec:dobor}; w pilotażu $10$) \\
 maskowanie akcji niedozwolonych & tak (od 24.10.2026, sekcja \ref{sec:nagrody}) \\
-liczba epizodów treningu & $50\,000$ na uruchomienie (po pilotażu; wcześniej $20\,000$) \\
+kara za krok w treningu & $-0{,}1$; od 25.10.2026 $-0{,}25$ (ewaluacja: $-0{,}1$) \\
+liczba epizodów treningu & $100\,000$ (eksperyment główny; pilotaż i dobór: $50\,000$) \\
 liczba niezależnych uruchomień & 10 ziaren na każdą kombinację agent--mapa (pilotaż: 3) \\
 \bottomrule
 \end{tabular}
@@ -917,13 +919,126 @@ heurystyka progowa.}\label{fig:glowny}
   i $-16$ pkt, pętla do wyczerpania oleju). Polityka zachłanna tablicy Q jest
   niestabilna: pojedyncza aktualizacja może zmienić najlepszą akcję w jednym stanie
   i utworzyć pętlę. Wynik końcowy zależy więc od tego, w którym momencie zatrzymano
-  trening. Naturalnym usprawnieniem jest zachowanie polityki najlepszej według
-  walidacji (ziarna walidacji są rozłączne z ziarnami ewaluacji końcowej).
+  trening. Poprawki tego problemu opisuje sekcja \ref{sec:stabil}.
   \item Wyniki z 10 ziaren są słabsze i mniej stabilne niż wyniki z 3 ziaren
   w sekcji \ref{sec:e3} (np. SARSA na mapie stabilnej $39{,}8$ wobec $54{,}9$). Trzy
   ziarna nie wystarczyły do oceny częstości nieudanych uruchomień, co uzasadnia
   przyjęcie 10 ziaren w planie eksperymentów.
 \end{itemize}
+
+\subsection{Stabilizacja polityki i kara za krok}\label{sec:stabil}
+Eksperyment główny pokazał dwa problemy: nieudane uruchomienia, w których polityka
+psuła się pod koniec treningu, oraz zależność wyniku od chwili zatrzymania treningu.
+Sprawdzono dwie poprawki (\texttt{results/train/stabilizacja/}, 10 ziaren, 100 tys.
+epizodów, pozostałe ustawienia jak w sekcji \ref{sec:glowny}):
+\begin{itemize}
+  \item \textbf{malejące $\alpha$}: współczynnik uczenia maleje liniowo od $0{,}1$
+  do $0{,}01$ w ciągu całego treningu, więc tablica Q przestaje się zmieniać pod
+  koniec (warunek zbieżności metod TD \cite{sutton});
+  \item \textbf{polityka najlepsza według walidacji}: zapamiętywana jest kopia
+  tablicy Q z najwyższym średnim zwrotem walidacji. Ziarna walidacji są rozłączne
+  z ziarnami ewaluacji końcowej, więc wybór nie zawyża wyniku.
+\end{itemize}
+Wariant bez zmian dał dokładnie te same liczby co eksperyment główny (te same
+ziarna), co potwierdza powtarzalność treningu.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+SARSA & stabilna & krucha & głęboka & zawał kor. \\
+\midrule
+bez zmian & $39{,}8 \pm 28{,}9^{2}$ & $39{,}0 \pm 6{,}3$ & $73{,}1 \pm 5{,}0$ & $55{,}6 \pm 6{,}6$ \\
+polityka najlepsza & $56{,}8 \pm 0{,}1$ & $46{,}4 \pm 0{,}0$ & $90{,}3 \pm 9{,}9$ & $65{,}4 \pm 6{,}5$ \\
+malejące $\alpha$ & $56{,}8 \pm 0{,}1$ & $46{,}2 \pm 0{,}3$ & $75{,}7 \pm 3{,}7$ & $57{,}3 \pm 0{,}3$ \\
+oba & $56{,}8 \pm 0{,}1$ & $46{,}4 \pm 0{,}0$ & $95{,}3 \pm 6{,}9$ & $63{,}5 \pm 6{,}4$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Średni zwrot w ewaluacji końcowej (średnia $\pm$ odchylenie standardowe po 10
+ziarnach; indeks górny: liczba nieudanych uruchomień). Każda z poprawek osobno
+usunęła wszystkie nieudane uruchomienia, także w Q-learningu.
+
+\textbf{Zapętlenie polityki najlepszej.} Wynik $95{,}3$ pkt na mapie głębokiej okazał
+się w dużej części artefaktem. Podczas podglądu gry student zauważył, że agent przez
+kilkanaście kroków chodzi tam i z powrotem. Śledzenie epizodu (SARSA, ziarno 2)
+pokazało pętlę góra--dół między dwoma polami w drodze do wyjścia, przerwaną dopiero
+zmianą przedziału oleju w obserwacji (spadek poniżej 50\%). W tych stanach wartości Q
+były bliskie początkowym ($Q_0=30$), czyli agent nigdy się ich nie nauczył. Polityka
+najlepsza pochodziła na tej mapie z ok. 1/3 treningu (mediana: epizod 32 tys.), gdy
+$\varepsilon\approx0{,}6$, a w 200 epizodach ewaluacji zapętlała się w 94,5\% z nich
+(średnio 12 zbędnych kroków). Na stałej mapie pętla zawsze kończy się tak samo, więc
+polityka zdobywa dużo punktów, ale nie jest to nauczona strategia. Polityka ostatnia
+z tego uruchomienia nie zapętla się wcale.
+
+\textbf{Poprawki.} Wprowadzono trzy zmiany:
+\begin{itemize}
+  \item \textbf{licznik pętli}: w ewaluacji liczona jest liczba kroków, w których
+  agent wraca do obserwacji widzianej już w tym epizodzie (w kopalni stan nie
+  powtarza się bez cofania się agenta);
+  \item \textbf{wybór polityki najlepszej tylko po zakończeniu spadku $\varepsilon$}
+  (ostatnie 30\% treningu);
+  \item \textbf{większa kara za krok w treningu}: $-0{,}25$ lub $-0{,}5$ zamiast $-0{,}1$
+  (pomysł studenta, z warunkiem sprawdzenia, czy agent nie zacznie wychodzić
+  z kopalni od razu). Ewaluacja nadal liczy punkty według zasad gry ($-0{,}1$ za krok).
+\end{itemize}
+Wyniki (\texttt{results/train/kara\_krok/}, malejące $\alpha$, 10 ziaren, 240
+uruchomień, polityka ostatnia):
+
+\begin{center}
+\small
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+kara za krok & agent & stabilna & krucha & głęboka & zawał kor. \\
+\midrule
+$-0{,}1$ & Q-learning & $56{,}8$ & $46{,}4$ & $87{,}3$ (29\%) & $56{,}9$ (19\%) \\
+ & SARSA & $56{,}8$ & $46{,}2$ & $75{,}7$ (10\%) & $57{,}3$ (10\%) \\
+$-0{,}25$ & Q-learning & $56{,}8$ & $46{,}4$ & $\mathbf{84{,}4}$ & $57{,}4$ \\
+ & SARSA & $56{,}8$ & $46{,}2$ & $74{,}9$ & $57{,}3$ \\
+$-0{,}5$ & Q-learning & $56{,}7$ & $46{,}4$ & $77{,}5$ & $57{,}0$ \\
+ & SARSA & $56{,}8$ & $46{,}3$ & $73{,}1$ & $57{,}0$ \\
+\midrule
+\multicolumn{2}{@{}l}{heurystyka progowa} & $\mathbf{62{,}8}$ & $14{,}6$ & $79{,}5$ & $\mathbf{71{,}7}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Średni zwrot w ewaluacji końcowej (średnia po 10 ziarnach). W nawiasie odsetek
+epizodów z pętlą, gdy jest większy od zera.
+
+Wnioski:
+\begin{itemize}
+  \item Kara za krok $-0{,}25$ i $-0{,}5$ całkowicie usunęła pętle z polityk
+  ostatnich na wszystkich mapach. Agent nie zaczął uciekać z kopalni: odsetek
+  bezpiecznych wyjść wynosi 92--97\% (na mapie kruchej 78\%, jak przy karze $-0{,}1$), a wartość wyniesionego ładunku na mapach
+  stabilnej, kruchej i zawału korytarza nie zmieniła się. Na mapie głębokiej przy
+  karze $-0{,}5$ agent wynosi mniej ($61{,}8$ zamiast $69{,}3$ pkt wartości), bo
+  dłuższa droga po wszystkie kryształy staje się mniej opłacalna.
+  \item Polityka najlepsza według walidacji (także z ograniczeniem do końca
+  treningu) nadal czasem zawiera krótkie pętle (1--2 zbędne kroki) i przy malejącym
+  $\alpha$ nie daje istotnej przewagi nad polityką ostatnią. Przyjęto więc politykę
+  ostatnią.
+  \item Wcześniejszy wynik $95{,}3$ pkt na mapie głębokiej nie jest wiarygodny.
+  Uczciwy wynik bez pętli to $84{,}4$ pkt (Q-learning), czyli o 5 pkt więcej niż
+  heurystyka, a nie o 16.
+\end{itemize}
+
+\textbf{Konfiguracja końcowa} (domyślna w \texttt{scripts/train.py} od 25.10.2026):
+$Q_0=30$, $\alpha$ malejące liniowo od $0{,}1$ do $0{,}01$, $\gamma=0{,}99$,
+$\varepsilon$ od $1{,}0$ do $0{,}05$ w 70\% treningu, kara za krok w treningu
+$-0{,}25$, maskowanie akcji niedozwolonych, 100 tys. epizodów, polityka ostatnia.
+Agenci RL przewyższają w niej heurystykę na mapie kruchej (o 32 pkt) i głębokiej
+(Q-learning, o 5 pkt), a ustępują jej na mapie stabilnej (o 6 pkt) i zawału
+korytarza (o 14 pkt). Wszystkie 80 uruchomień zakończyło się powodzeniem, a odchylenie
+standardowe po ziarnach nie przekracza $0{,}6$ pkt poza mapą głęboką ($3$--$10$ pkt).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../results/train/kara_krok/curves.png}
+\caption{Przebieg uczenia z malejącym $\alpha$ dla trzech wartości kary za krok
+w treningu: średni zwrot walidacji zachłannej (zasady gry w wersji 3) w funkcji
+epizodu treningu. Linia: średnia po 10 ziarnach, pasmo: $\pm$ odchylenie standardowe.
+Linia przerywana: heurystyka progowa.}\label{fig:kara_krok}
+\end{figure}
 
 \subsection{Eksperymenty pozostałe}
 \doUzupelnienia{eksperyment 2 (wpływ kary za zawał) i eksperyment 3 (mapa stała
@@ -934,10 +1049,12 @@ a losowa) z planu.}
 co poprawia lub pogarsza wyniki oraz własne wnioski studenta.}
 
 \section{Ograniczenia rozwiązania}
-Agenci RL przewyższają heurystykę tylko na mapie kruchej, wyrównują ją na mapie
-głębokiej, a na dwóch pozostałych ustępują jej o 7--16 pkt (sekcja \ref{sec:glowny}).
-Około 5\% uruchomień kończy się polityką zapętloną, a wynik końcowy zależy od chwili
-zatrzymania treningu. Wyniki zależą silnie od wartości początkowej $Q_0$ (sekcja
+W konfiguracji końcowej agenci RL przewyższają heurystykę na mapie kruchej
+i głębokiej, a na dwóch pozostałych ustępują jej o 6--14 pkt (sekcja \ref{sec:stabil}).
+Stabilność treningu zapewnia dopiero malejące $\alpha$; przy stałym $\alpha$ ok. 5\%
+uruchomień kończyło się polityką zapętloną. Pętle w rzadko odwiedzanych stanach
+usunięto karą za krok w treningu, która nieznacznie zmienia zadanie względem zasad
+gry (ocena liczy $-0{,}1$ za krok). Wyniki zależą silnie od wartości początkowej $Q_0$ (sekcja
 \ref{sec:dobor}). Tablica Q nie uogólnia między podobnymi stanami, co ogranicza
 dokładność obserwacji (np. poziomu oleju). Przyjęta nagroda za wydobycie bez zwrotu
 zmienia zadanie: opłaca się wydobywać nawet z ryzykiem zawału (sekcja
@@ -970,11 +1087,11 @@ z katalogu \texttt{ai-journal}.
 Trening, krzywe uczenia i podgląd wytrenowanego agenta (pełne polecenie
 pilotażu w sekcji \ref{sec:pilot}):
 \begin{verbatim}
-python scripts/train.py --maps m1_stabilna --seeds 3 --episodes 50000
-    --q-init 10 --name nazwa
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka
+    m4_zawal_korytarza --seeds 10 --episodes 100000 --name nazwa
 python scripts/plot_training.py --name nazwa
-python scripts/watch.py --map m1_stabilna
-    --agent results/train/nazwa/models/m1_stabilna_sarsa_q10_s0.pkl
+python scripts/watch.py --map m3_gleboka --agent
+    results/train/nazwa/models/m3_gleboka_q_learning_q30_n100000_s0.pkl
 \end{verbatim}
 Wyniki trafiają do \texttt{results/train/nazwa/}. Tablice Q
 (\texttt{models/*.pkl}) nie są przechowywane w repozytorium, bo odtwarza je

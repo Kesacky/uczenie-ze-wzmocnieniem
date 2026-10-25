@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Trening i ewaluacja Q-learningu i SARSA, wyniki do results/train/<nazwa>/.
 
-Każdy hiperparametr (--q-init, --alpha, --gamma, --eps-decay, --eps-end, --episodes)
+Każdy hiperparametr (--q-init, --alpha, --alpha-end, --gamma, --eps-decay, --eps-end, --episodes)
 oraz parametry środowiska (--oil-bins: przedziały oleju w obserwacji; --reward-illegal,
---reward-collapse, --dig-fraction, --dig-refund: nagrody w treningu; --mask-illegal:
+--reward-step, --reward-collapse, --dig-fraction, --dig-refund: nagrody w treningu; --mask-illegal:
 maskowanie akcji niedozwolonych; --bonus: premia za eksplorację) przyjmuje jedną lub
 kilka wartości. Domyślnie warianty to wszystkie kombinacje
 (siatka). Z --ofat pierwsza wartość każdego parametru tworzy wariant bazowy, a każda
@@ -14,6 +14,18 @@ niezależne uruchomienie.
 Zmienione nagrody obowiązują tylko w treningu. Walidacja i ewaluacja końcowa zawsze używają
 domyślnych nagród gry (te same zasady co dla agentów bazowych), więc zwroty wszystkich
 wariantów są porównywalne. W curves.csv kolumny train_* liczone są z nagród treningowych.
+
+Przy --alpha-end > 0 współczynnik uczenia maleje liniowo od --alpha do --alpha-end w ciągu
+całego treningu (0 = stałe α), co stabilizuje tablicę Q pod koniec treningu.
+
+Każde uruchomienie zapamiętuje politykę najlepszą według walidacji (najwyższy średni zwrot;
+przy remisie wcześniejszą) spośród walidacji po zakończeniu spadku ε (od epizodu
+eps_decay · episodes). Wcześniejsze polityki są niedouczone: w rzadko odwiedzanych stanach
+mają wartości początkowe Q i potrafią się zapętlać. Do 25.10.2026 (katalog
+results/train/stabilizacja/) wybierano spośród wszystkich walidacji.
+Ewaluacja końcowa obejmuje obie polityki: ostatnią (wariant
+bez przyrostka) i najlepszą według walidacji (wariant z przyrostkiem _best). Ziarna
+walidacji są rozłączne z ziarnami ewaluacji końcowej, więc wybór polityki nie zawyża wyniku.
 
 Ziarna są rozłączne między fazami, zgodnie z planem eksperymentów w raporcie:
 - trening uruchomienia o ziarnie s: epizody z ziarnami s * 100 000 + i (i < 100 000);
@@ -28,7 +40,8 @@ Pliki wynikowe:
 - final_eval.csv   - wszystkie epizody ewaluacji końcowej (format jak baseline_*.csv);
 - runs.csv         - podsumowanie każdego uruchomienia;
 - summary.csv      - średnia i odchylenie standardowe po ziarnach dla każdego wariantu;
-- models/*.pkl     - tablice Q (TabularAgent.save), do podglądu w scripts/watch.py.
+- models/*.pkl     - tablice Q (TabularAgent.save), do podglądu w scripts/watch.py;
+                     *_best_s*.pkl to polityka najlepsza według walidacji.
 
 Wynik każdego ukończonego uruchomienia jest od razu zapisywany w partial/. Ponowne
 uruchomienie tego samego polecenia pomija gotowe uruchomienia (wznowienie po przerwaniu).
@@ -65,15 +78,18 @@ ALGOS = {"q_learning": QLearningAgent, "sarsa": SarsaAgent}
 TRAIN_SEED_STRIDE = 100_000
 VALID_SEED = 2_000_000
 EVAL_FIELDS = ["phase", "map", "agent", "param", "episode", "seed", "return", "length", "reason",
-               "collected", "collected_value", "lost_value", "collapsed", "max_depth"]
+               "collected", "collected_value", "lost_value", "collapsed", "max_depth", "repeats"]
 METRICS = ["mean_return", "std_return", "exit_rate", "collapse_rate", "oil_rate",
-           "mean_value_out", "mean_length", "mean_max_depth"]
+           "mean_value_out", "mean_length", "mean_max_depth", "loop_rate", "mean_repeats"]
 # hiperparametr -> (skrót w nazwie wariantu i pliku modelu, wartość domyślna)
 # Domyślne od 24.10.2026: Q0 = 30, nagrody gry z config.py (kara -2 / -10, premia 0,3) i maskowanie
-# akcji niedozwolonych. Wcześniejsze katalogi results/train/ mają zapisane parametry w config.json.
-PARAMS = {"q_init": ("q", 30.0), "alpha": ("a", 0.1), "gamma": ("g", 0.99),
+# akcji niedozwolonych. Od 25.10.2026 także α malejące do 0,01 i kara za krok -0,25 w treningu
+# (ocena nadal według zasad gry, -0,1 za krok). Wcześniejsze katalogi results/train/ mają zapisane
+# parametry w config.json.
+PARAMS = {"q_init": ("q", 30.0), "alpha": ("a", 0.1), "alpha_end": ("ae", 0.01), "gamma": ("g", 0.99),
           "eps_decay": ("d", 0.7), "eps_end": ("e", 0.05), "episodes": ("n", 50_000),
-          "oil_bins": ("o", 4), "reward_illegal": ("ri", -2.0), "reward_collapse": ("rc", -10.0),
+          "oil_bins": ("o", 4), "reward_step": ("rs", -0.25), "reward_illegal": ("ri", -2.0),
+          "reward_collapse": ("rc", -10.0),
           "dig_fraction": ("df", 0.3), "dig_refund": ("dr", 0), "mask_illegal": ("m", 1),
           "bonus": ("b", 0.0)}
 
@@ -86,7 +102,8 @@ def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1], **rewards) -> Min
 
 def train_env(job: dict) -> MineEnv:
     """Środowisko treningowe: nagrody wariantu zamiast domyślnych."""
-    return make_env(job["map"], job["oil_bins"], reward_illegal=job["reward_illegal"],
+    return make_env(job["map"], job["oil_bins"], reward_step=job["reward_step"],
+                    reward_illegal=job["reward_illegal"],
                     reward_collapse=job["reward_collapse"], reward_dig_fraction=job["dig_fraction"],
                     reward_dig_refund=bool(job["dig_refund"]), reward_shaping_gamma=job["gamma"])
 
@@ -115,7 +132,7 @@ def episode_row(result: dict, episode: int, seed: int) -> dict:
             "length": result["length"], "reason": info["reason"], "collected": info["collected"],
             "collected_value": info["collected_value"] if info["reason"] == "exit" else 0,
             "lost_value": info["lost_value"], "collapsed": int(info["collapsed"]),
-            "max_depth": result["max_depth"]}
+            "max_depth": result["max_depth"], "repeats": result["repeats"]}
 
 
 def summarize(rows: list[dict]) -> dict:
@@ -130,6 +147,8 @@ def summarize(rows: list[dict]) -> dict:
         "mean_value_out": np.mean([r["collected_value"] for r in rows]),
         "mean_length": np.mean([r["length"] for r in rows]),
         "mean_max_depth": np.mean([r["max_depth"] for r in rows]),
+        "loop_rate": sum(r["repeats"] > 0 for r in rows) / n,
+        "mean_repeats": np.mean([r["repeats"] for r in rows]),
     }
 
 
@@ -146,10 +165,13 @@ def run(job: dict) -> dict:
         n_actions=env.action_space.n, alpha=job["alpha"], gamma=job["gamma"], q_init=job["q_init"],
         mask_illegal=bool(job["mask_illegal"]), bonus_beta=job["bonus"],
         epsilon=EpsilonSchedule(job["eps_start"], job["eps_end"], int(job["eps_decay"] * episodes)),
+        alpha_schedule=EpsilonSchedule(job["alpha"], job["alpha_end"], episodes) if job["alpha_end"] > 0 else None,
         seed=job["seed"])
     train_seed = job["seed"] * TRAIN_SEED_STRIDE
     start = time.perf_counter()
     curve, window = [], []
+    best = {"return": -np.inf, "episode": 0, "q": None}
+    best_from = int(job["eps_decay"] * episodes)          # wybór najlepszej polityki po spadku ε
     for i in range(episodes):
         agent.start_episode(i)
         result = run_episode(env, agent, learn=True, seed=train_seed + i)
@@ -164,11 +186,18 @@ def run(job: dict) -> dict:
                 **{f"valid_{k}": round(float(v), 4) for k, v in valid.items()},
             })
             window = []
+            if (i + 1 >= best_from or i + 1 == episodes) and valid["mean_return"] > best["return"]:
+                best = {"return": valid["mean_return"], "episode": i + 1, "q": agent.copy_q()}
     train_time = time.perf_counter() - start
     final = evaluate_rows(eval_env, agent, job["final_episodes"], job["eval_seed"])
-    model = Path(job["out"]) / "models" / f"{job['map']}_{job['algo']}_{job['variant']}_s{job['seed']}.pkl"
-    agent.save(model)
-    return {**job, "curve": curve, "final": final, "states": len(agent.q), "train_time": train_time}
+    models = Path(job["out"]) / "models"
+    agent.save(models / f"{job['map']}_{job['algo']}_{job['variant']}_s{job['seed']}.pkl")
+    states = len(agent.q)
+    agent.q = best["q"]
+    final_best = evaluate_rows(eval_env, agent, job["final_episodes"], job["eval_seed"])
+    agent.save(models / f"{job['map']}_{job['algo']}_{job['variant']}_best_s{job['seed']}.pkl")
+    return {**job, "curve": curve, "final": final, "final_best": final_best, "best_episode": best["episode"],
+            "states": states, "train_time": train_time}
 
 
 def write_csv(path: Path, rows: list[dict], fields: list[str] | None = None) -> None:
@@ -189,6 +218,8 @@ def main() -> int:
     parser.add_argument("--q-init", type=float, nargs="+", default=[PARAMS["q_init"][1]],
                         help="wartości początkowe Q")
     parser.add_argument("--alpha", type=float, nargs="+", default=[PARAMS["alpha"][1]])
+    parser.add_argument("--alpha-end", type=float, nargs="+", default=[PARAMS["alpha_end"][1]],
+                        help="końcowe α przy liniowym spadku w ciągu treningu (0 = stałe α)")
     parser.add_argument("--gamma", type=float, nargs="+", default=[PARAMS["gamma"][1]])
     parser.add_argument("--eps-start", type=float, default=1.0)
     parser.add_argument("--eps-end", type=float, nargs="+", default=[PARAMS["eps_end"][1]])
@@ -198,6 +229,8 @@ def main() -> int:
                         help="epizody treningu na uruchomienie")
     parser.add_argument("--oil-bins", type=int, nargs="+", default=[PARAMS["oil_bins"][1]],
                         help="przedziały oleju w obserwacji (100 = dokładny poziom oleju)")
+    parser.add_argument("--reward-step", type=float, nargs="+", default=[PARAMS["reward_step"][1]],
+                        help="kara za każdy krok w treningu")
     parser.add_argument("--reward-illegal", type=float, nargs="+", default=[PARAMS["reward_illegal"][1]],
                         help="kara za akcję niedozwoloną w treningu")
     parser.add_argument("--reward-collapse", type=float, nargs="+", default=[PARAMS["reward_collapse"][1]],
@@ -270,11 +303,15 @@ def main() -> int:
         key = {"map": r["map"], "agent": r["algo"], "variant": r["variant"],
                **{k: r[k] for k in PARAMS}, "seed": r["seed"]}
         curves += [{**key, **c} for c in r["curve"]]
-        for row in r["final"]:
-            final_rows.append({"phase": "eval", "map": r["map"], "agent": r["algo"],
-                               "param": f"{r['variant']};seed={r['seed']}", **row})
-        runs.append({**key, "states": r["states"], "train_time_s": round(r["train_time"], 1),
-                     **summarize(r["final"])})
+        # polityka ostatnia i najlepsza według walidacji jako osobne warianty
+        for suffix, final in [("", r["final"]), ("_best", r["final_best"])]:
+            variant = r["variant"] + suffix
+            for row in final:
+                final_rows.append({"phase": "eval", "map": r["map"], "agent": r["algo"],
+                                   "param": f"{variant};seed={r['seed']}", **row})
+            runs.append({**key, "variant": variant,
+                         "policy_episode": r["best_episode"] if suffix else r["episodes"],
+                         "states": r["states"], "train_time_s": round(r["train_time"], 1), **summarize(final)})
     write_csv(out / "curves.csv", curves)
     write_csv(out / "final_eval.csv", final_rows, EVAL_FIELDS)
     write_csv(out / "runs.csv", runs)
@@ -294,11 +331,11 @@ def main() -> int:
     print(f"\nEwaluacja końcowa ({args.final_episodes} epizodów, ziarna od {args.eval_seed}); "
           f"średnia ± odch. std. po {args.seeds} ziarnach, czas {time.perf_counter() - start:.0f} s")
     print(f"{'mapa':<20}{'agent':<12}{'wariant':<26}{'zwrot':>9}{'±':>7}{'wyjście':>9}{'zawał':>8}"
-          f"{'olej':>7}{'wartość':>9}")
+          f"{'olej':>7}{'wartość':>9}{'pętle':>8}")
     for r in summary:
         print(f"{r['map']:<20}{r['agent']:<12}{r['variant']:<26}{r['mean_return_mean']:>9.2f}"
               f"{r['mean_return_sd']:>7.2f}{r['exit_rate_mean']:>9.1%}{r['collapse_rate_mean']:>8.1%}"
-              f"{r['oil_rate_mean']:>7.1%}{r['mean_value_out_mean']:>9.2f}")
+              f"{r['oil_rate_mean']:>7.1%}{r['mean_value_out_mean']:>9.2f}{r['loop_rate_mean']:>8.1%}")
     return 0
 
 

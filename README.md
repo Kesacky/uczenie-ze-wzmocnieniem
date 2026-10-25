@@ -9,10 +9,12 @@ wyniki pilotażu oraz doboru hiperparametrów i diagnozy zachowania agenta (pocz
 map, grafika, testy), agenci bazowi, Q-learning i SARSA (`miner_rl/agents/tabular.py`)
 oraz skrypty treningu i analizy. Od 24.10.2026 obowiązują zasady w wersji 3:
 kara za akcję niedozwoloną −2, za zawał −10, nagroda 0,3 · wartość złoża za
-wydobycie, a agenci maskują akcje niedozwolone. Eksperyment główny (10 ziaren,
-100 tys. epizodów): agenci RL wygrywają z heurystyką na mapie kruchej, remisują na
-głębokiej i przegrywają o 7–16 pkt na stabilnej i zawału korytarza. Pozostały
-eksperymenty 2 i 3 z planu (kara za zawał, losowe mapy).
+wydobycie, a agenci maskują akcje niedozwolone. Od 25.10.2026 trening używa
+malejącego α (0,1 → 0,01) i kary za krok −0,25 (ocena nadal według zasad gry).
+Usunęło to nieudane uruchomienia i zapętlenia agenta. W konfiguracji końcowej
+(10 ziaren, 100 tys. epizodów) agenci RL wygrywają z heurystyką na mapie kruchej
+(+32 pkt) i głębokiej (Q-learning, +5 pkt), a przegrywają na stabilnej (−6) i zawału
+korytarza (−14). Pozostały eksperymenty 2 i 3 z planu (kara za zawał, losowe mapy).
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 
@@ -107,9 +109,9 @@ procesach, wyniki, krzywe uczenia, konfiguracja i modele `.pkl` w `results/train
 a potem wykres krzywych uczenia:
 
 ```powershell
-python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 10 --episodes 100000 --name glowny
-python scripts/plot_training.py --name glowny
-python scripts/watch.py --map m3_gleboka --agent results/train/glowny/models/m3_gleboka_q_learning_q30_n100000_s0.pkl
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 10 --episodes 100000 --name koncowy
+python scripts/plot_training.py --name koncowy
+python scripts/watch.py --map m3_gleboka --agent results/train/koncowy/models/m3_gleboka_q_learning_q30_n100000_s0.pkl
 ```
 
 Przegląd hiperparametrów: każdy z `--q-init`, `--alpha`, `--gamma`, `--eps-decay`,
@@ -134,7 +136,10 @@ python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytar
 python scripts/compare_runs.py --runs nagrody_a nagrody_b nagrody_c --out results/train/nagrody
 ```
 
-Domyślne parametry `train.py` odpowiadają zasadom w wersji 3 (Q0 = 30, maskowanie akcji).
+Domyślne parametry `train.py` to konfiguracja końcowa (Q0 = 30, α malejące do 0,01, kara za krok
+−0,25 w treningu, maskowanie akcji). Ewaluacja podaje też politykę najlepszą według walidacji
+(wariant `_best`) i odsetek epizodów z pętlą (`loop_rate`). Wyniki: `results/train/kara_krok/`
+(konfiguracja końcowa to wariant `q30_ae0.01_n100000_rs-0.25`), wcześniej `stabilizacja/` i `glowny/`.
 Przerwany trening można wznowić tym samym poleceniem: gotowe uruchomienia są zapisywane
 na bieżąco w `partial/` i pomijane. Wyniki w `results/train/` sprzed 24.10.2026
 (`pilot`, `przeglad_m1`, `q0_m1`, `olej_m1`, `q0_mapy`, `nagrody_*`) oceniano według
@@ -193,7 +198,6 @@ Każda nowa rozmowa wymaga zapisania jej pełnego przebiegu i aktualizacji rapor
 
 ## Najbliższy krok
 
-Etap E3: wybór polityki najlepszej według walidacji (usunięcie nieudanych uruchomień),
-eksperymenty 2 i 3 z planu (wpływ kary za zawał, mapa stała a losowa) oraz analiza
-i wnioski w raporcie. Daty kalendarzowe bloków zajęć należy
+Etap E3: eksperymenty 2 i 3 z planu (wpływ kary za zawał, mapa stała a losowa) oraz
+analiza i wnioski w raporcie. Daty kalendarzowe bloków zajęć należy
 wpisać po ich potwierdzeniu.

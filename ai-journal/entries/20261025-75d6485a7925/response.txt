@@ -1,0 +1,8 @@
+Trening ruszył: 240 uruchomień (4 mapy × Q-learning i SARSA × kara za krok −0,1 / −0,25 / −0,5 × 10 ziaren), 15 procesów naraz. Potrwa ok. 65–70 minut.
+
+Wyniki zapisują się w `results/train/kara_krok/`. Gdy skończy się trening, sprawdzę:
+- czy zniknęło kręcenie się w kółko (nowy licznik pętli),
+- czy przy większej karze agent nie ucieka z kopalni bez rudy (wartość ładunku i długość gry),
+- jak wyniki wypadają na tle heurystyki i poprzedniego treningu.
+
+Dam znać, gdy będą gotowe.

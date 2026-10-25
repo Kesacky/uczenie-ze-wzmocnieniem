@@ -1,0 +1,25 @@
+[komunikat pośredni] Zmieniam ustawienia domyślne treningu i dopisuję wyniki do raportu.
+
+[komunikat pośredni] Teraz dopisuję do raportu nową sekcję z wynikami.
+
+[komunikat pośredni] Raport się kompiluje (24 strony). Aktualizuję README, listę etapów i sekcję o wsparciu AI.
+
+[odpowiedź końcowa]
+Wpisane do raportu i wysłane na GitHuba.
+
+**Co zmieniłem:**
+- **Raport:** nowa sekcja „Stabilizacja polityki i kara za krok”. Zawiera obie tabele wyników, opis wykrytej przez Ciebie pętli (z przyczyną), korektę wyniku 95 → 84 pkt na mapie głębokiej, konfigurację końcową i wykres uczenia. Zaktualizowałem też tabelę hiperparametrów, ograniczenia i instrukcję uruchomienia. Raport kompiluje się bez błędów (24 strony).
+- **Kod:** konfiguracja końcowa jest teraz domyślna w `train.py`: α malejące do 0,01 i kara za krok −0,25 w treningu. Ocena nadal liczy punkty według zasad gry, więc wyniki dalej da się porównać z heurystyką. Testy: 205 z 205.
+- **README, `docs/etapy.md`, sekcja „Wsparcie AI”:** zaktualizowane. W sekcji AI zapisałem, że pętla została zauważona przez Ciebie, a kara za krok to Twój pomysł.
+
+**Trenujemy dalej czy następny krok?** Proponuję **następny krok**, bez dalszego dostrajania:
+- Agent jest stabilny: 0 nieudanych uruchomień i 0 pętli.
+- Przegrana na mapach stabilnej i zawału korytarza wynika z tego, że agent wybiera grę ostrożniejszą od heurystyki. To ciekawy wniosek do raportu, a nie błąd do naprawienia. Dalsze dostrajanie pod konkretne mapy groziłoby „dopasowaniem do testu”.
+
+Następny krok to dwa ostatnie eksperymenty z planu:
+1. **Eksperyment 2: kara za zawał** (−5 / −10 / −20): jak zmienia się ryzyko i zysk. Ok. 1 godzina treningu.
+2. **Eksperyment 3: mapa stała a losowa:** czy agent radzi sobie na nowych mapach. Spodziewam się słabego wyniku tablicy Q, co jest wartościowym wnioskiem o ograniczeniach metody.
+
+Potem zostaje sekcja „Analiza i wnioski” (najlepiej Twoimi słowami) i zamknięcie E3.
+
+Zacząć od eksperymentu 2?

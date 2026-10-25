@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-25",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Uruchomienie podglądu gry z wytrenowanym agentem",
+  "scope": "scripts/watch.py z modelem results/train/stabilizacja/models/m3_gleboka_sarsa_q30_ae0.01_n100000_best_s2.pkl; bez zmian w kodzie",
+  "verification": "Brak samodzielnej weryfikacji studenta",
+  "conversation_url": "",
+  "prompt_sha256": "48c57d323a48ef3ef88ff6848e3c82f54c5b2bfefcd6c2321001f68ee6c44b6c",
+  "response_sha256": "fb76a759fa7d52f902e2a304a18fc887f944c59dd3825f187e0d5983b2743aac",
+  "recorded_at_utc": "2026-10-25T00:34:32.155802+00:00"
+}

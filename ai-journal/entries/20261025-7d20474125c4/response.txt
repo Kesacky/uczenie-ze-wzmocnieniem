@@ -1,0 +1,14 @@
+Okno gry powinno się już otworzyć.
+
+**Co pokazuje:** najlepszy wariant (SARSA, najlepsza wersja z walidacji i malejące α) na **mapie głębokiej**, bo tam różnica względem heurystyki jest największa. Wybrałem ziarno 2, bo jego wynik (95,5 pkt) jest najbliżej średniej ze wszystkich 10 ziaren (95,3).
+
+Agent zagra 5 gier, tych samych co pierwsze 5 gier oceny końcowej (ziarna od 1 000 000).
+
+**Sterowanie:** spacja pauzuje, a `+` i `-` zmieniają tempo.
+
+**Na co patrzeć:** agent powinien pomijać płytkie odgałęzienia z węglem i srebrem i iść prosto na dno po kryształy. Gry są losowe (zawały), więc w którejś z 5 może zginąć: według oceny końcowej zdarza się to w ok. 16% gier.
+
+Inną mapę lub wariant uruchomisz poleceniem, np.:
+```
+.venv\Scripts\python.exe scripts\watch.py --map m2_krucha --agent results\train\stabilizacja\models\m2_krucha_sarsa_q30_ae0.01_n100000_best_s0.pkl --episodes 5
+```

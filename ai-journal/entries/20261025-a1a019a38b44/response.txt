@@ -1,0 +1,15 @@
+Częściowo tak, i warto to w raporcie nazwać właśnie tak: **częściowy sukces**.
+
+**Co jest sukcesem:**
+- **Trening jest stabilny.** Żadne z 80 uruchomień najlepszego wariantu się nie zepsuło, a wyniki różnych ziaren są bardzo podobne. Wcześniej było to największym problemem.
+- **Agent wygrywa z heurystyką na 2 z 4 map:** na kruchej wyraźnie (46 wobec 15 pkt), a na głębokiej o ok. 15 pkt (95 wobec 80).
+- **Agent sam znalazł inną strategię niż heurystyka**, np. na mapie głębokiej pomija tanie złoża i idzie po kryształy. Tego nikt mu nie podpowiedział.
+
+**Czego nie można nazwać sukcesem:**
+- **Na 2 mapach (stabilnej i zawale korytarza) nadal przegrywa** z prostą heurystyką o 6–7 pkt. Agent wybiera tam bezpieczniejszą, ale mniej dochodową grę.
+- **Każda mapa wymaga osobnego treningu.** Agent zapamiętuje konkretną mapę, nie uczy się samej gry. Nie sprawdziliśmy jeszcze losowych map (eksperyment 3), a tam spodziewam się słabego wyniku.
+- **Potrzeba było poprawek**, żeby zadziałało: zmiany nagród, maskowanie akcji, wybór najlepszej wersji. To normalne w RL, ale trzeba to uczciwie opisać.
+
+**Jak to ująć na obronie:** „Agent RL uczy się stabilnie i bije heurystykę tam, gdzie ryzyko jest duże i trzeba podejmować nieoczywiste decyzje (mapa krucha i głęboka). Na mapach łatwych prosta reguła wystarcza i jest lepsza. Ograniczeniem jest brak uogólniania na nowe mapy.” To jest uczciwy i dobry wynik. Prowadzący zwykle bardziej ceni rzetelną analizę niż to, że agent wygrywa wszędzie.
+
+Jedna uwaga: wyjaśnienie, czemu na mapie głębokiej najlepsza wersja pojawia się w połowie treningu, to na razie moja hipoteza. Mogę ją sprawdzić, jeśli chcesz to mieć w raporcie.

@@ -58,6 +58,7 @@ class TabularAgent:
     q_init: float = 0.0
     mask_illegal: bool = False           # wybór tylko spośród akcji dozwolonych (env.action_mask())
     bonus_beta: float = 0.0              # premia za eksplorację β/√N(s,a) dodawana do nagrody w treningu
+    alpha_schedule: EpsilonSchedule | None = None   # liniowo malejące α (None = stałe α)
     seed: int | None = None
     key_fn: Callable = default_key
     q: dict = field(default_factory=dict)
@@ -101,6 +102,12 @@ class TabularAgent:
 
     def start_episode(self, episode: int) -> None:
         self.current_epsilon = self.epsilon.value(episode)
+        if self.alpha_schedule is not None:
+            self.alpha = self.alpha_schedule.value(episode)
+
+    def copy_q(self) -> dict:
+        """Kopia tablicy Q (np. polityka najlepsza według walidacji), niezależna od dalszego uczenia."""
+        return {k: v.copy() for k, v in self.q.items()}
 
     # --- aktualizacja (implementują podklasy) ----------------------------
     def td_target(self, reward: float, next_obs, next_action: int | None, terminated: bool,
@@ -182,8 +189,11 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
 
     Rozróżnia `terminated` (prawdziwy koniec: brak bootstrapu) od `truncated`
     (obcięcie limitem kroków: cel TD nadal szacuje wartość stanu następnego).
+    `repeats` to liczba kroków, w których agent wrócił do obserwacji widzianej już
+    w tym epizodzie (miara zapętlenia; w kopalni stan się nie powtarza bez cofania się).
     """
     obs, info = env.reset(seed=seed)
+    seen, repeats = {agent.key_fn(obs)}, 0
     use_mask = getattr(agent, "mask_illegal", False)
     mask = env.action_mask() if use_mask else None
     action = agent.act(obs, greedy=greedy, mask=mask)
@@ -193,6 +203,9 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
         total += reward
         steps += 1
         max_depth = max(max_depth, info.get("depth", 0))
+        key = agent.key_fn(next_obs)
+        repeats += key in seen
+        seen.add(key)
         done = terminated or truncated or steps >= max_steps
         next_mask = env.action_mask() if use_mask and not terminated else None
         next_action = None if terminated else agent.act(next_obs, greedy=greedy, mask=next_mask)
@@ -202,7 +215,7 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
             break
         obs, action = next_obs, next_action
     return {"return": total, "length": steps, "terminated": bool(terminated), "max_depth": max_depth,
-            "info": info}
+            "repeats": repeats, "info": info}
 
 
 def train(env, agent: TabularAgent, episodes: int, seed: int = 0,

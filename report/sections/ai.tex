@@ -73,6 +73,15 @@ eksplorację, poprawne kształtowanie potencjałowe i wznawianie przerwanego tre
 (z testami), uruchomił 320 treningów (w tym eksperyment główny z 10 ziarnami)
 i opisał wyniki w sekcjach \ref{sec:e3} i \ref{sec:glowny}.
 
+25.10.2026 (Claude Code, model claude-opus-5-5): na polecenie studenta Claude dodał
+malejące $\alpha$, wybór polityki najlepszej według walidacji, licznik pętli
+i parametr kary za krok (z testami) oraz uruchomił 400 treningów
+(\texttt{stabilizacja}, \texttt{kara\_krok}). Student w podglądzie gry zauważył
+zapętlanie się agenta. Claude zdiagnozował przyczynę i skorygował swój wcześniejszy,
+zawyżony wynik ($95{,}3$ pkt na mapie głębokiej). Pomysł kary za krok i warunek
+sprawdzenia, czy agent nie wychodzi od razu z kopalni, pochodzą od studenta.
+Student zdecydował o wpisaniu wyników do raportu (sekcja \ref{sec:stabil}).
+
 \subsection*{Weryfikacja studenta}
 Oświadczenie studenta z 24.10.2026: student zweryfikował całość dotychczasowych
 zmian (etapy E1 i E2), w tym kod, wyniki pilotażu i raport.

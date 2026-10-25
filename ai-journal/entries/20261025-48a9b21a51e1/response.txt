@@ -1,0 +1,28 @@
+**Dlaczego tak długo — to po prostu bardzo dużo gier.**
+
+Jedno uruchomienie to:
+- 100 000 gier treningowych,
+- co 500 gier walidacja po 100 gier, czyli kolejne 20 000 gier,
+- na końcu ocena: 2 × 1000 gier (wersja ostatnia i najlepsza).
+
+Razem ok. 122 tys. gier, a gra ma średnio ok. 54 kroki. To **ok. 6,5 mln kroków na jedno uruchomienie**. W każdym kroku program liczy ruch górnika, stabilność stropu, losuje zawał, sprawdza dozwolone akcje i poprawia tabelę Q. W poprzednim treningu jedno uruchomienie trwało średnio **ok. 4 minuty** (od 3 do 5).
+
+Cały eksperyment to 240 uruchomień, czyli ok. 1,5 mld kroków. Komputer liczy 15 uruchomień naraz, więc to 16 „tur” po ok. 4 minuty, **razem ok. 65 minut**.
+
+**Dlaczego tylko procesor, a nie karta graficzna:**
+- Karta graficzna przyspiesza wtedy, gdy trzeba wykonać **ogromnie dużo takich samych obliczeń naraz**, np. mnożenie wielkich macierzy w sieciach neuronowych (głębokie RL, DRL).
+- U nas nie ma sieci neuronowej. Jest **tabela Q** i w każdym kroku program zmienia jedną małą liczbę. Każdy krok zależy od poprzedniego, więc nie da się ich policzyć jednocześnie.
+- Przesyłanie tak małych danych do karty i z powrotem trwałoby dłużej niż samo liczenie na procesorze. Karta graficzna byłaby tu **wolniejsza**.
+- Pamięci RAM trening potrzebuje mało, bo tabela Q ma kilka–kilkadziesiąt tysięcy stanów.
+
+**Jaki wpływ ma procesor:**
+- **Szybkość jednego rdzenia**: każde uruchomienie liczy się na jednym rdzeniu (Python liczy jeden program na jednym rdzeniu). Rdzeń o 30% szybszy to uruchomienie o ok. 30% krótsze.
+- **Liczba rdzeni**: Twój procesor ma 16 wątków, program używa 15 (jeden zostaje dla systemu). Dwa razy więcej rdzeni to w przybliżeniu dwa razy krótszy cały eksperyment.
+- **Tryb zasilania i temperatura**: przy oszczędzaniu energii (np. laptop na baterii) albo przegrzaniu procesor zwalnia, a trening się wydłuża.
+
+**Jak można skrócić trening, jeśli zajdzie potrzeba:**
+- mniej gier treningowych: krzywe uczenia stabilizują się ok. 60 tys. gier, ale wtedy wyniki nie byłyby porównywalne z poprzednimi;
+- rzadsza walidacja (co 1000 zamiast co 500 gier), co oszczędza ok. 8% czasu;
+- mniej ziaren — tego nie polecam, bo 10 ziaren pokazało problemy, których 3 ziarna nie wykazały.
+
+Moim zdaniem ok. godziny na eksperyment jest akceptowalne i lepiej zostawić ustawienia bez zmian, żeby wyniki dało się porównać.

@@ -1,0 +1,27 @@
+Jesteśmy w etapie E3 (finalne rozwiązanie i analiza; według P00 trzeba go skończyć do P6). Eksperyment 1 z planu, czyli porównanie z heurystyką na 10 ziarnach, jest zrobiony. Proponuję dalej taką kolejność:
+
+**1. Zachowywanie najlepszej polityki według walidacji (najpierw, ok. 30 min liczenia)**
+W eksperymencie głównym 4 z 80 uruchomień są nieudane. Dwa z nich (SARSA, mapa stabilna) zepsuły się dopiero w ostatnich 500 epizodach. Chcę zapisywać tablicę Q z najlepszej walidacji i powtórzyć eksperyment główny. To jest uczciwe, bo ziarna walidacji są inne niż ziarna ewaluacji końcowej. Powinno to usunąć większość nieudanych uruchomień i poprawić wynik na mapie stabilnej. Wymaga zmiany w `train.py` i nowego testu.
+
+**2. Eksperyment 2 z planu: wpływ kary za zawał**
+Kara −5, −10 i −20, te same mapy, 10 ziaren. Pokaże kompromis między zyskiem a ryzykiem (odsetek zawałów i wartość wyniesionego ładunku).
+
+**3. Eksperyment 3 z planu: mapa stała a losowa**
+Trening i ocena na losowych mapach. Spodziewam się słabego wyniku tablicy Q, bo nie przenosi wiedzy między mapami. To też wartościowy wynik, jeśli opiszemy go uczciwie jako ograniczenie metody tabelarycznej.
+
+**4. Raport: sekcja „Analiza i wnioski”**
+Tę sekcję warto napisać w dużej mierze samodzielnie, a ja dostarczę liczby i wykresy. P00 wymaga własnych wniosków, a prowadzący będzie o nie pytał na obronie.
+
+**5. Zamknięcie E3**
+- uruchomienie projektu z czystego klonu repozytorium;
+- kompilacja LaTeX;
+- sprawdzenie, czy raport zgadza się z wynikami;
+- Twoja samodzielna weryfikacja wraz z zapisem, co faktycznie sprawdziłeś.
+
+Bez tej weryfikacji w `ai.tex` zostaje wpis „brak samodzielnej weryfikacji”, a to grozi utratą punktów.
+
+Dwie drobne sprawy:
+- W `docs/etapy.md` jeden punkt E3 jest nieaktualny: nadal pisze „do decyzji, czy pakiet nagród staje się domyślny”, a to już postanowione. Poprawię go przy najbliższym commicie.
+- Nie odpowiedziałeś jeszcze, czy mam dopisać do dziennika AI dosłowne uzupełnienia pośrednich komunikatów. Ostatnie wpisy dziennika nie są jeszcze w commicie.
+
+Zacząć od punktu 1?

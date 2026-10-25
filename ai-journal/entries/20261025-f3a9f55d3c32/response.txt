@@ -1,0 +1,14 @@
+Tak, ale nie w pełni. Sprawdziłem, co jest w dzienniku.
+
+**Co jest zapisane:**
+- Wszystkie 17 Twoich wiadomości z wczoraj są w `ai-journal/entries/` (dosłowny prompt, data Europe/Warsaw, narzędzie Claude Code, model claude-opus-5-5, cel, zakres, status weryfikacji) i wypchnięte na GitHub razem z kodem.
+- Publiczna sekcja `report/sections/ai.tex` opisuje, co zrobiłem, co zdecydowałeś Ty i czego nie zweryfikowałeś samodzielnie.
+
+**Czego brakuje (luki zgodnie z AGENTS.md):**
+1. **Odpowiedzi w długich zadaniach są niepełne.** Przy zadaniach trwających godzinę (więcej eksperymentów, zmiany nagród, trzy pomysły) zapisałem tylko końcowe podsumowanie. Pośrednie widoczne komunikaty nie trafiły do dziennika: diagnozy, ostrzeżenia, np. o premii bez zwrotu, czy wyjaśnienie, czemu SARSA się psuje. Wpis „tak jeżeli ta wersja działa lepiej…” jest wprost oznaczony jako zapis skrócony.
+2. **Dwie moje odpowiedzi bez Twojego pytania nie mają wpisu.** Pojawiły się po zakończeniu obliczeń w tle. Jedna z nich dotyczyła wyniku 5 gier agenta (24,2 pkt ×5) i zawierała błąd: napisałem, że agent wziął srebro i złoto (27 pkt). Śledzenie trasy pokazało, że wziął tylko kryształ (30 pkt), a różnica wynikała z kar za wejścia w ścianę. Ten błąd też powinien być w dzienniku.
+3. **Kolejność:** trzy ostatnie wpisy zapisałem naraz o 21:58, więc znacznik czasu nie odpowiada chwili rozmowy, a wpis „tak jeżeli…” stoi w indeksie za późniejszymi.
+4. W kilku wpisach poprawiłem po zapisie sformułowania, żeby zgadzały się z tym, co faktycznie wyświetliłem (z aktualizacją sumy kontrolnej).
+5. **Status weryfikacji:** wszędzie poza jednym wpisem jest „Brak samodzielnej weryfikacji studenta”. Twoje oświadczenie z 24.10 jest zapisane osobno, bez szczegółów.
+
+**Jak to naprawić:** te pośrednie komunikaty wciąż mam w bieżącej rozmowie, więc mogę je dopisać dosłownie jako uzupełnienia do odpowiednich wpisów, z jawną adnotacją, że to uzupełnienie dodane później. Nie odtwarzałbym niczego z pamięci. Zrobić to?

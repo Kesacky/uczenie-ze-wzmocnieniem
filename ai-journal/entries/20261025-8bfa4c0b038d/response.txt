@@ -1,0 +1,11 @@
+Zatrzymałem trening. Wszystkie procesy treningu są wyłączone, więc komputer nie jest już obciążony.
+
+**Stan:** żadne z 240 uruchomień nie zdążyło się skończyć, więc nic nie przepadło. Do jutra komputer może być wyłączony.
+
+**Jutro** wystarczy napisać „wznów trening”, a uruchomię go ponownie. Możesz też zrobić to sam tym poleceniem:
+```
+.venv\Scripts\python.exe scripts\train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 10 --episodes 100000 --alpha-end 0.01 --reward-step -0.1 -0.25 -0.5 --name kara_krok
+```
+Trening potrwa ok. 65–70 minut. Jeśli znowu go przerwiemy, ukończone uruchomienia zostaną zapisane i przy ponownym starcie program je pominie.
+
+Zmiany w kodzie (kara za krok, wybór najlepszej wersji z końca treningu, licznik pętli) są zapisane na dysku i przechodzą testy, ale nie ma ich jeszcze w commicie. Zrobię go razem z wynikami.

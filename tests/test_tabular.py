@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 from miner_rl.agents.tabular import (EpsilonSchedule, QLearningAgent, SarsaAgent,
-                                     TabularAgent, evaluate, train)
+                                     TabularAgent, evaluate, run_episode, train)
 
 
 class CliffWalk:
@@ -133,3 +133,38 @@ def test_count_bonus_decreases_with_visits():
     assert agent.values((0,))[1] == 4.0                 # β/√1
     agent.update((0,), 1, 0.0, (1,), None, True)
     assert agent.values((0,))[1] == pytest.approx(4.0 / np.sqrt(2))   # β/√2, α = 1
+
+
+def test_alpha_schedule_and_q_copy():
+    agent = QLearningAgent(n_actions=2, alpha=0.5, alpha_schedule=EpsilonSchedule(0.5, 0.1, 10))
+    agent.start_episode(5)
+    assert agent.alpha == pytest.approx(0.3)
+    agent.start_episode(20)
+    assert agent.alpha == pytest.approx(0.1)
+    agent.values((0,))[0] = 1.0
+    copy = agent.copy_q()
+    agent.update((0,), 0, 0.0, (1,), None, True)
+    assert copy[(0,)][0] == 1.0 and agent.values((0,))[0] != 1.0
+
+
+class Corridor:
+    """Korytarz 1×3: akcja 0 w lewo, 1 w prawo; koniec po 6 krokach."""
+    def reset(self, seed=None):
+        self.pos, self.t = 0, 0
+        return (self.pos,), {}
+
+    def step(self, a):
+        self.pos = max(0, min(2, self.pos + (1 if a else -1)))
+        self.t += 1
+        return (self.pos,), 0.0, False, self.t >= 6, {}
+
+
+def test_run_episode_counts_repeated_states():
+    agent = QLearningAgent(n_actions=2, epsilon=EpsilonSchedule(0.0, 0.0, 0))
+    agent.values((0,))[:] = [0, 1]                      # w prawo
+    agent.values((1,))[:] = [1, 0]                      # w lewo -> pętla 0 <-> 1
+    result = run_episode(Corridor(), agent, learn=False, greedy=True)
+    assert result["repeats"] == 5                       # po pierwszym kroku każdy wraca do znanego stanu
+    agent.values((1,))[:] = [0, 1]
+    agent.values((2,))[:] = [0, 1]                      # stoi przy ścianie: (2,) powtarza się
+    assert run_episode(Corridor(), agent, learn=False, greedy=True)["repeats"] == 4

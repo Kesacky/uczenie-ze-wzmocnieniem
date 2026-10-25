@@ -1,0 +1,23 @@
+[komunikat pośredni] Wprowadzam teraz do kodu dwie poprawki: zapamiętywanie najlepszej wersji agenta i malejące tempo nauki. Potem uruchomię testy i trening.
+
+[komunikat pośredni] Testy przechodzą (204 z 204). Uruchamiam trening: 4 mapy × 2 algorytmy × 2 warianty α × 10 ziaren = 160 uruchomień.
+
+[odpowiedź końcowa]
+Gotowe obie poprawki, trening działa w tle.
+
+**Co zmieniłem w kodzie:**
+1. **Najlepsza wersja agenta.** Przy każdej walidacji (co 500 epizodów) program sprawdza, czy agent gra najlepiej do tej pory. Jeśli tak, zapisuje kopię jego tabeli Q. Na końcu oceniam **obie** wersje: ostatnią i najlepszą. W wynikach najlepsza ma dopisek `_best` (np. `q30_n100000_best`), a jej model to plik `..._best_s0.pkl`.
+2. **Malejące tempo nauki.** Nowa opcja `--alpha-end`: α spada równo od 0,1 do podanej wartości w ciągu całego treningu. 0 oznacza stałe α, jak dotąd.
+
+Dodałem testy obu zmian; wszystkie 204 testy przechodzą.
+
+**Co liczy się teraz** (`results/train/stabilizacja/`):
+- 4 mapy × Q-learning i SARSA × 10 ziaren × 100 tys. epizodów;
+- dwa warianty: stałe α = 0,1 (jak w eksperymencie głównym) oraz α malejące do 0,01;
+- dla każdego: wersja ostatnia i najlepsza według walidacji.
+
+Z jednego treningu dostaniemy więc 4 wyniki do porównania: nic nie zmienione, tylko najlepsza wersja, tylko malejące α oraz oba naraz. 160 uruchomień na 15 procesach potrwa około godziny.
+
+Uczciwość porównania: najlepszą wersję wybieram na ziarnach walidacji, a ocena końcowa idzie na innych ziarnach (tych samych co heurystyka), więc wybór nie zawyża wyniku.
+
+Dam znać, gdy trening się skończy, i wtedy opiszę wyniki.

@@ -67,9 +67,9 @@ Potwierdzenie przekazania linku i akceptacja tematu: oświadczenie studenta z 24
 Źródła: P00 §4, s. 3; §8–10, s. 4–6; P01 §4, s. 4–5.
 
 - [x] Zaimplementować i uruchomić właściwego agenta RL/DRL zgodnego z formalizacją (Q-learning i SARSA z maskowaniem akcji, zasady w wersji 3; 24.10.2026).
-- [ ] Zapisać hiperparametry, sposób reprezentacji Q-tab albo architekturę DRL (w toku: przegląd hiperparametrów, wpływ Q0, zmiany nagrody i maskowanie akcji w raporcie, sekcje „Dobór hiperparametrów…” i „Zmiany funkcji nagrody…”, 24.10.2026; do decyzji, czy pakiet nagród staje się domyślny).
+- [x] Zapisać hiperparametry, sposób reprezentacji Q-tab albo architekturę DRL (tablica Q jako słownik; konfiguracja końcowa w raporcie, sekcja „Stabilizacja polityki i kara za krok”, 25.10.2026; pakiet nagród przyjęty jako domyślny 24.10.2026).
 - [x] Rozdzielić uczenie i ewaluację; zabezpieczyć niedozwolone akcje i nieskończone epizody (rozłączne ziarna treningu, walidacji i ewaluacji; maskowanie akcji; limit 300 kroków).
-- [ ] Przeprowadzić eksperymenty zgodnie z planem i uczciwie porównać baseline (eksperyment 1 wykonany 24.10.2026, 10 ziaren, `results/train/glowny/`; pozostały eksperymenty 2 i 3).
+- [ ] Przeprowadzić eksperymenty zgodnie z planem i uczciwie porównać baseline (eksperyment 1 wykonany 24.10.2026, 10 ziaren, `results/train/glowny/`; stabilizacja i kara za krok 25.10.2026, `results/train/stabilizacja/`, `results/train/kara_krok/`; pozostały eksperymenty 2 i 3).
 - [ ] Zachować dane lub skrypty wystarczające do odtworzenia wyników.
 - [ ] Przygotować tabele/wykresy z osiami, jednostkami i legendami.
 - [x] Pokazać przebieg uczenia, stabilność i niepowodzenia, nie tylko najlepszy wynik (krzywe uczenia, nieudane uruchomienia, analiza zachowania i map cieplnych w raporcie).
