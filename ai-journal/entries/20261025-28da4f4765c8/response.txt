@@ -1,0 +1,40 @@
+Poniżej moje odpowiedzi. To są interpretacje, nie wyniki osobnych eksperymentów. Przed obroną warto je przemyśleć i opowiedzieć własnymi słowami.
+
+## 1. Dlaczego kara za zawał prawie nic nie zmienia?
+
+**a) Kara to tylko mała część kosztu zawału.**
+Przy zawale agent dostaje karę, ale przede wszystkim **traci cały ładunek**. Na mapie głębokiej ładunek przy wyjściu jest wart średnio ok. 67 pkt. Zmiana kary z −5 na −20 to więc zmiana całkowitej straty z ok. „ładunek + 5” na ok. „ładunek + 20”. Ładunek przeważa, więc agent już przy karze −5 bardzo nie chce zawału. Przy −20 nie chce go tylko trochę bardziej.
+
+**b) Ryzyko zawału jest małe i w dużej części nieuniknione.**
+Prawdopodobieństwo zawału w jednym kroku liczy się ze wzoru (`miner_rl/config.py`):
+
+p = 0,001 + 0,003 · (5 − stabilność)² · (1 + głębokość / wysokość mapy)
+
+Przy pełnej stabilności to tylko 0,1% na krok. Rośnie dopiero po kilku wydobyciach. Agent może je obniżyć tylko na dwa sposoby: użyć stempla albo zrezygnować z części złóż. Rezygnacja z najcenniejszego kryształu (30 pkt na dnie) kosztuje więcej, niż daje mniejsze ryzyko. Dlatego przy każdej karze agent schodzi na dno.
+
+**c) Polityka zachłanna zmienia się skokowo.**
+Agent wybiera akcję o najwyższej wartości Q. Inna kara przesuwa wartości Q, ale decyzja zmienia się tylko tam, gdzie dwie akcje były prawie równe. Takich miejsc jest niewiele, więc polityki dla −5, −10 i −20 są prawie takie same. Widać to na mapie stabilnej i kruchej, gdzie wyniki różnią się o mniej niż 0,3 pkt.
+
+**Wniosek do obrony:** H3 zakładała, że kara steruje skłonnością do ryzyka. W tej grze skłonność do ryzyka zależy głównie od tego, że **zawał zabiera ładunek**. Aby zobaczyć efekt kary, trzeba by ją zmieniać w znacznie szerszym zakresie (np. −50, −100) albo zmniejszyć wartość złóż.
+
+## 2. Dlaczego tablica Q nie radzi sobie z losowymi mapami?
+
+**a) Tablica Q nie uogólnia.**
+Każda obserwacja to osobny wpis w tablicy. Agent nie wie, że dwie prawie identyczne sytuacje (np. ten sam widok 5×5, ale inny poziom oleju albo inna liczba stempli) są podobne. Każdą musi poznać osobno.
+
+**b) Stanów jest za dużo na liczbę gier.**
+Na losowych mapach widok 5×5 jest za każdym razem inny. Po 100 tys. gier tablica ma ok. 2,2 mln stanów. W każdej grze agent robi kilkadziesiąt kroków, więc na jeden stan przypada średnio tylko kilka odwiedzin. Przy α malejącym od 0,1 to za mało, żeby nauczyć się wartości. Na mapie stałej z tym samym widokiem 5×5 tablica ma średnio ok. 5,6 tys. stanów, ok. 400 razy mniej, a każdy stan agent odwiedza średnio setki razy.
+
+**c) Na nowej kopalni prawie wszystko jest nieznane, a nieznane wygląda atrakcyjnie.**
+Nieodwiedzone stany mają startową wartość Q = 30 (optymizm, który pomagał w eksploracji). Stany już poznane mają zwykle niższą wartość. Agent zachłanny wybiera więc ruchy prowadzące do nowych widoków, zamiast kopać i wracać. Stąd chodzenie w kółko (99% gier) i brak oleju (69% gier). To wyjaśnia też, czemu wynik w walidacji **spada** w trakcie treningu: im więcej stanów poznanych z niską wartością, tym silniej agent ciągnie w stronę nieznanego.
+
+**d) Agent widzi tylko 5×5 pól.**
+Na losowej mapie nie wie, gdzie są złoża poza tym widokiem ani gdzie jest wyjście, jeśli jest daleko. Ten sam widok może wymagać różnych ruchów w różnych miejscach kopalni. Tablica przypisuje mu jedną wartość, więc nie da się tego rozróżnić.
+
+**Dlaczego agent mapy stałej też zawodzi na innej mapie:** nauczył się trasy po jednej konkretnej kopalni, a nie zasad „idź do złoża, wróć do wyjścia”. Na innej mapie jego widoki prawie się nie powtarzają.
+
+**Wniosek do obrony:** losowe mapy wymagają metody, która uogólnia między podobnymi stanami. Najprostsza taka metoda to aproksymacja funkcji Q siecią neuronową (DQN). Sieć dostaje widok 5×5 jako liczby i dla podobnych widoków daje podobne wartości. Innym wyjściem jest uboższa obserwacja, np. kierunek i odległość do najbliższego złoża i do wyjścia zamiast pełnego widoku. Wtedy stanów byłoby tak mało, że nawet tablica mogłaby wystarczyć.
+
+---
+
+Jeśli chcesz, mogę na tej podstawie przygotować szkic sekcji „Analiza i wnioski”. Lepiej jednak, żeby pierwsza wersja wyszła od Ciebie, a ja tylko sprawdzę poprawność, bo prowadzący oceni Twoje zrozumienie.

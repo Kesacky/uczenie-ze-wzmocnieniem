@@ -1,0 +1,18 @@
+**Tak, dokładnie.** Algorytmy zostają te same: Q-learning i SARSA z tą samą tablicą Q, tymi samymi hiperparametrami i tym samym treningiem. Zmienia się tylko to, **co agent dostaje jako obserwację**, czyli „czym jest jedna linijka w tablicy Q”.
+
+Porównanie trzech wersji:
+
+| | mapa stała (jest) | mapa losowa, widok 5×5 (jest, nie działa) | mapa losowa z narratorem (nowe) |
+|---|---|---|---|
+| algorytm | Q-learning / SARSA | Q-learning / SARSA | **Q-learning / SARSA** |
+| co agent widzi | pozycja, stabilność, olej, wydobyte złoża, stemple | to samo + 25 pól wokół siebie | stabilność, olej, stemple, ładunek + 4 sąsiednie pola + **podpowiedź narratora** |
+| liczba stanów | ok. 5,6 tys. | ok. 2,2 mln | (szacuję) dziesiątki tysięcy |
+
+Narrator to więc nie nowy algorytm, tylko **nowy tryb obserwacji w środowisku**, obok obecnych (`obs_mode="state"` i `"local"` dojdzie np. `"hint"`). Agent nadal sam uczy się z nagród, co się opłaca.
+
+W praktyce zmiany będą tylko w trzech miejscach:
+1. **Środowisko** (`miner_rl/env/mine_env.py`): funkcja licząca podpowiedź, czyli kierunek i odległość do złoża oraz kierunek do wyjścia, plus testy.
+2. **Skrypt treningu**: opcja wyboru nowej obserwacji (jak teraz `--local-obs`).
+3. **Raport**: opis nowego wariantu obserwacji w formalizacji MDP i wyniki jako dalszy ciąg eksperymentu 3.
+
+Kod Q-learningu i SARSA (`miner_rl/agents/tabular.py`) się nie zmienia.

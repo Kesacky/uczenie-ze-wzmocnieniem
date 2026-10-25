@@ -189,11 +189,14 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
 
     Rozróżnia `terminated` (prawdziwy koniec: brak bootstrapu) od `truncated`
     (obcięcie limitem kroków: cel TD nadal szacuje wartość stanu następnego).
-    `repeats` to liczba kroków, w których agent wrócił do obserwacji widzianej już
+    `repeats` to liczba kroków, w których agent wrócił do stanu widzianego już
     w tym epizodzie (miara zapętlenia; w kopalni stan się nie powtarza bez cofania się).
+    Stan to `env.state_key()`, jeśli środowisko je udostępnia (obserwacja z podpowiedzią
+    nie zawiera pozycji), a w przeciwnym razie klucz obserwacji agenta.
     """
     obs, info = env.reset(seed=seed)
-    seen, repeats = {agent.key_fn(obs)}, 0
+    state_key = (lambda _: env.state_key()) if hasattr(env, "state_key") else agent.key_fn
+    seen, repeats = {state_key(obs)}, 0
     use_mask = getattr(agent, "mask_illegal", False)
     mask = env.action_mask() if use_mask else None
     action = agent.act(obs, greedy=greedy, mask=mask)
@@ -203,7 +206,7 @@ def run_episode(env, agent: TabularAgent, learn: bool, seed: int | None = None,
         total += reward
         steps += 1
         max_depth = max(max_depth, info.get("depth", 0))
-        key = agent.key_fn(next_obs)
+        key = state_key(next_obs)
         repeats += key in seen
         seen.add(key)
         done = terminated or truncated or steps >= max_steps

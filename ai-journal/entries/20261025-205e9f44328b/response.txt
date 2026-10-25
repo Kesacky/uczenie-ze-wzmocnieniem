@@ -1,0 +1,22 @@
+**Krótko: tak, według zasad to jest dozwolone.** Jest jedna rzecz, którą warto zrobić dla bezpieczeństwa (punkt 3).
+
+**1. Zasady nie ograniczają tego, co agent ma widzieć.**
+Przejrzałem P00 i P01 (oryginały PDF i `docs/wymagania.md`). Nie ma tam przepisu, który określałby, jaka ma być obserwacja agenta albo zakazywałby podawania mu dodatkowych informacji. Wymagania dotyczące stanu są takie:
+- trzeba jasno opisać, co jest stanem albo obserwacją agenta (P01: „Czy opisano, co jest stanem albo obserwacją agenta?”, „Czy formalizacja stanu, akcji, nagrody i końca epizodu jest kompletna?”);
+- formalizacja ma wskazać założenia do sprawdzenia po testach, czyli zmiany po eksperymentach są wręcz przewidziane;
+- kod ma być zgodny z raportem;
+- porównanie z agentem bazowym ma być uczciwe.
+
+Projektowanie obserwacji to normalna część formalizacji MDP, za którą odpowiadamy my. Narrator nie jest „oszukiwaniem”, bo nie wybiera akcji za agenta. Jest częścią środowiska, które mówi agentowi więcej o świecie. Uczenie (Q-learning, SARSA) zostaje bez zmian.
+
+**2. Uczciwość porównania nawet się poprawia.**
+Heurystyka już teraz zna całą mapę. Agent z narratorem dostaje tylko część tej wiedzy, więc porównanie staje się bardziej wyrównane, a nie mniej.
+
+**3. Na co uważać: koncepcja przekazana prowadzącemu.**
+W `docs/koncepcja.md` (temat z etapu E1) jest zapisane: „obserwacja agenta jest wtedy rozszerzona o widok otoczenia 5×5”, a DQN jako opcjonalne rozszerzenie. Narrator zmienia ten opis. Według mnie nie wymaga to nowej akceptacji, bo temat, gra i algorytmy zostają te same. Robiliśmy już podobne zmiany (rozmiar map, wzór na zawał, nagrody) i są opisane w raporcie w sekcji „Zmiany względem wersji wstępnej”. Mimo to:
+- **warto zachować wyniki z widokiem 5×5** jako wynik negatywny i dodać narratora jako **drugi wariant**, a nie zamiennik. Wtedy plan z koncepcji jest wykonany, a narrator jest jego rozwinięciem uzasadnionym wynikami. To najmocniejsza wersja na obronę: „tablica nie poradziła sobie z widokiem 5×5, przeanalizowano dlaczego i zaprojektowano lepszą obserwację”;
+- jeśli chcesz mieć pewność, możesz krótko napisać prowadzącemu, np.: „Agent tablicowy z widokiem 5×5 nie uogólnia na losowe mapy (za dużo stanów). Zamiast DQN planuję dodać do obserwacji podpowiedź kierunku do złoża i wyjścia. Czy to w porządku?”. Nie jest to obowiązkowe według zasad, ale rozwiewa wątpliwości.
+
+**Czego nie wolno:** narrator nie może podpowiadać akcji („idź w lewo”), bo wtedy agent uczyłby się naśladować, a nie przez wzmocnienie. Nie może też podawać informacji o przyszłości, np. czy przy następnym kroku będzie zawał. Mamy dawać tylko to, co dotyczy obecnego stanu kopalni.
+
+Mam zrobić narratora jako dodatkowy wariant obserwacji?

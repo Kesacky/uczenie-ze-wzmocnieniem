@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-25",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Wyjaśnienie, jak narrator wpisuje się w obecny algorytm",
+  "scope": "Objaśnienie planu zmian; bez zmian w kodzie",
+  "verification": "Nie dotyczy (wyjaśnienie)",
+  "conversation_url": "",
+  "prompt_sha256": "69144fa884b825cff471ac65bfe61849a667dc2b7d676c7ca6f3ceaa1dd86c16",
+  "response_sha256": "d86a240cb31cfa1630feba363a0c1d842a4d1c212a830e44fb9e1808f569fe09",
+  "recorded_at_utc": "2026-10-25T18:42:04.621981+00:00"
+}

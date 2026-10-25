@@ -18,6 +18,10 @@ korytarza (−14). Eksperyment 2 (kara za zawał −5 / −10 / −20) pokazał 
 spadek odsetka zawałów przy wyższej karze, bez płytszego kopania. Eksperyment 3:
 agent tablicowy nie uogólnia na nowe kopalnie — uczony na mapach losowych zdobywa
 ok. −17 pkt (heurystyka 61,7), a uczony na mapie stałej na innej mapie ok. −3 pkt.
+Dodatkowy eksperyment 4 (pomysł studenta): obserwacja z podpowiedzią „narratora” (kierunek
+i odległość do najbliższego złoża i do wyjścia zamiast widoku otoczenia). Z kierunkiem
+pierwszego kroku najkrótszej drogi Q-learning na nowych kopalniach zdobywa 30,8 pkt,
+z samym kierunkiem „na przełaj” 5,2 pkt.
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 
@@ -78,7 +82,8 @@ python scripts/play.py --random --seed 7    # od razu losowa mapa
 Podgląd agenta (`Spacja` pauza, `+`/`-` tempo). Agent: `random`, `threshold`
 (z `--threshold X`), plik modelu `.pkl` zapisany przez `TabularAgent.save` albo `moduł:funkcja`.
 Opcja `--random` przełącza na losowe mapy, `--obs-mode local` dodaje do stanu widok otoczenia
-górnika (potrzebny agentom uczonym na losowych mapach):
+górnika (potrzebny agentom uczonym na losowych mapach), a `--obs-mode hint --hint-kind compass|path`
+daje obserwację z podpowiedzią narratora (modele `ho1` i `ho2` z eksperymentu 4):
 
 ```powershell
 python scripts/watch.py --map m3_gleboka --agent threshold --threshold 6 --fps 8
@@ -125,6 +130,17 @@ python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytar
 python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 10 --episodes 100000 --local-obs 1 --name mapy_stale_lokalne
 python scripts/train.py --maps losowa --seeds 10 --episodes 100000 --local-obs 1 --workers 3 --name mapy_losowe
 python scripts/cross_eval.py --runs mapy_stale_lokalne mapy_losowe --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa --variants q30_n100000_lo1 --workers 4 --out results/train/mapy
+```
+
+Eksperyment 4 (dodatkowy): obserwacja z podpowiedzią narratora (`--hint-obs 1` kompas,
+`--hint-obs 2` droga). Tablice są małe (ok. 0,1 GB na proces):
+
+```powershell
+python scripts/train.py --maps losowa --seeds 10 --episodes 100000 --hint-obs 1 2 --workers 8 --name narrator_losowe
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 10 --episodes 100000 --hint-obs 2 --workers 8 --name narrator_stale
+python scripts/cross_eval.py --runs narrator_stale narrator_losowe --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa --variants q30_n100000_ho1 q30_n100000_ho2 --workers 6 --out results/train/narrator
+python scripts/plot_training.py --name narrator_losowe --variants q30_n100000_ho1 q30_n100000_ho2
+python scripts/watch.py --random --obs-mode hint --hint-kind path --agent results/train/narrator_losowe/models/losowa_q_learning_q30_n100000_ho2_s0.pkl
 ```
 
 Przegląd hiperparametrów: każdy z `--q-init`, `--alpha`, `--gamma`, `--eps-decay`,

@@ -34,7 +34,8 @@ zmiany funkcji nagrody (zasady w wersji 3), eksperyment główny na czterech
 stałych mapach z 10 ziarnami (sekcja \ref{sec:glowny}) oraz stabilizacja treningu
 i usunięcie zapętleń (sekcja \ref{sec:stabil}), a także eksperymenty 2 i 3 z planu:
 wpływ kary za zawał (sekcja \ref{sec:kara_zawal}) oraz mapa stała a losowa (sekcja
-\ref{sec:losowe}). Do napisania przez studenta pozostaje analiza i wnioski.
+\ref{sec:losowe}) oraz dodatkowy eksperyment 4 z podpowiedzią narratora (sekcja
+\ref{sec:narrator}). Do napisania przez studenta pozostaje analiza i wnioski.
 \tableofcontents
 
 \section{Opis problemu}
@@ -110,6 +111,12 @@ rozszerzona o widok otoczenia górnika: kody 25 pól w kwadracie $5\times 5$
 wokół niego (skała lub pole poza mapą, korytarz, niewydobyte złoże, wyjście,
 korytarz grożący zawaleniem). Agent nie widzi całej kopalni, więc jest to
 problem częściowo obserwowalny. Tę cechę uwzględniamy przy interpretacji wyników.
+
+\textbf{Wariant z podpowiedzią narratora} (dodatkowy eksperyment 4, sekcja
+\ref{sec:narrator}). Obserwacja nie zawiera pozycji ani maski złóż, tylko
+$(\sigma, o, n)$, przedział wartości ładunku, kody 4 sąsiednich pól oraz kierunek,
+odległość i rodzaj najbliższego złoża i kierunek oraz odległość do wyjścia. Także
+ten wariant jest częściowo obserwowalny.
 
 \subsection{Akcje}
 $\mathcal{A} = \{\text{góra}, \text{dół}, \text{lewo}, \text{prawo}, \text{podepnij}\}$.
@@ -213,6 +220,11 @@ akcji niedozwolonych po stronie agenta. Zmiany zaproponował student po obejrzen
 zachowania agenta, a eksperymenty z sekcji \ref{sec:nagrody} pokazały, że razem
 z maskowaniem usuwają nieudane uruchomienia. Agentów bazowych oceniono ponownie
 według nowych zasad.
+
+Trzecia zmiana (25.10.2026) nie zmienia zasad gry: dodano opcjonalny wariant
+obserwacji z podpowiedzią narratora (sekcja \ref{sec:narrator}), zaproponowany przez
+studenta. Licznik pętli liczy od tej zmiany powroty do stanu gry zamiast do
+obserwacji; dla wcześniejszych wariantów obserwacji wynik się nie zmienia.
 
 \subsection{Elementy do weryfikacji}
 Siła kompromisu „kopać czy wracać”: przy obecnych parametrach najlepsza
@@ -450,6 +462,10 @@ z wynikami (\texttt{results/}), co pozwala odtworzyć każdy wykres.
   niewidzianych w treningu kopalniach, aby zmierzyć zdolność uogólniania.
   W pierwszej kolejności używana jest ta sama tablicowa metoda. Jeżeli okaże się
   niewystarczająca dla dużej przestrzeni obserwacji, rozważony zostanie DQN.
+  \item \textbf{Obserwacja z podpowiedzią narratora} (dodatkowy, dopisany
+  25.10.2026 po wyniku eksperymentu 3). Ta sama metoda tablicowa na mapach losowych
+  z obserwacją zawierającą kierunek i odległość do najbliższego złoża i do wyjścia
+  zamiast widoku otoczenia (sekcja \ref{sec:narrator}).
 \end{enumerate}
 
 \subsection{Hipotezy}
@@ -1159,7 +1175,8 @@ na swojej mapie i nie przenosi się na inne. Druga część (agent map losowych 
 się na nowe kopalnie) nie potwierdziła się dla metody tablicowej. Tablica Q nie
 uogólnia między podobnymi obserwacjami, więc do map losowych potrzebna byłaby
 aproksymacja funkcji Q (np. DQN, zgodnie z planem) lub znacznie uboższa obserwacja.
-Tej próby nie wykonano.
+DQN nie sprawdzono. Wariant z uboższą obserwacją, zawierającą podpowiedź o położeniu
+złóż, opisuje dodatkowy eksperyment 4 (sekcja \ref{sec:narrator}).
 
 \begin{figure}[ht]
 \centering
@@ -1168,6 +1185,130 @@ Tej próby nie wykonano.
 walidacji zachłannej na stałym zestawie 100 kopalni losowych. Linia: średnia po
 10 ziarnach, pasmo: $\pm$ odchylenie standardowe. Linia przerywana: heurystyka
 progowa na mapach losowych.}\label{fig:losowe}
+\end{figure}
+
+\subsection{Eksperyment 4 (dodatkowy): obserwacja z podpowiedzią narratora}\label{sec:narrator}
+Ten eksperyment wykracza poza pierwotny plan. Zaproponował go student po wyniku
+eksperymentu 3: zamiast zmieniać algorytm (DQN), dać agentowi tablicowemu
+„narratora”, który podpowiada, gdzie są złoża. Q-learning i SARSA pozostają bez zmian,
+zmienia się tylko obserwacja (\texttt{obs\_mode="hint"}, opcja \texttt{--hint-obs}).
+
+\textbf{Obserwacja z podpowiedzią.} Agent nie widzi pozycji, maski złóż ani mapy.
+Obserwacja zawiera:
+\begin{itemize}
+  \item stabilność $\sigma$, przedział oleju $o$, liczbę stempli $n$ oraz wartość
+  ładunku w 5 przedziałach ($0$, $1$--$9$, $10$--$29$, $30$--$59$, $60+$);
+  \item kody 4 sąsiednich pól (góra, dół, lewo, prawo);
+  \item podpowiedź narratora o najbliższym osiągalnym niewydobytym złożu: kierunek,
+  odległość w 4 przedziałach ($1$, $2$--$3$, $4$--$7$, $8+$ kroków najkrótszej drogi)
+  i rodzaj złoża;
+  \item kierunek i odległość (te same przedziały) do wyjścia.
+\end{itemize}
+Porównano dwa rodzaje kierunku:
+\begin{enumerate}
+  \item \textbf{kompas} (\texttt{--hint-obs 1}): kierunek celu „na przełaj”
+  (8 stron świata), bez informacji o ścianach;
+  \item \textbf{droga} (\texttt{--hint-obs 2}): kierunek pierwszego kroku najkrótszej
+  drogi korytarzami (przeszukiwanie wszerz), jak w nawigacji samochodowej.
+\end{enumerate}
+Narrator opisuje stan kopalni, ale nie wybiera akcji: agent sam decyduje, czy iść
+do wskazanego złoża, czy wracać, kiedy użyć stempla i które złoże pominąć, i uczy się
+tego wyłącznie z nagród. Wariant „droga” jest jednak silną pomocą, bo rozwiązuje za
+agenta problem nawigacji w labiryncie korytarzy. Wyniki obu wariantów trzeba czytać
+z tym zastrzeżeniem. Obserwacja nie zawiera pozycji, więc ta sama obserwacja może
+wystąpić w różnych miejscach kopalni. Dlatego licznik pętli liczy od tej zmiany
+powroty do rzeczywistego stanu gry (\texttt{env.state\_key()}), a nie do obserwacji.
+Dla obserwacji pełnej i widoku $5\times5$ na mapie stałej wynik licznika się nie zmienia.
+
+\textbf{Pilotaż.} Pierwsze próby (2 ziarna, 20 tys. epizodów, wyniki niezachowane)
+pokazały, że z kompasem agent na mapach losowych po 20 tys. epizodów wychodzi
+z kopalni tylko w ok. 4\% gier: błądzi wokół ścian, aż skończy mu się olej. Dlatego
+dodano wariant „droga”, który w pilotażu poprawiał się jeszcze pod koniec treningu.
+
+\textbf{Przebieg.} Konfiguracja końcowa (100 tys. epizodów, 10 ziaren, Q-learning
+i SARSA):
+\begin{itemize}
+  \item mapy losowe, oba warianty narratora
+  (\texttt{results/\allowbreak train/\allowbreak narrator\_losowe/}, 40 uruchomień);
+  \item cztery mapy stałe, wariant „droga”
+  (\texttt{results/\allowbreak train/\allowbreak narrator\_stale/}, 80 uruchomień);
+  \item ocena krzyżowa wszystkich 120 modeli na czterech mapach stałych i nowych
+  kopalniach losowych, po 1000 epizodów
+  (\texttt{results/\allowbreak train/\allowbreak narrator/}).
+\end{itemize}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+agent (trening) & stabilna & krucha & głęboka & zawał kor. & losowe \\
+\midrule
+mapy losowe, widok $5\times5$ (eksp. 3) & $-23{,}3$ & $-2{,}9$ & $-16{,}8$ & $-21{,}6$ & $-17{,}6$ \\
+mapy losowe, narrator „kompas” & $12{,}2$ & $-3{,}1$ & $32{,}9$ & $-18{,}1$ & $5{,}3$ \\
+mapy losowe, narrator „droga” & $8{,}8$ & $-2{,}9$ & $60{,}4$ & $-21{,}7$ & $30{,}8$ \\
+\midrule
+mapa stała, narrator „droga”, ta sama mapa & $56{,}7$ & $46{,}4$ & $79{,}3$ & $57{,}6$ & -- \\
+mapa stała, widok $5\times5$, ta sama mapa (eksp. 3) & $56{,}8$ & $46{,}4$ & $84{,}4$ & $57{,}4$ & -- \\
+mapa stała, narrator „droga”, inne mapy & $-3{,}8$ & $-2{,}9$ & $-2{,}7$ & $-3{,}0$ & $-3{,}6$ \\
+\midrule
+heurystyka progowa & $62{,}8$ & $14{,}6$ & $79{,}5$ & $71{,}7$ & $61{,}7$ \\
+agent losowy & $-48{,}8$ & $-35{,}1$ & $-41{,}3$ & $-47{,}7$ & $-42{,}7$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Średni zwrot (Q-learning, 10 ziaren, 1000 epizodów oceny); znaczenie wierszy
+„inne mapy” i kolumny „losowe” jak w sekcji \ref{sec:losowe}. Wyniki SARSA na mapach
+losowych: kompas $2{,}5$, droga $25{,}2$ pkt; na mapach stałych z narratorem:
+$56{,}4$, $40{,}0$, $74{,}5$ i $56{,}8$ pkt.
+
+Obserwacje:
+\begin{itemize}
+  \item Z narratorem „droga” agent tablicowy po raz pierwszy nauczył się grać na
+  nowych kopalniach: $30{,}8\pm1{,}6$ pkt (Q-learning) wobec $-17{,}6$ z widokiem
+  $5\times5$. Wychodzi z kopalni w 50\% epizodów (zawał 20\%, brak oleju 30\%)
+  i wynosi średnio $30{,}3$ pkt ładunku. Wszystkie 10 ziaren dało podobny wynik
+  (odchylenie między ziarnami $1{,}6$ pkt). Nadal jest to ok. połowa wyniku heurystyki
+  progowej ($61{,}7$).
+  \item Kompas daje znacznie mniej: $5{,}2$ pkt i wyjście w 23\% epizodów, a w 53\%
+  epizodów kończy się olej. Sam kierunek celu bez informacji o ścianach nie
+  wystarcza do nawigacji w nowej kopalni.
+  \item Tablica jest wielokrotnie mniejsza niż przy widoku $5\times5$: średnio ok.
+  96 tys. stanów (droga) i ok. 203 tys. (kompas) wobec ok. 2,2 mln, a trening trwa ok.
+  16 minut na proces.
+  \item Krzywe uczenia na mapach losowych (rys.~\ref{fig:narrator}) rosną jeszcze pod
+  koniec treningu (wariant „droga”, Q-learning: $-15$ pkt po 10 tys., $25$ pkt po
+  70 tys., $33$ pkt po 100 tys. epizodów). Dłuższy trening prawdopodobnie poprawiłby
+  wynik; tego nie sprawdzono.
+  \item SARSA jest na mapach losowych gorsza od Q-learningu o ok. 6 pkt (droga)
+  i ok. 3 pkt (kompas).
+  \item Agent map losowych z narratorem „droga” przenosi się nierówno na mapy stałe:
+  na mapie głębokiej osiąga $60{,}4$ pkt (ale z dużym rozrzutem między ziarnami,
+  odchylenie $23{,}7$), na stabilnej $8{,}8$ (odchylenie $26{,}1$), na kruchej
+  wychodzi prawie od razu ($-2{,}9$, głębokość ok. $2{,}4$), a na mapie z zawałem
+  korytarza w 83\% epizodów kończy mu się olej ($-21{,}7$). Przyczyn tych różnic nie
+  badano osobno. Na mapie z zawałem korytarza droga do wyjścia zmienia się po
+  wydobyciu, co może być jedną z nich.
+  \item Na mapie stałej narrator nie poprawia wyniku: agent osiąga to samo co z widokiem
+  $5\times5$ na trzech mapach i ok. 5 pkt mniej na mapie głębokiej. Agent mapy stałej
+  z narratorem, tak jak bez niego, nie przenosi się na inne kopalnie (ok. $-3$ pkt).
+  Zwykle wychodzi z nich szybko prawie bez ładunku. Taki agent widział w treningu
+  tylko obserwacje jednej kopalni.
+\end{itemize}
+Wynik pokazuje, że w tym zadaniu ograniczeniem metody tablicowej na mapach losowych
+była przede wszystkim obserwacja: po zastąpieniu widoku otoczenia zwięzłą
+podpowiedzią ta sama metoda zaczęła uogólniać na nowe kopalnie. Przewaga pochodzi
+jednak w dużej części od narratora, który liczy najkrótszą drogę za agenta. Agent
+z narratorem nie gra więc w tę samą grę co agent bez niego ani co heurystyka
+progowa, która zna całą mapę.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{../results/train/narrator_losowe/curves.png}
+\caption{Przebieg uczenia na mapach losowych z obserwacją z podpowiedzią narratora:
+średni zwrot walidacji zachłannej na stałym zestawie 100 kopalni losowych
+(\texttt{ho1} --- kompas, \texttt{ho2} --- droga). Linia: średnia po 10 ziarnach,
+pasmo: $\pm$ odchylenie standardowe. Linia przerywana: heurystyka progowa na mapach
+losowych.}\label{fig:narrator}
 \end{figure}
 
 \section{Analiza i wnioski}
@@ -1188,7 +1329,11 @@ zmienia zadanie: opłaca się wydobywać nawet z ryzykiem zawału (sekcja
 zachowania agenta (sekcja \ref{sec:kara_zawal}). Agent tablicowy nie uogólnia na
 nowe kopalnie: uczony na mapach losowych nie nauczył się grać, a uczony na mapie
 stałej wychodzi z innej kopalni prawie bez ładunku (sekcja \ref{sec:losowe}).
-Nie sprawdzono aproksymacji funkcji Q (np. DQN). Wyniki sprzed 24.10.2026 oceniano według zasad w wersji 2
+Z podpowiedzią narratora agent tablicowy uczy się grać na nowych kopalniach, ale
+osiąga ok. połowę wyniku heurystyki, a podpowiedź „droga” wykonuje za agenta
+nawigację, więc wynik nie jest wprost porównywalny z agentem bez podpowiedzi
+(sekcja \ref{sec:narrator}). Trening z narratorem nie był jeszcze zbieżny po 100 tys.
+epizodów. Nie sprawdzono aproksymacji funkcji Q (np. DQN). Wyniki sprzed 24.10.2026 oceniano według zasad w wersji 2
 i nie są wprost porównywalne z późniejszymi.
 Wariant z losową mapą jest częściowo obserwowalny (agent widzi tylko otoczenie
 $5\times 5$). Model zawału jest umowny i nie odwzorowuje rzeczywistej mechaniki
@@ -1237,6 +1382,20 @@ python scripts/train.py --maps losowa --seeds 10 --episodes 100000
 python scripts/cross_eval.py --runs mapy_stale_lokalne mapy_losowe
     --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa
     --variants q30_n100000_lo1 --workers 4 --out results/train/mapy
+\end{verbatim}
+Eksperyment 4 z narratorem (sekcja \ref{sec:narrator}):
+\begin{verbatim}
+python scripts/train.py --maps losowa --seeds 10 --episodes 100000
+    --hint-obs 1 2 --workers 8 --name narrator_losowe
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka
+    m4_zawal_korytarza --seeds 10 --episodes 100000 --hint-obs 2
+    --workers 8 --name narrator_stale
+python scripts/cross_eval.py --runs narrator_stale narrator_losowe
+    --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa
+    --variants q30_n100000_ho1 q30_n100000_ho2 --workers 6
+    --out results/train/narrator
+python scripts/plot_training.py --name narrator_losowe
+    --variants q30_n100000_ho1 q30_n100000_ho2
 \end{verbatim}
 Wyniki trafiają do \texttt{results/train/nazwa/}. Tablice Q
 (\texttt{models/*.pkl}) nie są przechowywane w repozytorium, bo odtwarza je

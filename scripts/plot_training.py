@@ -80,8 +80,9 @@ def main() -> int:
     for ax in list(axes.flat)[len(maps):]:
         ax.set_visible(False)
     handles, labels = axes.flat[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=min(4, len(labels)), frameon=False)
-    legend_rows = (len(labels) + 3) // 4
+    ncol = min(2 * cols, len(labels))   # przy jednym panelu legenda nie mieści się w 4 kolumnach
+    fig.legend(handles, labels, loc="lower center", ncol=ncol, frameon=False)
+    legend_rows = (len(labels) + ncol - 1) // ncol
     fig.tight_layout(rect=(0, (0.05 + 0.035 * legend_rows) / nrows ** 0.5, 1, 1))
     out = args.out or run_dir / "curves.png"
     fig.savefig(out, dpi=130)

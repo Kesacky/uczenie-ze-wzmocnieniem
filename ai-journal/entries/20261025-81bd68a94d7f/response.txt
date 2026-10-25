@@ -1,0 +1,33 @@
+**DRL** (Deep Reinforcement Learning, głębokie uczenie ze wzmocnieniem) to uczenie ze wzmocnieniem, w którym agent zamiast tablicy używa **sieci neuronowej**. **DQN** (Deep Q-Network) to najbardziej znany algorytm DRL. To w zasadzie nasz Q-learning, w którym tablicę Q zastąpiono siecią neuronową.
+
+## Na przykładzie naszego górnika
+
+**Teraz (tablica Q):** agent ma ogromny „zeszyt”. Każda sytuacja, którą kiedykolwiek widział, to osobna linijka z oceną każdego ruchu, np.:
+
+| sytuacja | góra | dół | lewo | prawo | stempel |
+|---|---|---|---|---|---|
+| widok A, olej 3, 2 stemple | 12,1 | 30,4 | 8,0 | 15,2 | 5,5 |
+| widok B, olej 3, 2 stemple | ... | ... | ... | ... | ... |
+
+Jeśli sytuacji nie ma w zeszycie, agent nic o niej nie wie (stąd startowe Q = 30 i krążenie po losowych mapach). Dwie prawie identyczne sytuacje to dwie zupełnie osobne linijki.
+
+**DQN (sieć neuronowa):** zamiast zeszytu agent ma „funkcję”, która dostaje sytuację jako liczby (np. 25 pól widoku, olej, stemple) i **wylicza** ocenę każdego ruchu. Sieć uczy się wzorców w rodzaju „złoże dwa pola niżej → ruch w dół jest dobry”. Dzięki temu w sytuacji, której nigdy nie widziała, ale która jest podobna do znanych, też da sensowną odpowiedź. To właśnie **uogólnianie**, którego brakuje tablicy.
+
+## Jak się go uczy (w skrócie)
+
+Zasada jest ta sama co w Q-learningu: po każdym ruchu porównuje się przewidywaną wartość z „nagroda + wartość następnego stanu” i poprawia błąd. Różnica polega na tym, że zamiast wpisać nową liczbę do tablicy, lekko poprawia się wagi sieci. Żeby to działało stabilnie, DQN dodaje dwa triki:
+- **pamięć doświadczeń** (replay buffer): agent zapisuje swoje ruchy i uczy się na losowo wybranych starych przykładach, a nie tylko na ostatnim kroku;
+- **sieć docelowa** (target network): druga, rzadko aktualizowana kopia sieci służy do liczenia „wartości następnego stanu”, żeby cel nauki nie uciekał przy każdej poprawce.
+
+## Plusy i minusy dla naszego projektu
+
+| | tablica Q (teraz) | DQN |
+|---|---|---|
+| uogólnianie na nowe mapy | nie | tak |
+| łatwość wyjaśnienia na obronie | łatwo: „oto liczba w tablicy” | trudniej: architektura sieci, replay, sieć docelowa |
+| liczba hiperparametrów | kilka | dużo więcej (warstwy, uczenie sieci, rozmiar pamięci...) |
+| stabilność treningu | dobra (po naszych poprawkach) | często niestabilny, trzeba stroić |
+| dodatkowe biblioteki | brak | np. PyTorch |
+| wymagany w projekcie? | — | **nie** (P00: projekt tablicowy może dostać maksimum punktów) |
+
+Dlatego polecałem narratora: rozwiązuje ten sam problem (za dużo różnych sytuacji) od strony obserwacji, a cała reszta zostaje tak, jak jest i jak ją już rozumiesz. DQN to „cięższa armata”. Ma sens, jeśli chcesz pokazać w projekcie coś więcej, ale kosztuje więcej pracy i trudniej go obronić.

@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-25",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Sprawdzenie postępu obliczeń",
+  "scope": "Odczyt logu treningu i szacunek czasu; bez zmian w kodzie",
+  "verification": "Nie dotyczy (informacja o postępie)",
+  "conversation_url": "",
+  "prompt_sha256": "fbdaab7023116610947e8646923fa8a192ee788a5afb8343a5dbe15676e453e1",
+  "response_sha256": "d5b3c5214c1d152dc033ce00f9003f4e102f9f8fca6bcff3bf03c21daa1bf62b",
+  "recorded_at_utc": "2026-10-25T21:18:12.734500+00:00"
+}

@@ -495,3 +495,32 @@ def test_action_mask_matches_legality():
             assert mask[action] == (not info["illegal"])
             if terminated or truncated:
                 env.reset(seed=int(rng.integers(1000)))
+
+
+def test_hint_observation():
+    # TINY: z S (2,1) najbliższe złoże to c (1,1) obok, wyjście tuż nad startem.
+    env, obs, _ = make(**SAFE, obs_mode="hint")
+    # (sigma, o, n, ładunek, sąsiedzi góra/dół/lewo/prawo, złoże: kierunek/odległość/rodzaj, wyjście)
+    assert obs.tolist() == [5, 3, 2, 0, 3, 4, 2, 1, 7, 0, 1, 1, 0]
+    assert env.observation_space.contains(obs)
+    obs, *_ = env.step(LEFT)             # wydobycie c (3 pkt); następne złoże g dwa pola niżej
+    assert obs.tolist() == [4, 3, 2, 1, 0, 1, 0, 1, 5, 1, 3, 2, 1]   # wydobycie obniża stabilność
+    assert env.state_key() == (1, 1, 4, 3, 1, 0, 2)
+    with pytest.raises(ValueError):
+        env.decode(obs)
+    env.step(DOWN)
+    obs, *_ = env.step(DOWN)             # wydobycie g: nie ma już złóż
+    assert obs[8:11].tolist() == [0, 0, 0]
+
+
+def test_hint_path_kind_follows_corridors():
+    env, obs, _ = make(**SAFE, obs_mode="hint", hint_kind="path")
+    assert obs[8] == LEFT + 1 and obs[11] == UP + 1      # pierwszy krok drogi do złoża i do wyjścia
+    obs, *_ = env.step(LEFT)
+    assert obs[8] == DOWN + 1 and obs[11] == RIGHT + 1   # do wyjścia przez S, nie przez skałę
+    # Droga nie prowadzi przez niewydobyte złoże: g za c osiągalne tylko dookoła.
+    env, _, _ = make("E####\nS.cg#\n#...#\n#####\n", **SAFE, obs_mode="hint", hint_kind="path")
+    paths = env._paths()
+    assert paths[(2, 1)] == (2, RIGHT + 1) and paths[(3, 1)] == (5, RIGHT + 1)
+    with pytest.raises(ValueError):
+        MineEnv(parse_map(TINY, "test"), obs_mode="hint", hint_kind="gps")

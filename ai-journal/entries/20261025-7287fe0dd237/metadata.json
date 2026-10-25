@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-25",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Wyjaśnienie liczby procesów treningu",
+  "scope": "Sprawdzenie procesora i pamięci; bez zmian w kodzie",
+  "verification": "Nie dotyczy (wyjaśnienie)",
+  "conversation_url": "",
+  "prompt_sha256": "157de806367e49f98deff23d35a905c05afe5ec978b983e43dcdd6d4b0c1ebbf",
+  "response_sha256": "4c0c5bbab4db0c04660c11ee6d30f2edbfb5f4956eb350f32b239ec3c3342ce5",
+  "recorded_at_utc": "2026-10-25T19:07:33.934757+00:00"
+}

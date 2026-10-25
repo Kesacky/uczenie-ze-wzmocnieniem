@@ -1,0 +1,45 @@
+[Komunikaty w trakcie pracy]
+Obliczenia się skończyły. Teraz robię wykres i wpisuję wyniki do raportu.
+
+Wyniki są w raporcie. Zostało poprawić kilka liczb w tabeli, a potem uruchomić testy i skompilować dokument.
+
+Dodaję jeszcze możliwość podglądu agenta z narratorem w oknie gry. Przyda się przy obronie.
+
+Podgląd agenta z narratorem działa: nagrałem 2 gry, w jednej agent wyszedł z kopalni, w drugiej skończył mu się olej. Teraz uzupełniam README, plan etapów i sekcję o wsparciu AI.
+
+Raport się kompiluje bez błędów. Sprawdzam jeszcze, czy nowa tabela mieści się na stronie, a potem robię commit.
+
+[Odpowiedź]
+Eksperyment 4 z narratorem jest policzony i opisany w raporcie (sekcja 8.9). Zmiany są w commicie i wysłane na GitHub.
+
+**Najważniejsze wyniki** (Q-learning, 10 ziaren, ocena na nowych kopalniach losowych):
+
+| agent uczony na mapach losowych | zwrot | wyjścia z kopalni |
+|---|---|---|
+| widok 5×5 (eksperyment 3) | −17,6 | ok. 18% |
+| narrator „kompas” | 5,2 | 23% |
+| narrator „droga” | **30,8** | 50% |
+| heurystyka progowa (dla porównania) | 61,7 | – |
+
+- Z narratorem „droga” agent tablicowy pierwszy raz nauczył się grać na nowych kopalniach, i to we wszystkich 10 ziarnach (rozrzut ±1,6 pkt). To nadal ok. połowa wyniku heurystyki.
+- „Kompas” pomaga niewiele: w 53% gier agentowi kończy się olej, bo nie wie, jak obejść ściany.
+- Tablica ma ok. 96 tys. stanów zamiast 2,2 mln, a trening trwa ok. 16 minut.
+- Krzywa uczenia rośnie jeszcze pod koniec (wykres w raporcie), więc dłuższy trening prawdopodobnie by pomógł. Tego nie sprawdzałem.
+- Na mapach stałych narrator nic nie zmienia: wyniki są takie same jak z widokiem 5×5, a na mapie głębokiej o ok. 5 pkt niższe. Agent mapy stałej nadal nie przenosi się na inne kopalnie.
+- Agent map losowych na mapach stałych radzi sobie nierówno: głęboka 60,4, stabilna 8,8, krucha −2,9 (wychodzi od razu), zawał korytarza −21,7 (kończy mu się olej). Przyczyn nie badałem osobno.
+
+W raporcie jest uczciwe zastrzeżenie: „droga” wykonuje za agenta nawigację, więc ten wynik nie jest wprost porównywalny z agentem bez podpowiedzi ani z heurystyką.
+
+**Co jeszcze zrobiłem**
+- Podgląd i nagrywanie obsługują teraz narratora: `--obs-mode hint --hint-kind path` (polecenie jest w README).
+- Poprawiłem legendę wykresu, która przy jednym panelu nie mieściła się w obrazku.
+- Uzupełniłem formalizację MDP, plan eksperymentów, „Zmiany względem wersji wstępnej”, ograniczenia, instrukcję uruchomienia, README, `docs/etapy.md` i sekcję „Wsparcie AI”.
+
+**Sprawdzenie:** 208 testów przechodzi, raport kompiluje się bez błędów i niezdefiniowanych odwołań.
+
+**Do zrobienia po Twojej stronie**
+- Przejrzeć sekcję 8.9 i zweryfikować wyniki. W sekcji AI jest wpis, że jeszcze ich nie weryfikowano.
+- Napisać „Analizę i wnioski”. Eksperyment 4 daje dobry materiał: w tym zadaniu ograniczeniem metody tablicowej była obserwacja, a nie sam algorytm.
+- Warto obejrzeć agenta w akcji:
+  `python scripts/watch.py --random --obs-mode hint --hint-kind path --agent results/train/narrator_losowe/models/losowa_q_learning_q30_n100000_ho2_s0.pkl`
+- Jeśli prowadzący pyta o zmiany planu, warto wspomnieć, że eksperyment 4 jest dodatkiem spoza pierwotnego planu.

@@ -6,7 +6,8 @@ mapie docelowej z --targets ('losowa' = nowe kopalnie z generatora). Ziarna ewal
 są te same co w ewaluacji końcowej treningu i u agentów bazowych (od 1 000 000), a mapy
 losowe wyznacza ziarno epizodu, więc żadna z nich nie wystąpiła w treningu (ziarna
 treningu < 1 000 000). Wszystkie mapy mają rozmiar 12×11 i 5 złóż, więc obserwacja
-z widokiem otoczenia ma ten sam format na każdej mapie. Ocena według zasad gry.
+z widokiem otoczenia ma ten sam format na każdej mapie. Modele z obserwacją z podpowiedzią
+(wariant z 'ho1' lub 'ho2') są oceniane z tą samą obserwacją. Ocena według zasad gry.
 
 Pliki wynikowe w katalogu --out:
 - cross_runs.csv    - wynik każdego modelu na każdej mapie docelowej;
@@ -40,7 +41,8 @@ MODEL_NAME = re.compile(r"^(?P<map>.+?)_(?P<agent>q_learning|sarsa)_(?P<variant>
 
 def evaluate_model(job: dict) -> dict:
     agent = TabularAgent.load(job["model"])
-    env = make_env(job["target"], local_obs=1)
+    hint = re.search(r"(?:^|_)ho(\d)", job["variant"])
+    env = make_env(job["target"], local_obs=1, hint_obs=int(hint[1]) if hint else 0)
     rows = evaluate_rows(env, agent, job["episodes"], job["seed0"])
     return {k: job[k] for k in ("run", "map", "agent", "variant", "seed", "target")} | summarize(rows)
 

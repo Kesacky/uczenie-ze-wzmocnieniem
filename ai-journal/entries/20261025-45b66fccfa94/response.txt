@@ -1,0 +1,54 @@
+[Komunikaty w trakcie pracy]
+Robię narratora jako osobny dodatek (eksperyment 4). Zaczynam od kodu obserwacji w środowisku.
+
+Podpowiedź liczy się poprawnie. Na mapie głębokiej górnik dostaje kierunek do najbliższego złoża, jego rodzaj i odległość oraz kierunek do wyjścia. Teraz podłączam nowy tryb do skryptów treningu i oceny.
+
+Teraz krótki pilotaż: 20 tys. epizodów na losowych mapach z narratorem. Sprawdzam, ile stanów powstaje i czy agent w ogóle zaczyna się uczyć, zanim puszczę pełny trening.
+
+Pilotaż wypadł słabo: po 20 tys. epizodów jest już 108 tys. stanów, a agent wychodzi z kopalni tylko w 4% gier. Sprawdzam jeszcze, czy z tą samą obserwacją radzi sobie na stałej mapie, żeby ustalić, gdzie leży problem.
+
+Na stałej mapie z narratorem agent osiąga ok. 98 pkt (Q-learning). To więcej niż z pełnym stanem (84) i więcej niż heurystyka (79,5). Sama obserwacja działa, a na losowych mapach problemem jest nawigacja. Kierunek „na przełaj” do złoża nie mówi, jak obejść ściany, więc agent błądzi, aż skończy mu się olej.
+
+Sprawdzam drugi wariant podpowiedzi: kierunek pierwszego kroku najkrótszej drogi korytarzami (jak w nawigacji GPS).
+
+Wariant „droga” działa poprawnie: na starcie pokazuje krok w dół w stronę złoża i w górę do wyjścia. Teraz pilotaż na losowych mapach.
+
+Na losowych mapach z podpowiedzią drogi agent po 20 tys. epizodów nadal się poprawia: zwrot w walidacji wzrósł z −15 do −2. Tablica ma tylko ok. 60 tys. stanów, więc pełny trening (100 tys. epizodów) zmieści się w pamięci.
+
+Przed uruchomieniem poprawiam jeszcze licznik pętli. Przy obserwacji z podpowiedzią ta sama obserwacja może wystąpić w różnych miejscach kopalni, więc licznik musi patrzeć na rzeczywisty stan gry.
+
+Wszystkie 206 testów przechodzi. Na stałych mapach nowy licznik pętli liczy tak samo jak wcześniej, więc dotychczasowe wyniki pozostają porównywalne. Dopisuję testy narratora.
+
+[Odpowiedź]
+Narrator jest gotowy jako osobny dodatek. Pełny trening właśnie ruszył w tle.
+
+**Co powstało**
+- W środowisku jest nowy tryb obserwacji `obs_mode="hint"`. Agent nie widzi pozycji ani mapy, tylko:
+  - stabilność, olej, stemple i ładunek (w 5 przedziałach);
+  - 4 sąsiednie pola;
+  - podpowiedź narratora: kierunek, odległość i rodzaj najbliższego złoża oraz kierunek i odległość do wyjścia.
+- Są dwa warianty narratora:
+  1. **„kompas”**: kierunek celu na przełaj (8 stron świata), bez informacji o ścianach;
+  2. **„droga”**: kierunek pierwszego kroku najkrótszej drogi korytarzami, jak w nawigacji GPS.
+- Opcja `--hint-obs 1/2` w treningu i obsługa w ocenie krzyżowej. Q-learning i SARSA bez zmian.
+- Licznik pętli liczy teraz powroty do rzeczywistego stanu gry, a nie do obserwacji. Przy narratorze ta sama obserwacja pojawia się w wielu miejscach kopalni. Dla wcześniejszych trybów wynik licznika się nie zmienia.
+- 3 nowe testy. Wszystkie 208 testów przechodzi.
+
+**Pilotaże (2 ziarna, 20 tys. epizodów; to nie są wyniki końcowe)**
+- Kompas, mapa głęboka: Q-learning **ok. 98 pkt**, czyli więcej niż z pełnym stanem (84) i więcej niż heurystyka (79,5). SARSA ok. 72.
+- Kompas, mapy losowe: ok. −15 pkt, agent wychodzi tylko w 4% gier. Nie wie, jak obejść ściany, więc błądzi, aż skończy mu się olej.
+- Droga, mapy losowe: ok. −3 pkt. Wynik w walidacji jeszcze rósł pod koniec (z −15 do −2), a tablica ma tylko ok. 60 tys. stanów zamiast milionów.
+
+**Ważna uwaga o wariancie „droga”.** Wcześniej napisałem, że narrator nie może mówić „idź w lewo”. Wariant „droga” jest bliżej tej granicy: podaje, w którą stronę prowadzi najkrótsza droga. Nadal jest to informacja, a nie polecenie:
+- agent może z niej nie skorzystać;
+- sam uczy się, czy iść do złoża, czy wracać, kiedy podeprzeć strop i które złoże pominąć;
+- uczy się wyłącznie z nagród, nie z przykładów „dobrych ruchów”.
+
+To jednak mocna pomoc i w raporcie trzeba to opisać uczciwie. Dlatego liczę oba warianty: „kompas” to podpowiedź skromniejsza, „droga” to silniejsza. Ich porównanie pokazuje, ile informacji potrzebuje tablica Q, żeby poradzić sobie z nowymi kopalniami. To dobry materiał do analizy.
+
+**Co się teraz liczy w tle**
+1. Mapy losowe, oba warianty narratora, Q-learning i SARSA, 10 ziaren, 100 tys. epizodów: 40 uruchomień.
+2. Mapy stałe z narratorem „droga”: 80 uruchomień, żeby sprawdzić, czy narrator pomaga też na znanej mapie.
+3. Ocena krzyżowa wszystkich modeli na 4 mapach stałych i nowych kopalniach losowych.
+
+Szacuję łącznie ok. 3–3,5 godziny. Pamięci wystarczy, bo tablice są wielokrotnie mniejsze niż przy widoku 5×5. Gdy skończy, wpiszę wyniki do raportu jako osobny punkt „Eksperyment 4 (dodatkowy): obserwacja z podpowiedzią narratora”, z zaznaczeniem, że to rozszerzenie spoza pierwotnego planu, zaproponowane przez Ciebie.

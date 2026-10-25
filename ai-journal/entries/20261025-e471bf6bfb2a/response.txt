@@ -1,0 +1,21 @@
+**Nie, DQN nie jest wymagany.** Zasady projektu mówią wprost: „Dobry projekt tablicowy może uzyskać maksimum punktów; DRL nie jest warunkiem maksymalnej oceny” (P00 §6–7, w `docs/wymagania.md`). DQN pojawił się tylko w naszym własnym planie, jako możliwość na wypadek, gdyby tablica nie wystarczyła. Nic nas do niego nie zobowiązuje. Trzeba tylko w raporcie opisać, dlaczego wybraliśmy inną drogę.
+
+**Pomysł z „narratorem” jest dobry, i to z ważnego powodu.** Heurystyka, z którą porównujemy agenta, **zna całą mapę**: wie, gdzie są wszystkie złoża i ile są warte (`miner_rl/agents/baselines.py`). Agent RL na losowej mapie widzi tylko 5×5 pól. Porównanie było więc nierówne. Podpowiedź wyrównuje szanse.
+
+Jak to zrobić w praktyce, żeby wyszło dobrze:
+- **Narrator podaje informację, a nie decyzję.** Agent dostaje w obserwacji np.:
+  - kierunek do najbliższego niewydobytego złoża (8 kierunków);
+  - przybliżoną odległość do niego (kilka przedziałów);
+  - jego wartość (rodzaj złoża);
+  - kierunek do wyjścia.
+  Agent nadal sam decyduje, co z tym zrobić. Gdyby narrator mówił „idź w lewo”, to byłoby naśladowanie, a nie uczenie ze wzmocnieniem.
+- **Trzeba zastąpić widok 5×5, a nie go uzupełnić.** Gdybyśmy dodali podpowiedź do pełnego widoku, stanów byłoby jeszcze więcej i problem by został. Zamiast widoku agent dostałby tylko 4 sąsiednie pola (przejście / skała / złoże) i podpowiedź narratora. Wtedy stanów powinno być rzędu dziesiątek tysięcy, a nie milionów, i tablica Q ma szansę się nauczyć.
+- **W raporcie** to zmiana definicji stanu w MDP. Trzeba ją opisać jako nowy wariant obserwacji („obserwacja z podpowiedzią”) z uzasadnieniem: wyrównanie informacji z heurystyką i ograniczenie liczby stanów.
+
+**Ryzyka:**
+- Nie wiem z góry, czy to wystarczy. Podpowiedź o najbliższym złożu może prowadzić agenta do taniego złoża, gdy obok jest cenniejsze. Częściowo można temu zaradzić, podając rodzaj złoża albo kierunek do najcenniejszego.
+- Na obronie warto mieć gotową odpowiedź na pytanie: „czy to nie jest ułatwianie agentowi?”. Odpowiedź: heurystyka ma jeszcze więcej informacji, a agent musi sam nauczyć się, kiedy kopać, kiedy podeprzeć strop i kiedy wracać.
+
+**Koszt:** nowy tryb obserwacji w środowisku z testami (ok. godziny pracy) i trening z oceną krzyżową (prawdopodobnie 1–2 godziny, mniej pamięci niż teraz). To mniej niż DQN i zostaje przy tej samej metodzie, którą już rozumiesz.
+
+Polecam ten pomysł zamiast DQN. Mam to zrobić?

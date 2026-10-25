@@ -91,6 +91,16 @@ zostało przerwane z powodu braku pamięci; po decyzji studenta dokończono je n
 mniejszej liczbie procesów. Interpretacje oznaczone jako prawdopodobne nie były
 sprawdzane osobnym eksperymentem. Student nie weryfikował jeszcze tych wyników.
 
+25.10.2026 (Claude Code, model claude-opus-5-5): student zaproponował „narratora”
+podpowiadającego agentowi na mapach losowych, gdzie są złoża, i polecił wykonać to
+jako dodatkowy eksperyment przy zachowaniu Q-learningu. Claude zaprojektował
+i zaimplementował obserwację z podpowiedzią w dwóch wariantach (kierunek „na przełaj”
+i kierunek pierwszego kroku najkrótszej drogi), zmienił licznik pętli na rzeczywisty
+stan gry, dodał opcje w treningu, ocenie krzyżowej i podglądzie (z testami), wykonał
+pilotaże, uruchomił 120 treningów i 600 ocen krzyżowych oraz opisał wyniki w sekcji
+\ref{sec:narrator}. Claude zaznaczył, że wariant „droga” jest silną pomocą
+wykonującą za agenta nawigację. Student nie weryfikował jeszcze tych wyników.
+
 \subsection*{Weryfikacja studenta}
 Oświadczenie studenta z 24.10.2026: student zweryfikował całość dotychczasowych
 zmian (etapy E1 i E2), w tym kod, wyniki pilotażu i raport.

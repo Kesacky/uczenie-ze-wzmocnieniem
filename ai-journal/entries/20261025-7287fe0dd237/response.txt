@@ -1,0 +1,16 @@
+Celowo uruchamiam 8 procesów. Powody są trzy.
+
+**1. Procesor ma 8 prawdziwych rdzeni, a nie 16.**
+To AMD Ryzen 7 7800X3D: 8 rdzeni i 16 wątków. Każdy rdzeń udaje dwa „logiczne procesory” (SMT, czyli Hyper-Threading), ale oba wątki korzystają z tych samych jednostek obliczeniowych. Menedżer zadań przy 8 procesach pokazuje ok. 50%, choć rdzenie są już prawie w pełni zajęte. Przy 16 procesach trening przyspieszyłby zwykle tylko o 20–30%, a nie dwukrotnie, bo dwa procesy na jednym rdzeniu nawzajem się spowalniają.
+
+**2. Pamięć.**
+Poprzedni trening (mapy losowe z widokiem 5×5) przerwano, bo zabrakło RAM. Każdy proces zajmował wtedy 1,5–1,8 GB, więc po tamtej awarii zostawiłem zapas. Teraz, z narratorem, tablice są małe: wszystkie procesy razem zajmują ok. 0,8 GB, a wolne jest 17,5 GB. Pamięć nie jest już ograniczeniem.
+
+**3. Komputer ma dalej normalnie działać.**
+Przy 16 procesach system, przeglądarka i inne programy wyraźnie by zwolniły, a cały zysk to wspomniane 20–30%.
+
+**Czy da się szybciej?** Tak, trochę:
+- Mogę przerwać trening i uruchomić go od nowa na 14–15 procesach. Skończone uruchomienia się nie zgubią, bo zapisują się na bieżąco, ale te w trakcie zaczną się od początku. Zysk to ok. 30–40 minut z ok. 3 godzin, a w tym czasie komputer będzie wolniejszy.
+- Mogę też dokończyć bieżący etap jak teraz, a następne etapy uruchomić na większej liczbie procesów.
+
+Polecam zostawić tak, jak jest, chyba że potrzebujesz wyników szybciej. Daj znać, to zmienię.

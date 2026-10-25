@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-25",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Wyjaśnienie pojęć DQN i DRL",
+  "scope": "Objaśnienie teoretyczne; bez zmian w kodzie",
+  "verification": "Nie dotyczy (wyjaśnienie pojęć)",
+  "conversation_url": "",
+  "prompt_sha256": "889dbdc86fd50725414681c15034092b43bb5b3b90f3865e3f5a476850671e52",
+  "response_sha256": "4e33014d972fc9dbf200c9e44ad1497ebb049a4a5addd06b4dc9a3f3e5a4254e",
+  "recorded_at_utc": "2026-10-25T18:35:21.366663+00:00"
+}

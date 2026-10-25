@@ -54,7 +54,9 @@ def parser(description, agent=False, scale='auto'):
     mode = p.add_mutually_exclusive_group()
     mode.add_argument('--map', help='Nazwa lub ścieżka mapy')
     mode.add_argument('--random', action='store_true', help='Losuj mapę każdego epizodu')
-    p.add_argument('--obs-mode', choices=['state', 'local'], default='state')
+    p.add_argument('--obs-mode', choices=['state', 'local', 'hint'], default='state')
+    p.add_argument('--hint-kind', choices=['compass', 'path'], default='compass',
+                   help='Podpowiedź narratora przy --obs-mode hint (ho1 = compass, ho2 = path)')
     p.add_argument('--view-radius', type=positive, default=2)
     p.add_argument('--oil-bins', type=int, default=None,
                    help='Przedziały oleju w obserwacji (jak przy treningu agenta; domyślnie z konfiguracji)')
@@ -74,7 +76,8 @@ def parser(description, agent=False, scale='auto'):
 def create(args):
     overrides = {} if getattr(args, 'oil_bins', None) is None else {'oil_bins': args.oil_bins}
     env = MineEnv(args.map or 'm1_stabilna', random_maps=args.random,
-                  obs_mode=args.obs_mode, view_radius=args.view_radius, **overrides)
+                  obs_mode=args.obs_mode, view_radius=args.view_radius,
+                  hint_kind=getattr(args, 'hint_kind', 'compass'), **overrides)
     renderer = Renderer(env, scale=resolve_scale(args.scale, env.width, env.height),
                         use_textures=not args.no_textures, lamp=not args.no_lamp)
     if args.random:

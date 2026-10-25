@@ -55,7 +55,7 @@ def test_ofat_variants():
     values = {"q_init": [10.0, 30.0], "alpha": [0.1, 0.3, 0.5], "alpha_end": [0.01], "gamma": [0.99],
               "eps_decay": [0.7], "eps_end": [0.05], "episodes": [50_000], "oil_bins": [4],
               "reward_step": [-0.25], "reward_illegal": [-2.0], "reward_collapse": [-10.0], "dig_fraction": [0.3],
-              "dig_refund": [0], "mask_illegal": [1], "bonus": [0.0], "local_obs": [0]}
+              "dig_refund": [0], "mask_illegal": [1], "bonus": [0.0], "local_obs": [0], "hint_obs": [0]}
     ofat = make_variants(values, ofat=True)
     assert len(ofat) == 1 + 1 + 2                       # bazowy + zmiany pojedynczych czynników
     assert all(sum(v[k] != ofat[0][k] for k in values) <= 1 for v in ofat)
@@ -94,7 +94,7 @@ def test_resume_skips_finished_runs(tmp_path):
     done = dict(map="m1_stabilna", algo="sarsa", seed=0, episodes=60, q_init=0.0, alpha=0.1, alpha_end=0.01,
                 gamma=0.99,
                 eps_start=1.0, eps_end=0.05, eps_decay=0.7, oil_bins=4, reward_step=-0.25, reward_illegal=-2.0,
-                reward_collapse=-10.0, dig_fraction=0.3, dig_refund=0, mask_illegal=1, bonus=0.0, local_obs=0,
+                reward_collapse=-10.0, dig_fraction=0.3, dig_refund=0, mask_illegal=1, bonus=0.0, local_obs=0, hint_obs=0,
                 eval_every=30, eval_episodes=5, final_episodes=10, eval_seed=1_000_000, out=str(out / "t"),
                 variant="q0_n60")
     result = run(done)
@@ -131,6 +131,7 @@ def test_local_obs_and_cross_evaluation(tmp_path):
     sys.path.insert(0, str(ROOT / "scripts"))
     from train import make_env
     assert make_env("m1_stabilna").obs_mode == "state"
+    assert make_env("losowa", hint_obs=2).hint_kind == "path" and make_env("m2_krucha", hint_obs=1).obs_mode == "hint"
     assert make_env("m1_stabilna", local_obs=1).observation_space.shape == make_env("losowa").observation_space.shape
     out = tmp_path / "train"
     subprocess.run([sys.executable, str(ROOT / "scripts" / "train.py"), "--maps", "m1_stabilna", "--algos", "sarsa",

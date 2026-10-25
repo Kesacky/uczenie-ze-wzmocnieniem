@@ -14,6 +14,14 @@ Przy `obs_mode="local"` do stanu dołączany jest widok otoczenia górnika: kody
 w kwadracie (2r+1)×(2r+1) wierszami (0 skała/poza mapą, 1 korytarz/start,
 2 niewydobyte złoże, 3 wyjście, 4 pole X). Ten wariant jest potrzebny agentom
 uczonym na losowych mapach, bo sama pozycja nie mówi nic o układzie nowej kopalni.
+Przy `obs_mode="hint"` (obserwacja z podpowiedzią „narratora”, wariant dodatkowy)
+obserwacja jest inna: (sigma, o, n, ładunek w przedziałach, 4 sąsiednie pola,
+kierunek / odległość / rodzaj najbliższego niewydobytego złoża, kierunek / odległość
+do wyjścia) - bez pozycji i maski złóż, żeby liczba stanów była mała także na
+mapach losowych. Kierunek to przy `hint_kind="compass"` kierunek celu „na przełaj”
+(8 stron świata), a przy `hint_kind="path"` kierunek pierwszego kroku najkrótszej
+drogi korytarzami (jak w nawigacji). Narrator opisuje bieżący stan kopalni; o ruchu,
+wydobyciu, podparciu i powrocie decyduje agent.
 x, y - pozycja górnika; sigma - stabilność stropu 0..5; o - olej w przedziałach
 0..3; m - maska wydobytych złóż (K = liczba złóż na mapie, K <= 5); n - liczba
 stempli 0..2. Ładunek nie jest częścią stanu: to suma wartości złóż z maski.
@@ -63,7 +71,13 @@ REASON_EXIT = "exit"
 REASON_COLLAPSE = "collapse"
 REASON_OIL = "out_of_oil"
 REASON_LIMIT = "step_limit"
-OBS_MODES = ("state", "local")
+OBS_MODES = ("state", "local", "hint")
+# Obserwacja z podpowiedzią: przedziały ładunku i odległości po korytarzach (górne granice).
+LOAD_BINS = (0, 9, 29, 59)            # 0 | 1-9 | 10-29 | 30-59 | 60+
+DIST_BINS = (1, 3, 7)                 # 1 | 2-3 | 4-7 | 8+
+# Kierunek celu: 0 = brak celu, 1..8 = (znak dx, znak dy) bez (0, 0).
+HINT_KINDS = ("compass", "path")
+COMPASS = {(0, -1): 1, (1, -1): 2, (1, 0): 3, (1, 1): 4, (0, 1): 5, (-1, 1): 6, (-1, 0): 7, (-1, -1): 8}
 
 
 class State(NamedTuple):
@@ -89,6 +103,7 @@ class MineEnv(gym.Env):
         generator: GeneratorConfig | None = None,
         obs_mode: str = "state",
         view_radius: int = 2,
+        hint_kind: str = "compass",
         **overrides: Any,
     ) -> None:
         super().__init__()
@@ -99,8 +114,11 @@ class MineEnv(gym.Env):
         self.render_mode = render_mode
         self.random_maps = random_maps
         self.generator = generator or GeneratorConfig()
+        if hint_kind not in HINT_KINDS:
+            raise ValueError(f"hint_kind musi być jednym z {HINT_KINDS}")
         self.obs_mode = obs_mode
         self.view_radius = view_radius
+        self.hint_kind = hint_kind
         self._base_config = config or GameConfig()
         self._overrides = overrides
         if random_maps:
@@ -116,6 +134,9 @@ class MineEnv(gym.Env):
             + [2] * self.n_deposits + [cfg.props_max + 1]
         if obs_mode == "local":
             nvec += [5] * (2 * view_radius + 1) ** 2
+        elif obs_mode == "hint":
+            nvec = [cfg.stability_max + 1, cfg.oil_bins, cfg.props_max + 1, len(LOAD_BINS) + 1] + [5] * 4 \
+                + [9, len(DIST_BINS) + 1, len(DEPOSITS) + 1, 9, len(DIST_BINS) + 1]
         self.observation_space = spaces.MultiDiscrete(nvec)
         self._needs_reset = True
         self._init_state()
@@ -325,14 +346,86 @@ class MineEnv(gym.Env):
                     codes.append(0)
         return codes
 
+    def _paths(self) -> dict[tuple[int, int], tuple[int, int]]:
+        """Najkrótsze drogi od górnika (BFS po polach przechodnich): pole -> (długość,
+        kierunek pierwszego kroku 1..4 = góra, dół, lewo, prawo).
+
+        Złoża są celami: można na nie wejść (wydobycie), ale droga przez nie nie prowadzi.
+        """
+        paths = {self.pos: (0, 0)}
+        frontier = [self.pos]
+        while frontier:
+            nxt = []
+            for x, y in frontier:
+                d, first = paths[(x, y)]
+                for action, (dx, dy) in DIRECTIONS.items():
+                    cell = (x + dx, y + dy)
+                    if cell in paths or not (0 <= cell[0] < self.width and 0 <= cell[1] < self.height):
+                        continue
+                    ch = self.grid[cell[1]][cell[0]]
+                    if ch in DEPOSITS or ch in WALKABLE:
+                        paths[cell] = (d + 1, first or action + 1)
+                    if ch in WALKABLE:
+                        nxt.append(cell)
+            frontier = nxt
+        return paths
+
+    def _direction(self, target: tuple[int, int], first_step: int) -> int:
+        if self.hint_kind == "path":
+            return first_step
+        dx, dy = target[0] - self.pos[0], target[1] - self.pos[1]
+        return COMPASS.get((int(np.sign(dx)), int(np.sign(dy))), 0)
+
+    def hint(self) -> list[int]:
+        """Podpowiedź narratora: (kierunek, odległość, rodzaj) najbliższego osiągalnego
+        niewydobytego złoża i (kierunek, odległość) do wyjścia; 0 = brak celu."""
+        paths = self._paths()
+        reachable = [(paths[(x, y)][0], i) for i, (x, y, _) in enumerate(self.deposits)
+                     if not self.mined[i] and (x, y) in paths]
+        if reachable:
+            d, i = min(reachable)
+            x, y, ch = self.deposits[i]
+            deposit = [self._direction((x, y), paths[(x, y)][1]), int(np.searchsorted(DIST_BINS, d)),
+                       DEPOSITS.index(ch) + 1]
+        else:
+            deposit = [0, 0, 0]
+        if self.exit_pos in paths:
+            d, first = paths[self.exit_pos]
+            exit_hint = [self._direction(self.exit_pos, first), int(np.searchsorted(DIST_BINS, d))]
+        else:
+            exit_hint = [0, 0]
+        return deposit + exit_hint
+
+    def neighbours(self) -> list[int]:
+        """Kody 4 sąsiednich pól (góra, dół, lewo, prawo) jak w `local_view`."""
+        codes = []
+        for dx, dy in DIRECTIONS.values():
+            x, y = self.pos[0] + dx, self.pos[1] + dy
+            if 0 <= x < self.width and 0 <= y < self.height:
+                ch = self.grid[y][x]
+                codes.append(2 if ch in DEPOSITS else self._CELL_CODE.get(ch, 0))
+            else:
+                codes.append(0)
+        return codes
+
     def _obs(self) -> np.ndarray:
+        if self.obs_mode == "hint":
+            load_bin = int(np.searchsorted(LOAD_BINS, self.load_value))
+            values = [self.stability, self.oil_bin(), self.props, load_bin, *self.neighbours(), *self.hint()]
+            return np.array(values, dtype=np.int64)
         values = [self.pos[0], self.pos[1], self.stability, self.oil_bin(), *self.mined, self.props]
         if self.obs_mode == "local":
             values += self.local_view()
         return np.array(values, dtype=np.int64)
 
+    def state_key(self) -> tuple[int, ...]:
+        """Pełny stan (x, y, sigma, o, m, n) niezależnie od trybu obserwacji."""
+        return (*self.pos, self.stability, self.oil_bin(), *(int(m) for m in self.mined), self.props)
+
     def decode(self, obs) -> State:
-        """Rozpakowanie obserwacji na nazwane pola."""
+        """Rozpakowanie obserwacji na nazwane pola (tryby "state" i "local")."""
+        if self.obs_mode == "hint":
+            raise ValueError("Obserwacja z podpowiedzią nie zawiera pozycji ani maski złóż")
         values = [int(v) for v in np.asarray(obs).ravel()]
         k = self.n_deposits
         return State(values[0], values[1], values[2], values[3], tuple(values[4:4 + k]), values[4 + k])
