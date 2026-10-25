@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-25",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Raport o przerwanym treningu i wstępne wyniki eksperymentów 2 i 3",
+  "scope": "Analiza wyników results/train/kara_zawal, mapy_stale_lokalne, mapy_losowe (częściowe); zamknięcie pozostałych procesów treningu",
+  "verification": "Student jeszcze nie weryfikował; decyzja o dalszych krokach należy do studenta",
+  "conversation_url": "",
+  "prompt_sha256": "e0ef5504047309ce58fbcdb7516f7463c34f230b5ed3af38f190a9b896740330",
+  "response_sha256": "ccd5031a1b377d8432a57ede2df54febb217f6b3900184923a6c72f1917b9b90",
+  "recorded_at_utc": "2026-10-25T16:32:37.526150+00:00"
+}

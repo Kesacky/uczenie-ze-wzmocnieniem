@@ -82,6 +82,15 @@ zawyżony wynik ($95{,}3$ pkt na mapie głębokiej). Pomysł kary za krok i waru
 sprawdzenia, czy agent nie wychodzi od razu z kopalni, pochodzą od studenta.
 Student zdecydował o wpisaniu wyników do raportu (sekcja \ref{sec:stabil}).
 
+25.10.2026 (Claude Code, model claude-opus-5-5): na polecenie studenta Claude dodał
+opcję obserwacji z widokiem otoczenia na mapie stałej i skrypt oceny krzyżowej
+\texttt{scripts/cross\_eval.py} (z testami), uruchomił eksperymenty 2 i 3
+(360 treningów i 500 ocen krzyżowych) oraz opisał wyniki w sekcjach
+\ref{sec:kara_zawal} i \ref{sec:losowe}. Pierwsze uruchomienie na mapach losowych
+zostało przerwane z powodu braku pamięci; po decyzji studenta dokończono je na
+mniejszej liczbie procesów. Interpretacje oznaczone jako prawdopodobne nie były
+sprawdzane osobnym eksperymentem. Student nie weryfikował jeszcze tych wyników.
+
 \subsection*{Weryfikacja studenta}
 Oświadczenie studenta z 24.10.2026: student zweryfikował całość dotychczasowych
 zmian (etapy E1 i E2), w tym kod, wyniki pilotażu i raport.

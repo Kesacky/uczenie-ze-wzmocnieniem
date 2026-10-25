@@ -4,7 +4,8 @@
 Każdy hiperparametr (--q-init, --alpha, --alpha-end, --gamma, --eps-decay, --eps-end, --episodes)
 oraz parametry środowiska (--oil-bins: przedziały oleju w obserwacji; --reward-illegal,
 --reward-step, --reward-collapse, --dig-fraction, --dig-refund: nagrody w treningu; --mask-illegal:
-maskowanie akcji niedozwolonych; --bonus: premia za eksplorację) przyjmuje jedną lub
+maskowanie akcji niedozwolonych; --bonus: premia za eksplorację; --local-obs: obserwacja
+z widokiem otoczenia także na stałej mapie) przyjmuje jedną lub
 kilka wartości. Domyślnie warianty to wszystkie kombinacje
 (siatka). Z --ofat pierwsza wartość każdego parametru tworzy wariant bazowy, a każda
 pozostała wartość daje wariant różniący się od bazowego tylko tym jednym parametrem
@@ -91,18 +92,19 @@ PARAMS = {"q_init": ("q", 30.0), "alpha": ("a", 0.1), "alpha_end": ("ae", 0.01),
           "oil_bins": ("o", 4), "reward_step": ("rs", -0.25), "reward_illegal": ("ri", -2.0),
           "reward_collapse": ("rc", -10.0),
           "dig_fraction": ("df", 0.3), "dig_refund": ("dr", 0), "mask_illegal": ("m", 1),
-          "bonus": ("b", 0.0)}
+          "bonus": ("b", 0.0), "local_obs": ("lo", 0)}
 
 
-def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1], **rewards) -> MineEnv:
+def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1], local_obs: int = 0, **rewards) -> MineEnv:
+    """'losowa' = nowa kopalnia w każdym epizodzie (zawsze z widokiem otoczenia)."""
     if name == "losowa":
         return MineEnv(random_maps=True, obs_mode="local", oil_bins=oil_bins, **rewards)
-    return MineEnv(name, oil_bins=oil_bins, **rewards)
+    return MineEnv(name, obs_mode="local" if local_obs else "state", oil_bins=oil_bins, **rewards)
 
 
 def train_env(job: dict) -> MineEnv:
     """Środowisko treningowe: nagrody wariantu zamiast domyślnych."""
-    return make_env(job["map"], job["oil_bins"], reward_step=job["reward_step"],
+    return make_env(job["map"], job["oil_bins"], job["local_obs"], reward_step=job["reward_step"],
                     reward_illegal=job["reward_illegal"],
                     reward_collapse=job["reward_collapse"], reward_dig_fraction=job["dig_fraction"],
                     reward_dig_refund=bool(job["dig_refund"]), reward_shaping_gamma=job["gamma"])
@@ -159,7 +161,7 @@ def evaluate_rows(env, agent, episodes: int, seed: int) -> list[dict]:
 def run(job: dict) -> dict:
     """Jedno uruchomienie: trening z okresową walidacją, potem ewaluacja końcowa i zapis modelu."""
     env = train_env(job)
-    eval_env = make_env(job["map"], job["oil_bins"])    # domyślne nagrody gry
+    eval_env = make_env(job["map"], job["oil_bins"], job["local_obs"])    # domyślne nagrody gry
     episodes = job["episodes"]
     agent = ALGOS[job["algo"]](
         n_actions=env.action_space.n, alpha=job["alpha"], gamma=job["gamma"], q_init=job["q_init"],
@@ -243,6 +245,8 @@ def main() -> int:
                         help="1 = agent wybiera tylko akcje dozwolone")
     parser.add_argument("--bonus", type=float, nargs="+", default=[PARAMS["bonus"][1]],
                         help="premia za eksplorację β/√N(s,a) w treningu (0 = wyłączona)")
+    parser.add_argument("--local-obs", type=int, nargs="+", default=[PARAMS["local_obs"][1]], choices=[0, 1],
+                        help="1 = obserwacja z widokiem otoczenia 5×5 także na stałej mapie")
     parser.add_argument("--ofat", action="store_true",
                         help="warianty „jeden czynnik naraz” wokół pierwszych wartości zamiast siatki")
     parser.add_argument("--eval-every", type=int, default=500, help="co ile epizodów walidacja")

@@ -32,8 +32,9 @@ Gotowe są: środowisko gry z grafiką, generator map, agenci bazowi, algorytmy
 Q-learning i SARSA, skrypty treningu i analizy, pilotaż, dobór hiperparametrów,
 zmiany funkcji nagrody (zasady w wersji 3), eksperyment główny na czterech
 stałych mapach z 10 ziarnami (sekcja \ref{sec:glowny}) oraz stabilizacja treningu
-i usunięcie zapętleń (sekcja \ref{sec:stabil}). Nie przeprowadzono jeszcze
-eksperymentów 2 i 3 z planu (wpływ kary za zawał, mapa stała a losowa).
+i usunięcie zapętleń (sekcja \ref{sec:stabil}), a także eksperymenty 2 i 3 z planu:
+wpływ kary za zawał (sekcja \ref{sec:kara_zawal}) oraz mapa stała a losowa (sekcja
+\ref{sec:losowe}). Do napisania przez studenta pozostaje analiza i wnioski.
 \tableofcontents
 
 \section{Opis problemu}
@@ -1040,9 +1041,134 @@ epizodu treningu. Linia: średnia po 10 ziarnach, pasmo: $\pm$ odchylenie standa
 Linia przerywana: heurystyka progowa.}\label{fig:kara_krok}
 \end{figure}
 
-\subsection{Eksperymenty pozostałe}
-\doUzupelnienia{eksperyment 2 (wpływ kary za zawał) i eksperyment 3 (mapa stała
-a losowa) z planu.}
+\subsection{Eksperyment 2: wpływ kary za zawał}\label{sec:kara_zawal}
+Q-learning i SARSA w konfiguracji końcowej uczono z karą za zawał $-5$ i $-20$
+(\texttt{results/\allowbreak train/\allowbreak kara\_zawal/}, 160 uruchomień). Wariant z karą $-10$ to
+konfiguracja końcowa z sekcji \ref{sec:stabil} (te same ziarna). Kara zmienia tylko
+nagrodę w treningu; ocena zawsze liczy punkty według zasad gry. Zgodnie z planem
+głównym obiektem jest mapa głęboka, ale policzono wszystkie cztery mapy.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+kara za zawał & agent & zwrot & zawały & wartość ładunku & głębokość \\
+\midrule
+$-5$ & Q-learning & $81{,}3\pm8{,}3$ & $6{,}4\%$ & $64{,}7$ & $8{,}98$ \\
+ & SARSA & $74{,}3\pm2{,}5$ & $4{,}2\%$ & $59{,}4$ & $8{,}98$ \\
+$-10$ & Q-learning & $84{,}4\pm10{,}2$ & $7{,}1\%$ & $67{,}0$ & $8{,}98$ \\
+ & SARSA & $74{,}9\pm3{,}3$ & $4{,}4\%$ & $59{,}9$ & $8{,}98$ \\
+$-20$ & Q-learning & $77{,}4\pm4{,}4$ & $5{,}8\%$ & $61{,}8$ & $8{,}98$ \\
+ & SARSA & $73{,}9\pm2{,}6$ & $3{,}8\%$ & $59{,}1$ & $8{,}98$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Mapa głęboka, ewaluacja końcowa (1000 epizodów, polityka ostatnia), średnia
+$\pm$ odchylenie standardowe po 10 ziarnach. Głębokość to średnia największa
+głębokość osiągnięta w epizodzie.
+
+Obserwacje:
+\begin{itemize}
+  \item Agent przy każdej karze schodzi na dno kopalni (głębokość ok. $9$), więc
+  kara nie zmienia głębokości kopania.
+  \item Odsetek zawałów maleje przy karze $-20$ nieznacznie: na mapie głębokiej
+  o 0,4--1,3 pkt proc., na mapie zawału korytarza (Q-learning) z $6{,}6\%$ do
+  $4{,}0\%$. Na mapie stabilnej i kruchej wyniki są prawie identyczne (różnice
+  poniżej $0{,}3$ pkt). Różnice na mapie głębokiej mieszczą się w rozrzucie między
+  ziarnami.
+  \item Krzywe uczenia (rys.~\ref{fig:kara_zawal}) dla kar $-5$ i $-20$ są bardzo
+  podobne; widać głównie różnicę między algorytmami (SARSA uczy się wolniej).
+\end{itemize}
+Hipoteza H3 potwierdziła się więc tylko słabo: wyższa kara nieco zmniejsza odsetek
+zawałów, ale nie prowadzi do płytszego kopania. Prawdopodobna przyczyna: wartość
+kryształów na dnie (kilkadziesiąt punktów) przewyższa oczekiwany koszt zawału nawet
+przy karze $-20$, a ryzyko zawału na pojedynczym polu jest niewielkie. Tej
+przyczyny nie sprawdzono osobnym eksperymentem.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../results/train/kara_zawal/curves.png}
+\caption{Przebieg uczenia przy karze za zawał $-5$ i $-20$ (konfiguracja końcowa
+poza karą za zawał). Linia: średnia po 10 ziarnach, pasmo: $\pm$ odchylenie
+standardowe. Linia przerywana: heurystyka progowa.}\label{fig:kara_zawal}
+\end{figure}
+
+\subsection{Eksperyment 3: mapa stała a losowa}\label{sec:losowe}
+Aby agenta można było uruchomić na innej mapie niż mapa treningu, wszyscy agenci
+w tym eksperymencie używają obserwacji z widokiem otoczenia $5\times5$ (wszystkie
+mapy mają rozmiar $12\times11$ i 5 złóż, więc obserwacja ma ten sam format).
+\begin{itemize}
+  \item \textbf{Agent mapy stałej}: uczony osobno na każdej z czterech map
+  (\texttt{results/\allowbreak train/\allowbreak mapy\_stale\_lokalne/}, 80 uruchomień);
+  \item \textbf{agent map losowych}: w każdym epizodzie treningu nowa kopalnia
+  z generatora (\texttt{results/\allowbreak train/\allowbreak mapy\_losowe/}, 20 uruchomień);
+  \item \textbf{ocena krzyżowa} (\texttt{scripts/cross\_eval.py},
+  \texttt{results/\allowbreak train/\allowbreak mapy/}): każdy z 100 modeli zagrał 1000 epizodów na każdej
+  z czterech map stałych i na nowych kopalniach losowych. Ziarna ewaluacji
+  (od 1\,000\,000) są rozłączne z ziarnami treningu, więc kopalnie losowe w ocenie
+  nie wystąpiły w treningu.
+\end{itemize}
+Parametry jak w konfiguracji końcowej (100 tys. epizodów, 10 ziaren). Uruchomienia
+na mapach losowych liczono tylko po 3--8 naraz: tablica Q urosła do ok. 2,2 mln
+stanów (ok. 1,5--1,8 GB pamięci na proces), a pierwsza próba z 8 procesami została
+przerwana z powodu braku pamięci RAM i dokończona od miejsca przerwania.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+agent (trening) & stabilna & krucha & głęboka & zawał kor. & losowe \\
+\midrule
+mapa stała, ocena na tej samej mapie & $56{,}8$ & $46{,}4$ & $84{,}4$ & $57{,}4$ & -- \\
+mapa stała, ocena na innych mapach & $-4{,}0$ & $-2{,}9$ & $-3{,}0$ & $-2{,}8$ & $-2{,}9$ \\
+mapy losowe & $-23{,}3$ & $-2{,}9$ & $-16{,}8$ & $-21{,}6$ & $-17{,}6$ \\
+\midrule
+heurystyka progowa & $62{,}8$ & $14{,}6$ & $79{,}5$ & $71{,}7$ & $61{,}7$ \\
+agent losowy & $-48{,}8$ & $-35{,}1$ & $-41{,}3$ & $-47{,}7$ & $-42{,}7$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Średni zwrot (Q-learning, 10 ziaren, 1000 epizodów oceny). Wiersz „ocena na innych
+mapach” to średnia agentów uczonych na pozostałych trzech mapach stałych; kolumna
+„losowe” to średnia agentów wszystkich czterech map stałych. SARSA daje wyniki
+różniące się o mniej niż $3{,}5$ pkt.
+
+Obserwacje:
+\begin{itemize}
+  \item Na własnej mapie agent z widokiem otoczenia osiąga te same wyniki co agent
+  z pełnym stanem (sekcja \ref{sec:stabil}). Na stałej mapie położenie agenta
+  i stan wydobycia wyznaczają widok otoczenia, więc informacja jest równoważna.
+  \item Na każdej innej mapie agent mapy stałej osiąga ok. $-3$ pkt: po ok. 20
+  krokach (w tym ok. 12 powrotów do widzianych już obserwacji) wychodzi z kopalni
+  prawie bez ładunku (wartość poniżej 1 pkt, głębokość ok. $2{,}4$). Nauczona
+  strategia nie przenosi się na inną kopalnię.
+  \item Agent map losowych nie nauczył się grać w żadnym z 20 uruchomień: na nowych
+  kopalniach zdobywa ok. $-17{,}6$ pkt, wychodzi bezpiecznie tylko w 17--19\%
+  epizodów, w 69\% kończy mu się olej, a w 99\% epizodów krąży między widzianymi już
+  obserwacjami. Jest lepszy od agenta losowego, ale znacznie gorszy od heurystyki.
+  Polityka najlepsza według walidacji nie zmienia obrazu ($-16{,}5$ pkt).
+  \item Średni zwrot walidacji agenta map losowych \emph{maleje} w trakcie treningu
+  z ok. $-6$ do $-17$ pkt (rys.~\ref{fig:losowe}). Prawdopodobne wyjaśnienie: przy
+  optymistycznym $Q_0=30$ nieodwiedzone stany mają wartość wyższą niż poznane, więc
+  na nowej kopalni zachłanna polityka szuka nowych obserwacji zamiast kopać i wyjść.
+  Ok. 2,2 mln stanów po 100 tys. epizodów oznacza, że większość obserwacji pojawia
+  się zbyt rzadko, aby nauczyć się ich wartości.
+\end{itemize}
+Hipoteza H4 potwierdziła się tylko w pierwszej części: agent mapy stałej jest dobry
+na swojej mapie i nie przenosi się na inne. Druga część (agent map losowych uogólnia
+się na nowe kopalnie) nie potwierdziła się dla metody tablicowej. Tablica Q nie
+uogólnia między podobnymi obserwacjami, więc do map losowych potrzebna byłaby
+aproksymacja funkcji Q (np. DQN, zgodnie z planem) lub znacznie uboższa obserwacja.
+Tej próby nie wykonano.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../results/train/mapy_losowe/curves.png}
+\caption{Przebieg uczenia agenta tablicowego na mapach losowych: średni zwrot
+walidacji zachłannej na stałym zestawie 100 kopalni losowych. Linia: średnia po
+10 ziarnach, pasmo: $\pm$ odchylenie standardowe. Linia przerywana: heurystyka
+progowa na mapach losowych.}\label{fig:losowe}
+\end{figure}
 
 \section{Analiza i wnioski}
 \doUzupelnienia{interpretacja faktycznych wyników, odpowiedzi na hipotezy,
@@ -1058,7 +1184,11 @@ gry (ocena liczy $-0{,}1$ za krok). Wyniki zależą silnie od wartości początk
 \ref{sec:dobor}). Tablica Q nie uogólnia między podobnymi stanami, co ogranicza
 dokładność obserwacji (np. poziomu oleju). Przyjęta nagroda za wydobycie bez zwrotu
 zmienia zadanie: opłaca się wydobywać nawet z ryzykiem zawału (sekcja
-\ref{sec:baseline}). Wyniki sprzed 24.10.2026 oceniano według zasad w wersji 2
+\ref{sec:baseline}). Kara za zawał w zakresie od $-5$ do $-20$ prawie nie zmienia
+zachowania agenta (sekcja \ref{sec:kara_zawal}). Agent tablicowy nie uogólnia na
+nowe kopalnie: uczony na mapach losowych nie nauczył się grać, a uczony na mapie
+stałej wychodzi z innej kopalni prawie bez ładunku (sekcja \ref{sec:losowe}).
+Nie sprawdzono aproksymacji funkcji Q (np. DQN). Wyniki sprzed 24.10.2026 oceniano według zasad w wersji 2
 i nie są wprost porównywalne z późniejszymi.
 Wariant z losową mapą jest częściowo obserwowalny (agent widzi tylko otoczenie
 $5\times 5$). Model zawału jest umowny i nie odwzorowuje rzeczywistej mechaniki
@@ -1092,6 +1222,21 @@ python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka
 python scripts/plot_training.py --name nazwa
 python scripts/watch.py --map m3_gleboka --agent
     results/train/nazwa/models/m3_gleboka_q_learning_q30_n100000_s0.pkl
+\end{verbatim}
+Eksperymenty 2 i 3 (sekcje \ref{sec:kara_zawal} i \ref{sec:losowe}); trening na
+mapach losowych zajmuje ok. 1,5--1,8 GB RAM na proces:
+\begin{verbatim}
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka
+    m4_zawal_korytarza --seeds 10 --episodes 100000
+    --reward-collapse -5 -20 --name kara_zawal
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka
+    m4_zawal_korytarza --seeds 10 --episodes 100000 --local-obs 1
+    --name mapy_stale_lokalne
+python scripts/train.py --maps losowa --seeds 10 --episodes 100000
+    --local-obs 1 --workers 3 --name mapy_losowe
+python scripts/cross_eval.py --runs mapy_stale_lokalne mapy_losowe
+    --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa
+    --variants q30_n100000_lo1 --workers 4 --out results/train/mapy
 \end{verbatim}
 Wyniki trafiają do \texttt{results/train/nazwa/}. Tablice Q
 (\texttt{models/*.pkl}) nie są przechowywane w repozytorium, bo odtwarza je

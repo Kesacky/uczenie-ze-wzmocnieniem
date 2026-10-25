@@ -1,0 +1,18 @@
+[komunikat pośredni] Robię teraz oba eksperymenty. Najpierw dodaję do kodu dwie rzeczy potrzebne do eksperymentu 3: trening z widokiem otoczenia na stałej mapie oraz ocenę agenta na innych mapach niż ta, na której się uczył.
+
+[komunikat pośredni] Kod gotowy, testy przechodzą (206 z 206). Uruchamiam kolejno oba eksperymenty.
+
+[odpowiedź końcowa]
+Oba eksperymenty liczą się w tle, jeden po drugim.
+
+**Eksperyment 2: kara za zawał** (`results/train/kara_zawal/`)
+Kara −5 i −20 w treningu, 4 mapy, Q-learning i SARSA, 10 ziaren (160 uruchomień, ok. 45 minut). Wariant −10 już mamy: to konfiguracja końcowa z poprzedniego treningu (te same ziarna). Ocena liczy punkty według zasad gry, a do hipotezy H3 patrzę na odsetek zawałów, głębokość i wartość ładunku. Plan wskazywał tylko mapę głęboką, ale liczę wszystkie cztery, bo koszt jest niewielki.
+
+**Eksperyment 3: mapa stała a losowa**
+1. Agent uczony na każdej stałej mapie z widokiem otoczenia 5×5 (80 uruchomień, ok. 30 minut) — potrzebny, żeby dało się go w ogóle uruchomić na innej mapie.
+2. Agent uczony na losowych mapach — w każdej grze nowa kopalnia (20 uruchomień). To najdłuższa część, ok. 1,5–2 godzin: tablica Q rośnie do setek tysięcy stanów, więc liczę tylko 8 uruchomień naraz, żeby nie zabrakło pamięci RAM.
+3. Ocena krzyżowa (nowy skrypt `scripts/cross_eval.py`): każdy agent gra na wszystkich 4 stałych mapach i na nowych losowych kopalniach, których nie widział w treningu.
+
+Dodałem do kodu opcję `--local-obs` (widok otoczenia na stałej mapie) i skrypt oceny krzyżowej, z testami.
+
+**Razem ok. 3–3,5 godziny.** Dam znać z wynikami, potem wpiszę je do raportu i wyślę na GitHuba.

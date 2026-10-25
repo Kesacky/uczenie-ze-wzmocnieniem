@@ -55,7 +55,7 @@ def test_ofat_variants():
     values = {"q_init": [10.0, 30.0], "alpha": [0.1, 0.3, 0.5], "alpha_end": [0.01], "gamma": [0.99],
               "eps_decay": [0.7], "eps_end": [0.05], "episodes": [50_000], "oil_bins": [4],
               "reward_step": [-0.25], "reward_illegal": [-2.0], "reward_collapse": [-10.0], "dig_fraction": [0.3],
-              "dig_refund": [0], "mask_illegal": [1], "bonus": [0.0]}
+              "dig_refund": [0], "mask_illegal": [1], "bonus": [0.0], "local_obs": [0]}
     ofat = make_variants(values, ofat=True)
     assert len(ofat) == 1 + 1 + 2                       # bazowy + zmiany pojedynczych czynników
     assert all(sum(v[k] != ofat[0][k] for k in values) <= 1 for v in ofat)
@@ -94,7 +94,7 @@ def test_resume_skips_finished_runs(tmp_path):
     done = dict(map="m1_stabilna", algo="sarsa", seed=0, episodes=60, q_init=0.0, alpha=0.1, alpha_end=0.01,
                 gamma=0.99,
                 eps_start=1.0, eps_end=0.05, eps_decay=0.7, oil_bins=4, reward_step=-0.25, reward_illegal=-2.0,
-                reward_collapse=-10.0, dig_fraction=0.3, dig_refund=0, mask_illegal=1, bonus=0.0,
+                reward_collapse=-10.0, dig_fraction=0.3, dig_refund=0, mask_illegal=1, bonus=0.0, local_obs=0,
                 eval_every=30, eval_episodes=5, final_episodes=10, eval_seed=1_000_000, out=str(out / "t"),
                 variant="q0_n60")
     result = run(done)
@@ -125,3 +125,28 @@ def test_best_policy_is_frozen_copy_and_alpha_decays(tmp_path):
     best = TabularAgent.load(tmp_path / "models" / "m1_stabilna_q_learning_t_best_s0.pkl")
     if r["best_episode"] < 60:                        # kopia nie zmienia się dalej razem z uczeniem
         assert len(best.q) < len(last.q) or any((best.q[k] != v).any() for k, v in last.q.items() if k in best.q)
+
+
+def test_local_obs_and_cross_evaluation(tmp_path):
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from train import make_env
+    assert make_env("m1_stabilna").obs_mode == "state"
+    assert make_env("m1_stabilna", local_obs=1).observation_space.shape == make_env("losowa").observation_space.shape
+    out = tmp_path / "train"
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "train.py"), "--maps", "m1_stabilna", "--algos", "sarsa",
+                    "--seeds", "2", "--episodes", "30", "--local-obs", "1", "--eval-every", "30",
+                    "--eval-episodes", "3", "--final-episodes", "3", "--workers", "2", "--name", "lo",
+                    "--out", str(out)], check=True, capture_output=True)
+    assert (out / "lo" / "models" / "m1_stabilna_sarsa_q30_n30_lo1_s1.pkl").exists()
+    import shutil
+    runs_dir = ROOT / "results" / "train" / "_test_cross_eval"
+    shutil.copytree(out / "lo", runs_dir)
+    try:
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "cross_eval.py"), "--runs", runs_dir.name,
+                        "--targets", "m2_krucha", "losowa", "--variants", "q30_n30_lo1", "--episodes", "4",
+                        "--workers", "2", "--out", str(tmp_path / "cross")], check=True, capture_output=True)
+    finally:
+        shutil.rmtree(runs_dir)
+    summary = rows(tmp_path / "cross" / "cross_summary.csv")
+    assert {(r["target"], r["seeds"]) for r in summary} == {("m2_krucha", "2"), ("losowa", "2")}
+    assert len(rows(tmp_path / "cross" / "cross_runs.csv")) == 2 * 2

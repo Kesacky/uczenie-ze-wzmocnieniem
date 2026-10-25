@@ -1,0 +1,41 @@
+[Komunikat w trakcie pracy]
+Liczą się teraz brakujące 5 uruchomień SARSA na losowych mapach, tylko 3 naraz, żeby nie zabrakło pamięci. Potrwa to ok. 20–25 minut. Potem automatycznie ruszy ocena każdego agenta na innych mapach.
+
+W międzyczasie zebrałem wyniki eksperymentu 2 i zestawiłem je z wynikami agentów bazowych do raportu. Na losowych mapach agent losowy ma −42,7 pkt, a heurystyka 61,7. Agent tablicowy z wynikiem ok. −17 jest więc lepszy od losowego, ale daleko mu do heurystyki.
+
+Gdy obliczenia się skończą, wpiszę wyniki do raportu, README i `docs/etapy.md`, uruchomię testy i wyślę zmiany na GitHuba.
+
+[Odpowiedź końcowa]
+Obliczenia są skończone, wyniki są w raporcie i na GitHubie.
+
+**Co policzono**
+- Brakujące 5 uruchomień SARSA na mapach losowych, tym razem po 3 naraz. Pamięci już nie zabrakło.
+- Ocenę krzyżową: 100 agentów × 5 map = 500 ocen, każda po 1000 gier.
+
+**Eksperyment 3: wyniki oceny krzyżowej** (Q-learning, średnia z 10 ziaren)
+
+| agent | jego mapa | inne mapy stałe | nowe kopalnie losowe |
+|---|---|---|---|
+| uczony na mapie stałej | 46–84 | ok. −3 | ok. −3 |
+| uczony na mapach losowych | — | od −23 do −3 | −17,6 |
+| heurystyka | — | 15–80 | 61,7 |
+
+- **Agent mapy stałej** świetnie gra na swojej mapie, ale na innej wychodzi po ok. 20 krokach prawie z pustymi rękami. Zna tylko „swoją” kopalnię.
+- **Agent map losowych** nie nauczył się grać w żadnym z 20 uruchomień: krąży w kółko, w 69% gier kończy mu się olej.
+- Na wykresie widać coś ciekawego: jego wynik w walidacji **spada** w trakcie treningu, z ok. −6 do −17. Prawdopodobna przyczyna: nowe, nieznane stany mają startową wartość Q = 30, czyli wyższą niż stany już poznane. Agent „ciekawy nowości” szuka więc nowych miejsc zamiast kopać i wyjść. Tego wyjaśnienia nie sprawdziłem osobnym eksperymentem i tak też jest opisane w raporcie.
+- **H4:** potwierdzona tylko pierwsza część (agent mapy stałej się nie przenosi). Druga część („agent map losowych uogólnia”) nie potwierdziła się dla tablicy Q. Według planu następnym krokiem byłby DQN. W raporcie stoi, że tej próby nie wykonano.
+
+**Eksperyment 2:** bez zmian względem poprzedniej wiadomości. H3 potwierdza się słabo: zawałów jest trochę mniej przy karze −20, ale agent nadal kopie do dna.
+
+**Co zmieniłem**
+- Raport: nowe sekcje „Eksperyment 2” i „Eksperyment 3” z tabelami i dwoma wykresami. Zaktualizowane są też status, ograniczenia i instrukcja uruchomienia.
+- README, `docs/etapy.md` i sekcja AI w raporcie: wpisane wyniki i polecenia do odtworzenia eksperymentów.
+- Sprawdzenie: raport kompiluje się (28 stron), testy przechodzą (206/206). Tablice Q nie trafiły do repozytorium, bo pliki modeli mają po ok. 260 MB i są ignorowane.
+
+**Do zrobienia przez Ciebie**
+- Sekcja „Analiza i wnioski” w raporcie jest nadal pusta. Te wnioski powinny być Twoje, bo o nie zapyta prowadzący.
+- Do przemyślenia przed obroną:
+  - dlaczego kara za zawał prawie nic nie zmienia;
+  - dlaczego tablica Q nie radzi sobie z losowymi mapami.
+- Decyzja, czy robić DQN dla losowych map. To większe zadanie: nowy kod i kilka godzin treningu. Raport jest kompletny także bez niego, bo negatywny wynik jest opisany.
+- Przejrzyj nowe sekcje raportu i potwierdź, że się z nimi zgadzasz. W sekcji AI jest zapisane, że wyniki nie zostały jeszcze przez Ciebie sprawdzone.

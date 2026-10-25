@@ -1,0 +1,34 @@
+Trening w tle został zatrzymany: Claude Code przerwał go, bo w komputerze zabrakło pamięci RAM. Stało się to w trakcie uczenia na losowych mapach. Procesy treningu po przerwaniu nadal działały, więc je zamknąłem. Teraz wolne jest 17,7 GB RAM. Niczego nie uruchamiam ponownie bez Twojej decyzji.
+
+**Co się policzyło**
+- Eksperyment 2 (kara za zawał): komplet, 160 uruchomień.
+- Eksperyment 3, mapy stałe z widokiem 5×5: komplet, 80 uruchomień.
+- Eksperyment 3, mapy losowe: 15 z 20 uruchomień. Brakuje 5 ziaren SARSA.
+- Ocena na innych mapach (`cross_eval.py`) się nie wykonała.
+
+**Eksperyment 2: kara za zawał −5 / −10 / −20** (10 ziaren, mapa głęboka)
+
+| | −5 | −10 | −20 |
+|---|---|---|---|
+| Q-learning, punkty | 81,3 ± 8,3 | 84,4 ± 10,2 | 77,4 ± 4,4 |
+| Q-learning, zawały | 6,4% | 7,1% | 5,8% |
+| SARSA, punkty | 74,3 ± 2,5 | 74,9 ± 3,3 | 73,9 ± 2,6 |
+| SARSA, zawały | 4,2% | 4,4% | 3,8% |
+
+- Na mapie zawału korytarza zawały Q-learningu spadają z 6,6% do 4,0%. Na mapie stabilnej i kruchej nie ma prawie żadnej różnicy.
+- Agent przy każdej karze schodzi na samo dno (głębokość ok. 9), więc głębokość kopania w ogóle się nie zmienia.
+- Wniosek: hipoteza H3 potwierdza się tylko słabo. Większa kara daje trochę mniej zawałów, ale różnice mieszczą się w rozrzucie między ziarnami. Agent nie zaczyna kopać płycej.
+
+**Eksperyment 3: mapy stałe a losowe**
+- Agent z widokiem 5×5 na stałej mapie osiąga praktycznie te same wyniki co agent z pełnym stanem: 56,8 / 46,4 / 84,4 / 57,4.
+- Agent tablicowy uczony na losowych mapach **nie nauczył się grać**:
+  - zwrot ok. −17 we wszystkich 15 uruchomieniach (heurystyka na losowych mapach ma 61,7);
+  - wychodzi z kopalni tylko w 14–21% gier;
+  - w 99% gier kręci się w kółko.
+- Przyczyna: na każdej nowej mapie trafia głównie na stany, których nigdy nie widział. Jego tablica Q ma ok. 2,2 mln stanów, ok. 10 razy więcej, niż szacowałem. Proces zajmuje przez to 1,5–1,8 GB RAM, i stąd zabrakło pamięci.
+- To odpowiedź na hipotezę H4: tablica Q nie uogólnia na nowe kopalnie. Plan w raporcie przewidywał na taki przypadek DQN.
+
+**Do decyzji: co dalej?**
+1. **(Polecam)** Doliczyć brakujące 5 uruchomień SARSA na 3 procesach (ok. 25 minut, mieści się w pamięci) i ocenę na innych mapach, a potem wpisać wszystko do raportu i wysłać na GitHuba.
+2. Pominąć brakujące SARSA, bo 10 ziaren Q-learningu i 5 ziaren SARSA wystarczająco pokazują porażkę. Wtedy tylko ocena na innych mapach, raport i GitHub.
+3. Dodatkowo zrobić DQN dla losowych map, zgodnie z planem. To osobne, większe zadanie: kod, testy i kilka godzin treningu.

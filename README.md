@@ -14,7 +14,10 @@ malejącego α (0,1 → 0,01) i kary za krok −0,25 (ocena nadal według zasad 
 Usunęło to nieudane uruchomienia i zapętlenia agenta. W konfiguracji końcowej
 (10 ziaren, 100 tys. epizodów) agenci RL wygrywają z heurystyką na mapie kruchej
 (+32 pkt) i głębokiej (Q-learning, +5 pkt), a przegrywają na stabilnej (−6) i zawału
-korytarza (−14). Pozostały eksperymenty 2 i 3 z planu (kara za zawał, losowe mapy).
+korytarza (−14). Eksperyment 2 (kara za zawał −5 / −10 / −20) pokazał tylko niewielki
+spadek odsetka zawałów przy wyższej karze, bez płytszego kopania. Eksperyment 3:
+agent tablicowy nie uogólnia na nowe kopalnie — uczony na mapach losowych zdobywa
+ok. −17 pkt (heurystyka 61,7), a uczony na mapie stałej na innej mapie ok. −3 pkt.
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 
@@ -114,6 +117,16 @@ python scripts/plot_training.py --name koncowy
 python scripts/watch.py --map m3_gleboka --agent results/train/koncowy/models/m3_gleboka_q_learning_q30_n100000_s0.pkl
 ```
 
+Eksperymenty 2 i 3 (kara za zawał; mapa stała a losowa z oceną krzyżową `scripts/cross_eval.py`).
+Trening na mapach losowych zajmuje ok. 1,5–1,8 GB RAM na proces, stąd mniej procesów:
+
+```powershell
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 10 --episodes 100000 --reward-collapse -5 -20 --name kara_zawal
+python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza --seeds 10 --episodes 100000 --local-obs 1 --name mapy_stale_lokalne
+python scripts/train.py --maps losowa --seeds 10 --episodes 100000 --local-obs 1 --workers 3 --name mapy_losowe
+python scripts/cross_eval.py --runs mapy_stale_lokalne mapy_losowe --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa --variants q30_n100000_lo1 --workers 4 --out results/train/mapy
+```
+
 Przegląd hiperparametrów: każdy z `--q-init`, `--alpha`, `--gamma`, `--eps-decay`,
 `--eps-end`, `--episodes`, `--oil-bins` przyjmuje kilka wartości (siatka kombinacji,
 a z `--ofat` zmiana jednego czynnika naraz). Analiza zachowania agenta (które złoża
@@ -198,6 +211,6 @@ Każda nowa rozmowa wymaga zapisania jej pełnego przebiegu i aktualizacji rapor
 
 ## Najbliższy krok
 
-Etap E3: eksperymenty 2 i 3 z planu (wpływ kary za zawał, mapa stała a losowa) oraz
-analiza i wnioski w raporcie. Daty kalendarzowe bloków zajęć należy
+Etap E3: analiza i wnioski w raporcie (do napisania przez studenta). Ewentualnie
+DQN dla map losowych, jeśli student zdecyduje się na tę próbę. Daty kalendarzowe bloków zajęć należy
 wpisać po ich potwierdzeniu.
