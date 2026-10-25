@@ -1,0 +1,6 @@
+Oba dokumenty są skompilowane od nowa (po dwa przebiegi XeLaTeX, bez błędów) i otwarte w przeglądarce PDF:
+
+- **Raport:** `report/main.pdf`. Eksperyment 4 z narratorem to sekcja 8.9, strona 25.
+- **Dziennik AI:** `ai-journal/main.pdf`, z wpisami do ostatniego opisu wyników eksperymentu 4 włącznie.
+
+Jeśli się nie otworzyły, pliki są w tych dwóch miejscach w folderze projektu. Pliki PDF nie są śledzone w Git, więc kompilacja niczego nie zmieniła w repozytorium.

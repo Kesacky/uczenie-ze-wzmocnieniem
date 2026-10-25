@@ -1,0 +1,3 @@
+Tak, ta część jest zrobiona. Kod, wyniki i raport z eksperymentem 4 były już na GitHubie (commit `bc22dcc`). Teraz dosłałem brakujące wpisy dziennika AI z ostatnich dwóch wymian (kompilacja i wysyłka). Na komputerze nie zostały żadne niewysłane zmiany.
+
+Do zrobienia po Twojej stronie zostaje to samo co wcześniej: przejrzeć i zweryfikować sekcję 8.9 oraz napisać „Analizę i wnioski”.
