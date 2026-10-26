@@ -1427,6 +1427,44 @@ Obserwacje:
   równolegle), licznik 100 tys. ok. 16 minut.
 \end{itemize}
 
+\textbf{Czy krążenie kosztuje punkty} (26.10.2026). Aby ocenić, czy warto dalej
+walczyć z krążeniem (np. karą za wielokrotne wejście na to samo pole), najlepszego
+agenta (Q-learning, pamięć, 300 tys. epizodów, 10 modeli, 1000 kopalni oceny) oceniono
+dodatkowo z małą losowością przy grze: z prawdopodobieństwem $\varepsilon$ agent
+wykonuje losowy dozwolony ruch (\texttt{scripts/\allowbreak eval\_epsilon.py}, wyniki
+w \texttt{results/\allowbreak train/\allowbreak narrator\_pamiec\_300k/\allowbreak
+epsilon\_eval.csv}).
+
+\begin{center}
+\small
+\begin{tabular}{@{}rrrrrr@{}}
+\toprule
+$\varepsilon$ & zwrot & wyjścia & krążenie & zwrot (z krążeniem) & zwrot (bez krążenia) \\
+\midrule
+0 & $56{,}6\pm0{,}9$ & 75\% & 58\% & $50{,}5$ & $64{,}8$ \\
+0,02 & $56{,}3\pm1{,}3$ & 75\% & 58\% & $50{,}8$ & $63{,}8$ \\
+0,05 & $55{,}4\pm1{,}1$ & 76\% & 58\% & $51{,}6$ & $60{,}9$ \\
+0,1 & $54{,}7\pm0{,}8$ & 77\% & 61\% & $53{,}2$ & $57{,}1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Obserwacje:
+\begin{itemize}
+  \item Losowe ruchy nie usuwają krążenia (58--61\% gier przy każdym $\varepsilon$)
+  i nie podnoszą wyniku, a przy $\varepsilon=0{,}1$ lekko go obniżają. Krążenie nie
+  wynika więc tylko z deterministycznego wyboru akcji: po losowym ruchu agent wraca do
+  tych samych pętli, bo tak wskazują wartości Q.
+  \item Gry z krążeniem kończą się gorzej niż gry bez niego ($50{,}5$ wobec
+  $64{,}8$ pkt, wyjścia 68\% wobec 84\%, $\varepsilon=0$), ale większość z nich
+  i tak kończy się wyjściem z kopalni. To korelacja: krążenie może częściej
+  występować na trudniejszych kopalniach. Gdyby gry z krążeniem kończyły się tak jak
+  pozostałe, średnia wzrosłaby o ok. 8 pkt; to górne oszacowanie zysku z usunięcia
+  krążenia, a nie zmierzony efekt.
+  \item Usunięcie krążenia wymagałoby zmiany treningu (np. kary za wielokrotne wejście
+  na to samo pole), a nie samej oceny. Tego nie sprawdzono.
+\end{itemize}
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.85\textwidth]{../results/train/narrator_pamiec_300k/curves.png}
@@ -1555,6 +1593,7 @@ python scripts/cross_eval.py --runs narrator_pamiec_300k narrator_licznik
     --variants q30_n300000_ho3 q30_n100000_ho4 --workers 8
     --out results/train/narrator_dalsze_cross
 python scripts/oscillation.py
+python scripts/eval_epsilon.py
 \end{verbatim}
 Wyniki trafiają do \texttt{results/train/nazwa/}. Tablice Q
 (\texttt{models/*.pkl}) nie są przechowywane w repozytorium, bo odtwarza je

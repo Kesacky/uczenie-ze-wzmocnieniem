@@ -1,0 +1,27 @@
+**Moja rekomendacja: przejść dalej.** Dalsze strojenie narratora daje już coraz mniej, a w projekcie zostały rzeczy ważniejsze dla oceny.
+
+**Dlaczego nie trenować dalej**
+- Eksperymenty 1–3 z planu są zrobione. Narrator to eksperyment dodatkowy i już pokazał to, co miał pokazać: z dobrą obserwacją agent tablicowy uczy się grać na nowych kopalniach.
+- Krzywa uczenia stoi od ok. 260 tys. epizodów. Do heurystyki brakuje ok. 5 pkt, a każdy kolejny wariant to 2–3 h treningu.
+- W raporcie nadal są puste dwie sekcje: **„Analiza i wnioski”** i część **„Ograniczeń”**. Wnioski mają być Twoje, bo prowadzący będzie o nie pytał na obronie. Dla oceny to teraz ważniejsze niż kolejne 5 pkt.
+
+**Kara za ponowne odwiedziny: pomysł sensowny, ale w prostej wersji szkodzi**
+- **Powrót wymaga przejścia po odwiedzonych polach.** Agent musi wrócić do wyjścia tym samym korytarzem, a ślepe odnogi też trzeba przejść dwa razy. Kara już za drugie wejście karałaby więc zwykły powrót. Narastający mnożnik byłby najgorszy w długich korytarzach, a tam agent i tak ryzykuje brak oleju. Mógłby przez to mniej kopać w głębi kopalni albo nie wracać.
+- **Agent musi widzieć, za co dostaje karę.** Obecny wariant (bit pamięci) mówi tylko „byłem tu / nie byłem”. Jeśli kara zależałaby od liczby wejść, agent nie wiedziałby, czy następny krok kosztuje 1 czy 5. Tablica Q uśrednia wtedy różne sytuacje i uczy się gorzej.
+- **Zmienia zadanie względem zasad gry.** Ocena liczy wynik wg zasad, więc kara działałaby tylko w treningu, jak już używana kara za krok. To kolejne odstępstwo do opisania i obrony.
+
+**Jeśli jednak chcesz spróbować, poprawna wersja wygląda tak:**
+1. Kara dopiero od **trzeciego** wejścia na to samo pole, bo drugie to normalny powrót, np. −0,5 za każde wejście powyżej dwóch.
+2. Obserwacja z **licznikiem** (wariant ho4, 0/1/2+), żeby agent widział, kiedy kara się zaczyna.
+3. Trening 300 tys. epizodów, czyli ok. 2,5–3 h.
+
+Ryzyko: licznik po 100 tys. epizodów wypadł słabo (27,6 pkt), bo tablica jest ponad 2 razy większa. Wynik może być gorszy niż obecne 56,6.
+
+**Tani test przed decyzją (kilka minut, bez treningu):** mogę ocenić obecnego najlepszego agenta z małą losowością przy grze, np. 5% ruchów losowych. Losowy ruch zwykle wyrywa agenta z pętli. Jeśli wynik wyraźnie wzrośnie, będziemy wiedzieć, że krążenie realnie kosztuje punkty i kara ma sens. Jeśli nie wzrośnie, krążenie dotyczy głównie gier, które i tak są przegrane, i nie warto w nie inwestować.
+
+**Proponowana kolejność:**
+1. Robię ten kilkuminutowy test i dopisuję wynik do raportu.
+2. Przechodzimy do analizy i wniosków. Mogę przygotować listę pytań i obserwacji z wszystkich eksperymentów, a Ty piszesz wnioski własnymi słowami.
+3. Karę za krążenie zostawiamy jako opcję na noc, jeśli test pokaże, że warto.
+
+Mam zrobić krok 1?

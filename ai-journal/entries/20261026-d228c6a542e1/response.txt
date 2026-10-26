@@ -1,0 +1,27 @@
+Chodzi o agenta Q-learning z narratorem „droga” i pamięcią odwiedzin, trenowanego 300 tys. epizodów na losowych kopalniach. To najlepszy wariant w całym eksperymencie z narratorem.
+
+**Na nowych kopalniach losowych** (10 modeli, każdy oceniony na 1000 kopalniach, których nie widział w treningu):
+- Średni wynik **56,6 pkt**. Heurystyka progowa ma 61,7 pkt, a agent bez narratora nie nauczył się grać wcale.
+- Wychodzi z kopalni w **75%** gier. Zawał przysypuje go w 16%, a olej kończy mu się w 9%. Heurystyka wychodzi w 87%.
+- Wynosi średnio **47 pkt** ładunku, a gra trwa ok. 49 ruchów.
+- Wynik jest bardzo powtarzalny: 10 modeli różni się średnio tylko o 0,5 pkt.
+
+**Jak się uczył**
+- Przez pierwsze ok. 70 tys. epizodów wynik walidacji był ujemny. Agent głównie eksplorował.
+- Między 80 a 200 tys. epizodów wynik szybko rósł, do ok. 50 pkt.
+- Od ok. 260 tys. epizodów wynik stoi na ok. 60 pkt walidacji, więc trening się w praktyce ustabilizował.
+
+**Krążenie**
+- Nadal zdarza się w **56%** gier (wcześniej 74%), ale jest krótsze: średnio 14 ruchów w kółko zamiast 27.
+- W grze, w której wcześniej zauważono krążenie, ten agent wyszedł z ładunkiem 69 pkt (wynik 83,8).
+
+**Na 4 mapach stałych** (agent ich nie znał, uczył się tylko na losowych):
+
+| mapa | agent | heurystyka | komentarz |
+|---|---|---|---|
+| stabilna | 55,9 | 62,8 | wychodzi w 96% gier, wszystkie modele podobne |
+| krucha | −2,8 | 14,6 | wychodzi szybko, prawie bez urobku (zbyt ostrożny) |
+| głęboka | 69,7 | 79,5 | duży rozrzut, 1 z 10 modeli zawodzi |
+| zawał korytarza | 13,5 | 71,7 | 7 z 10 modeli wychodzi w mniej niż połowie gier |
+
+**Podsumowanie:** narrator i dłuższy trening sprawiły, że agent tablicowy umie grać na nieznanych kopalniach i zbliżył się do heurystyki. Nadal jest od niej słabszy, nadal czasem krąży i nie radzi sobie z mapami nietypowymi (krucha, zawał korytarza). Trzeba też pamiętać, że narrator podaje mu kierunek najkrótszej drogi, więc część nawigacji wykonuje za niego. SARSA w tych samych warunkach osiąga 52,7 pkt.

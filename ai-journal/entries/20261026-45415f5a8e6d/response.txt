@@ -1,0 +1,26 @@
+[Komunikat w trakcie pracy]
+Test jest skończony. Wpis do raportu się zepsuł przez znaki specjalne, więc przywracam plik i dopisuję go jeszcze raz.
+
+[Odpowiedź]
+Test zrobiony. Najlepszego agenta oceniłem z losowymi ruchami przy grze: 10 modeli, po 1000 kopalni, czas ok. 40 s.
+
+| losowe ruchy | wynik | wyjścia | gry z krążeniem |
+|---|---|---|---|
+| 0% (normalnie) | 56,6 | 75% | 58% |
+| 2% | 56,3 | 75% | 58% |
+| 5% | 55,4 | 76% | 58% |
+| 10% | 54,7 | 77% | 61% |
+
+**Co z tego wynika**
+- **Losowe ruchy nie pomagają.** Krążenie się nie zmniejsza, a wynik nawet lekko spada. Agent po losowym ruchu wraca do tej samej pętli, bo prowadzą go tam jego wartości Q. Problem siedzi więc w tym, czego się nauczył, a nie w samym wyborze ruchu przy grze. Da się go naprawić tylko zmianą treningu.
+- **Krążenie kosztuje punkty, ale umiarkowanie.** Gry z krążeniem kończą się średnio wynikiem 50,5 pkt, a gry bez krążenia 64,8 pkt. Wyjście z kopalni: 68% wobec 84%. Większość gier z krążeniem i tak kończy się wyjściem z kopalni, czyli agent zwykle traci tylko kilka ruchów, a nie całą grę.
+- **Górna granica zysku to ok. 8 pkt.** Tyle wzrosłaby średnia, gdyby gry z krążeniem kończyły się tak jak pozostałe. To górne oszacowanie, nie pewny wynik: krążenie może po prostu częściej występować na trudniejszych kopalniach.
+
+Muszę też poprawić to, co pisałem wcześniej. Zakładałem, że krążenie dotyczy głównie gier i tak przegranych. Wynik pokazuje coś innego: krążenie obniża wynik także w grach, które kończą się dobrze.
+
+**Wniosek dla decyzji:** kara za krążenie może dać maksymalnie kilka punktów, a wymaga 2,5–3 h treningu z niepewnym skutkiem. Nadal polecam przejść do analizy i wniosków. Karę można zostawić jako opcjonalny eksperyment na noc.
+
+**Co zrobiłem**
+- Nowy skrypt `scripts/eval_epsilon.py`. Wyniki zapisuje w `results/train/narrator_pamiec_300k/epsilon_eval.csv`.
+- W raporcie, w sekcji o narratorze, jest nowy akapit z tabelą i obserwacjami. Uzupełniłem też instrukcję uruchomienia i sekcję AI.
+- Raport się kompiluje, 211 testów przechodzi. Commit i wysyłka na GitHub.
