@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-25",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Podgląd najlepszych agentów w grze",
+  "scope": "Wybór modeli z wyników i uruchomienie watch.py; bez zmian w kodzie",
+  "verification": "Nie dotyczy (uruchomienie podglądu)",
+  "conversation_url": "",
+  "prompt_sha256": "2715295fa1f9ff1fb9001a7ccaecd53e7f9d841aa246bd8f4ef0db258dcea526",
+  "response_sha256": "7b319b082bafb54ac55f361e7f8c939422dc7c46c08eb15fed35327c5a95be66",
+  "recorded_at_utc": "2026-10-25T22:39:32.163039+00:00"
+}

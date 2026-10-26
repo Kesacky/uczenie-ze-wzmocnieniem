@@ -524,3 +524,15 @@ def test_hint_path_kind_follows_corridors():
     assert paths[(2, 1)] == (2, RIGHT + 1) and paths[(3, 1)] == (5, RIGHT + 1)
     with pytest.raises(ValueError):
         MineEnv(parse_map(TINY, "test"), obs_mode="hint", hint_kind="gps")
+
+
+def test_hint_memory_marks_visited_neighbours():
+    env, obs, _ = make(**SAFE, obs_mode="hint", hint_kind="path", hint_memory=True)
+    assert len(obs) == 17 and obs[13:].tolist() == [0, 0, 0, 0]
+    obs, *_ = env.step(LEFT)             # z S w lewo: S (po prawej) jest już odwiedzone
+    assert obs[13:].tolist() == [0, 0, 0, 1]
+    assert env.observation_space.contains(obs)
+    obs, *_ = env.step(RIGHT)            # z powrotem na S: odwiedzone pole po lewej
+    assert obs[13:].tolist() == [0, 0, 1, 0]
+    env.reset(seed=0)                    # nowy epizod czyści pamięć
+    assert env.visited == {env.pos}

@@ -1,0 +1,130 @@
+{
+  "args": {
+    "maps": [
+      "losowa"
+    ],
+    "algos": [
+      "q_learning",
+      "sarsa"
+    ],
+    "seeds": 10,
+    "q_init": [
+      30.0
+    ],
+    "alpha": [
+      0.1
+    ],
+    "alpha_end": [
+      0.01
+    ],
+    "gamma": [
+      0.99
+    ],
+    "eps_start": 1.0,
+    "eps_end": [
+      0.05
+    ],
+    "eps_decay": [
+      0.7
+    ],
+    "episodes": [
+      100000
+    ],
+    "oil_bins": [
+      4
+    ],
+    "reward_step": [
+      -0.25
+    ],
+    "reward_illegal": [
+      -2.0
+    ],
+    "reward_collapse": [
+      -10.0
+    ],
+    "dig_fraction": [
+      0.3
+    ],
+    "dig_refund": [
+      0
+    ],
+    "mask_illegal": [
+      1
+    ],
+    "bonus": [
+      0.0
+    ],
+    "local_obs": [
+      0
+    ],
+    "hint_obs": [
+      3
+    ],
+    "ofat": false,
+    "eval_every": 500,
+    "eval_episodes": 100,
+    "final_episodes": 1000,
+    "eval_seed": 1000000,
+    "workers": 8,
+    "name": "narrator_pamiec",
+    "out": "C:\\Users\\Marcin\\Desktop\\Uczenie ze wzmocnieniem\\results\\train"
+  },
+  "variants": [
+    {
+      "q_init": 30.0,
+      "alpha": 0.1,
+      "alpha_end": 0.01,
+      "gamma": 0.99,
+      "eps_decay": 0.7,
+      "eps_end": 0.05,
+      "episodes": 100000,
+      "oil_bins": 4,
+      "reward_step": -0.25,
+      "reward_illegal": -2.0,
+      "reward_collapse": -10.0,
+      "dig_fraction": 0.3,
+      "dig_refund": 0,
+      "mask_illegal": 1,
+      "bonus": 0.0,
+      "local_obs": 0,
+      "hint_obs": 3,
+      "variant": "q30_n100000_ho3"
+    }
+  ],
+  "train_seed": "seed * 100000 + epizod",
+  "valid_seed": 2000000,
+  "game_config": {
+    "losowa": {
+      "deposit_values": {
+        "c": 3,
+        "s": 9,
+        "g": 18,
+        "k": 30
+      },
+      "max_deposits": 5,
+      "stability_max": 5,
+      "stability_start": 5,
+      "dig_stability_cost": 1,
+      "prop_stability_gain": 2,
+      "props_start": 2,
+      "props_max": 2,
+      "collapse_floor": 0.001,
+      "collapse_base": 0.003,
+      "collapse_power": 2.0,
+      "collapse_prob": null,
+      "oil_start": 100,
+      "oil_per_step": 1,
+      "oil_bins": 4,
+      "corridor_event_after": 3,
+      "reward_step": -0.1,
+      "reward_illegal": -2.0,
+      "reward_collapse": -10.0,
+      "reward_out_of_oil": -20.0,
+      "reward_exit_multiplier": 1.0,
+      "reward_dig_fraction": 0.3,
+      "reward_dig_refund": false,
+      "reward_shaping_gamma": 1.0,
+      "step_limit": 300
+    }
+  }
+}

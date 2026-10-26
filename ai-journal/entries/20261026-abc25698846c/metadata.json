@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-26",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Narrator z pamięcią odwiedzin: implementacja i start eksperymentu",
+  "scope": "Zmiana obserwacji (hint_memory), opcje treningu i podglądu, test, pilotaż, uruchomienie treningu",
+  "verification": "Student nie weryfikował jeszcze; testy (209) uruchomił agent",
+  "conversation_url": "",
+  "prompt_sha256": "3cb685984acaf565ae628d7f841e3fd5e73cfeb7957090655be3075bc65c6b71",
+  "response_sha256": "4d10ec8e79bb2f77b50a9dbd139a03183063dd9d9fc58feecc4fcaf46183ecd7",
+  "recorded_at_utc": "2026-10-26T11:40:53.301501+00:00"
+}

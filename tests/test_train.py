@@ -132,6 +132,7 @@ def test_local_obs_and_cross_evaluation(tmp_path):
     from train import make_env
     assert make_env("m1_stabilna").obs_mode == "state"
     assert make_env("losowa", hint_obs=2).hint_kind == "path" and make_env("m2_krucha", hint_obs=1).obs_mode == "hint"
+    assert make_env("losowa", hint_obs=3).hint_memory and not make_env("losowa", hint_obs=2).hint_memory
     assert make_env("m1_stabilna", local_obs=1).observation_space.shape == make_env("losowa").observation_space.shape
     out = tmp_path / "train"
     subprocess.run([sys.executable, str(ROOT / "scripts" / "train.py"), "--maps", "m1_stabilna", "--algos", "sarsa",

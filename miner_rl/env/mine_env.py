@@ -20,8 +20,11 @@ kierunek / odległość / rodzaj najbliższego niewydobytego złoża, kierunek /
 do wyjścia) - bez pozycji i maski złóż, żeby liczba stanów była mała także na
 mapach losowych. Kierunek to przy `hint_kind="compass"` kierunek celu „na przełaj”
 (8 stron świata), a przy `hint_kind="path"` kierunek pierwszego kroku najkrótszej
-drogi korytarzami (jak w nawigacji). Narrator opisuje bieżący stan kopalni; o ruchu,
-wydobyciu, podparciu i powrocie decyduje agent.
+drogi korytarzami (jak w nawigacji). Przy `hint_memory=True` obserwacja ma na końcu
+4 bity pamięci: czy sąsiednie pole (góra, dół, lewo, prawo) było już odwiedzone w tym
+epizodzie (bez nich agent nie odróżnia powrotu od nowego miejsca i może krążyć).
+Narrator opisuje bieżący stan kopalni; o ruchu, wydobyciu, podparciu i powrocie
+decyduje agent.
 x, y - pozycja górnika; sigma - stabilność stropu 0..5; o - olej w przedziałach
 0..3; m - maska wydobytych złóż (K = liczba złóż na mapie, K <= 5); n - liczba
 stempli 0..2. Ładunek nie jest częścią stanu: to suma wartości złóż z maski.
@@ -104,6 +107,7 @@ class MineEnv(gym.Env):
         obs_mode: str = "state",
         view_radius: int = 2,
         hint_kind: str = "compass",
+        hint_memory: bool = False,
         **overrides: Any,
     ) -> None:
         super().__init__()
@@ -119,6 +123,7 @@ class MineEnv(gym.Env):
         self.obs_mode = obs_mode
         self.view_radius = view_radius
         self.hint_kind = hint_kind
+        self.hint_memory = hint_memory
         self._base_config = config or GameConfig()
         self._overrides = overrides
         if random_maps:
@@ -137,6 +142,8 @@ class MineEnv(gym.Env):
         elif obs_mode == "hint":
             nvec = [cfg.stability_max + 1, cfg.oil_bins, cfg.props_max + 1, len(LOAD_BINS) + 1] + [5] * 4 \
                 + [9, len(DIST_BINS) + 1, len(DEPOSITS) + 1, 9, len(DIST_BINS) + 1]
+            if hint_memory:
+                nvec += [2] * 4
         self.observation_space = spaces.MultiDiscrete(nvec)
         self._needs_reset = True
         self._init_state()
@@ -242,6 +249,7 @@ class MineEnv(gym.Env):
         cfg = self.config
         self.grid: list[list[str]] = [list(row) for row in self.map.rows]
         self.pos: tuple[int, int] = self.map.start
+        self.visited: set[tuple[int, int]] = {self.pos}
         self.facing: int = DOWN
         self.stability: int = cfg.stability_start
         self.props: int = cfg.props_start
@@ -288,6 +296,7 @@ class MineEnv(gym.Env):
             elif target not in WALKABLE:                 # lita skała
                 return False
             self.pos = (tx, ty)
+            self.visited.add(self.pos)
             self.facing = action
             return True
 
@@ -412,6 +421,9 @@ class MineEnv(gym.Env):
         if self.obs_mode == "hint":
             load_bin = int(np.searchsorted(LOAD_BINS, self.load_value))
             values = [self.stability, self.oil_bin(), self.props, load_bin, *self.neighbours(), *self.hint()]
+            if self.hint_memory:
+                values += [int((self.pos[0] + dx, self.pos[1] + dy) in self.visited)
+                           for dx, dy in DIRECTIONS.values()]
             return np.array(values, dtype=np.int64)
         values = [self.pos[0], self.pos[1], self.stability, self.oil_bin(), *self.mined, self.props]
         if self.obs_mode == "local":

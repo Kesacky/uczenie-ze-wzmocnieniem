@@ -1,0 +1,15 @@
+Podgląd się zakończył. Wszystkie okna zostały zamknięte, a gry rozegrane. Wyniki:
+
+| mapa | gry | wynik | wynik w ocenie (średnia z 1000 gier) |
+|---|---|---|---|
+| stabilna | 3 × wyjście z kopalni | 59,1 za każdym razem | 56,8 |
+| krucha | 3 × wyjście | 59,2 za każdym razem | 46,4 |
+| głęboka | 3 × wyjście | 112,9 za każdym razem | 103,2 |
+| zawał korytarza | 3 × wyjście | 62,8 za każdym razem | 58,3 |
+| losowe kopalnie (narrator) | 3 wyjścia, 2 zawały | 59,7 / 83,8 / 79,9 oraz −15,7 / −5,5 | 33,0 |
+
+Na mapach stałych 3 gry dały identyczny wynik. To nie błąd: polityka jest deterministyczna, a w tych grach nie zdarzył się żaden losowy zawał, więc agent za każdym razem przeszedł tę samą trasę. Wyniki są wyższe od średniej z oceny, bo średnia obejmuje też gry z zawałem (na mapie kruchej ok. 22%).
+
+Na losowych kopalniach widać typowy obraz: agent dobrze wybiera złoża i wraca z dużym ładunkiem (ok. 80 pkt), ale czasem ryzykuje za bardzo i kończy grę zawałem.
+
+Jeśli chcesz zobaczyć więcej gier, zwłaszcza takich z zawałem, mogę uruchomić podgląd na większej liczbie epizodów albo nagrać same porażki do GIF-ów (`scripts/record.py --only-failed`).

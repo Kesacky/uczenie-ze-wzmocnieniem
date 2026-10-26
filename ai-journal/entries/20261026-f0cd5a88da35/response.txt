@@ -1,0 +1,36 @@
+[Komunikaty w trakcie pracy]
+Wyniki są gotowe. Pamięć podniosła wynik, ale nie usunęła krążenia. Opisuję to w raporcie.
+
+Wszystko gotowe: raport się kompiluje, 209 testów przechodzi. Zapisuję dziennik i wysyłam zmiany na GitHub.
+
+[Odpowiedź]
+Trening narratora z pamięcią się skończył. Wynik jest mieszany: agent gra lepiej, ale nadal krąży.
+
+**Wyniki** (nowe kopalnie losowe, 10 ziaren, 1000 gier oceny):
+
+| wariant | Q-learning | SARSA | gry z krążeniem* |
+|---|---|---|---|
+| droga (dotychczasowy) | 30,9 ± 1,6 | 25,1 ± 1,1 | 77% |
+| droga + pamięć | **37,6 ± 1,3** | **32,6 ± 1,3** | 74% |
+| heurystyka progowa | 61,7 | | |
+
+\* Gra, w której ten sam stan wystąpił co najmniej 3 razy (Q-learning). Policzyłem to nowym skryptem `scripts/oscillation.py`, bo licznik pętli z oceny liczy też zwykłe powroty tą samą drogą.
+
+**Co to znaczy**
+- **Wynik wzrósł o ok. 7 pkt** w obu algorytmach. Różnica jest kilka razy większa od rozrzutu między ziarnami, więc to realna poprawa.
+- **Krążenia pamięć prawie nie usunęła**: 74% gier zamiast 77%, średnio 27 zamiast 32 ruchów w kółko. Prawdopodobna przyczyna: bit pamięci mówi tylko „byłem tu”. Po pierwszym przejściu między dwoma polami oba są już odwiedzone i kolejne przejścia znów wyglądają dla agenta tak samo.
+- **Gra z podglądu** (ta, w której agent kręcił się 50 ruchów): agent z pamięcią wychodzi z kopalni z ładunkiem 48 pkt (wynik 57,1) zamiast zginąć w zawale z 12 pkt (−15,7). To jednak jedna gra, a nie średnia.
+- **Krzywa uczenia nadal mocno rośnie**: walidacja wzrosła z 32 do 43 pkt w ostatnich 30 tys. epizodów. Dłuższy trening powinien jeszcze sporo dać.
+
+**Co zrobiłem**
+- Opisałem wariant w raporcie (sekcja 8.9: tabela, wykres, obserwacje i uczciwy wniosek, że krążenie zostało). Uzupełniłem ograniczenia, instrukcję uruchomienia, README, `docs/etapy.md` i sekcję AI.
+- Commit i wysyłka na GitHub. Dopisek o pętlach z wczoraj jest w tym samym commicie.
+
+**Propozycja następnego kroku** (nic nie uruchamiam bez Twojej decyzji):
+1. **Dłuższy trening wariantu z pamięcią**, np. 300 tys. epizodów. Krzywa wyraźnie rośnie, więc to najpewniejsza poprawa wyniku. Czas: ok. 3 godziny.
+2. **Licznik odwiedzin zamiast bitu** (np. 0 / 1 / 2+ razy). To bezpośrednio uderza w krążenie, ale tablica jeszcze urośnie.
+
+Polecam najpierw opcję 1, bo jest prosta i porównywalna. Opcję 2 warto zrobić, jeśli po dłuższym treningu agent nadal będzie często krążył.
+
+Do obejrzenia agenta z pamięcią:
+`python scripts/watch.py --random --obs-mode hint --hint-kind path --hint-memory --agent results/train/narrator_pamiec/models/losowa_q_learning_q30_n100000_ho3_s8.pkl`

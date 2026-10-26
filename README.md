@@ -21,7 +21,8 @@ ok. −17 pkt (heurystyka 61,7), a uczony na mapie stałej na innej mapie ok. �
 Dodatkowy eksperyment 4 (pomysł studenta): obserwacja z podpowiedzią „narratora” (kierunek
 i odległość do najbliższego złoża i do wyjścia zamiast widoku otoczenia). Z kierunkiem
 pierwszego kroku najkrótszej drogi Q-learning na nowych kopalniach zdobywa 30,8 pkt,
-z samym kierunkiem „na przełaj” 5,2 pkt.
+z samym kierunkiem „na przełaj” 5,2 pkt, a z dodatkową pamięcią odwiedzonych pól 37,6 pkt
+(agent nadal często krąży między polami).
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 
@@ -141,6 +142,8 @@ python scripts/train.py --maps m1_stabilna m2_krucha m3_gleboka m4_zawal_korytar
 python scripts/cross_eval.py --runs narrator_stale narrator_losowe --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa --variants q30_n100000_ho1 q30_n100000_ho2 --workers 6 --out results/train/narrator
 python scripts/plot_training.py --name narrator_losowe --variants q30_n100000_ho1 q30_n100000_ho2
 python scripts/watch.py --random --obs-mode hint --hint-kind path --agent results/train/narrator_losowe/models/losowa_q_learning_q30_n100000_ho2_s0.pkl
+python scripts/train.py --maps losowa --seeds 10 --episodes 100000 --hint-obs 3 --workers 8 --name narrator_pamiec
+python scripts/watch.py --random --obs-mode hint --hint-kind path --hint-memory --agent results/train/narrator_pamiec/models/losowa_q_learning_q30_n100000_ho3_s8.pkl
 ```
 
 Przegląd hiperparametrów: każdy z `--q-init`, `--alpha`, `--gamma`, `--eps-decay`,

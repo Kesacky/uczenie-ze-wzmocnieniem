@@ -1,0 +1,1 @@
+czyli jest to ten model agenta ktory dziala na losowych mapach ? czy np jutro by rozwiazac ten problem powinnismy ustawic dluzszy trening lub inny sposob ?

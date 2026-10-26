@@ -1,0 +1,24 @@
+[Komunikat w trakcie pracy]
+Zdiagnozowałem pętlę i dopisuję to do raportu. Poprawiam jeszcze jedną liczbę.
+
+[Odpowiedź]
+Masz rację, to realny problem, a nie błąd podglądu. Odtworzyłem tę grę krok po kroku: to pierwsza gra na losowej kopalni (agent z narratorem, wynik −15,7, 93 ruchy). Przebieg jest identyczny jak w oknie.
+
+**Co się działo**
+1. Agent zszedł szybem w dół, minął dwa złoża i przez 20 ruchów chodził tam i z powrotem między dwoma polami na dole.
+2. Wrócił, wykopał węgiel (3 pkt) i srebro (9 pkt), czyli dwa złoża najbliżej szybu. Dwóch kryształów po 30 pkt nie ruszył, bo były dalej.
+3. Doszedł pod samo wyjście z ładunkiem 12 pkt, ale nie wyszedł. Przez ponad 50 ruchów kręcił się w miejscu: najpierw obok wyjścia, potem trochę niżej. W końcu zginął w zawale i stracił ładunek.
+
+**Dlaczego**
+- **Narrator nie mówi agentowi, gdzie jest ani gdzie już był.** Na dwóch sąsiednich polach agent dostaje za każdym razem te same dwie obserwacje. Polityka jest deterministyczna, więc jeśli na polu A wybiera „w prawo”, a na polu B „w lewo”, to krąży bez końca. Pętla przerywa się dopiero, gdy zmieni się poziom oleju (to jedyna rzecz w obserwacji, która się wtedy zmienia).
+- **Te ruchy są słabo nauczone.** Ich wartości Q są prawie równe wartości początkowej 30 (np. 30,5 wobec 30,4), więc o wyborze decydują drobne różnice.
+- **Optymizm wartości początkowej.** Pod wyjściem wyjście miało Q = 25,7, a ruchy, których agent w tej sytuacji prawie nie próbował, nadal miały 30. Dla tablicy Q „nieznane” wyglądało więc lepiej niż „wyjdź z 12 pkt”.
+
+**Jak często:** w ocenie (1000 gier na model) agent wraca do odwiedzonego już stanu w 81% gier, średnio 32 razy na grę, a w 30% gier kończy mu się olej. Te liczby były już w wynikach, ale w raporcie ich nie skomentowałem. Teraz dopisałem w sekcji 8.9 opis tego zjawiska i jego przyczyny, z zaznaczeniem, że zauważył to student. Zmiana jest na razie lokalna, nie wysłałem jej.
+
+**Co można z tym zrobić** (nic jeszcze nie zmieniałem):
+1. **Dodać do obserwacji pamięć odwiedzin:** dla każdego z 4 sąsiednich pól informację, czy agent już na nim był w tej grze. To najbardziej bezpośrednio uderza w przyczynę. Polecam tę opcję.
+2. **Trenować dłużej** (np. 300 tys. epizodów). Krzywa jeszcze rosła, więc słabo nauczonych obserwacji byłoby mniej, ale pętle nie znikną całkiem.
+3. **Mniejsze Q₀ dla narratora** (np. 10). Mniej „gonienia nieznanego”, ale wcześniej przy niskim Q₀ agent uczył się wychodzić od razu.
+
+Każdy wariant to nowy trening, ok. 20–40 minut. Daj znać, który sprawdzić.

@@ -101,6 +101,15 @@ pilotaże, uruchomił 120 treningów i 600 ocen krzyżowych oraz opisał wyniki 
 \ref{sec:narrator}. Claude zaznaczył, że wariant „droga” jest silną pomocą
 wykonującą za agenta nawigację. Student nie weryfikował jeszcze tych wyników.
 
+25--26.10.2026 (Claude Code, model claude-opus-5-5): student w podglądzie gry
+zauważył, że agent z narratorem krąży w miejscu, i poprosił o sprawdzenie. Claude
+odtworzył grę krok po kroku, wskazał przyczynę (obserwacja bez pozycji i historii,
+słabo nauczone wartości bliskie $Q_0$) i zaproponował pamięć odwiedzin. Po decyzji
+studenta Claude ją zaimplementował (z testem), uruchomił 20 treningów i ocenę
+krzyżową, zmierzył krążenie osobnym skryptem i opisał wynik w sekcji
+\ref{sec:narrator}: wynik wzrósł, ale krążenie prawie nie zmalało. Student nie
+weryfikował jeszcze tych wyników.
+
 \subsection*{Weryfikacja studenta}
 Oświadczenie studenta z 24.10.2026: student zweryfikował całość dotychczasowych
 zmian (etapy E1 i E2), w tym kod, wyniki pilotażu i raport.

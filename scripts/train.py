@@ -6,7 +6,8 @@ oraz parametry środowiska (--oil-bins: przedziały oleju w obserwacji; --reward
 --reward-step, --reward-collapse, --dig-fraction, --dig-refund: nagrody w treningu; --mask-illegal:
 maskowanie akcji niedozwolonych; --bonus: premia za eksplorację; --local-obs: obserwacja
 z widokiem otoczenia także na stałej mapie; --hint-obs: obserwacja z podpowiedzią narratora,
-1 = kierunek celu na przełaj, 2 = kierunek pierwszego kroku najkrótszej drogi) przyjmuje jedną lub
+1 = kierunek celu na przełaj, 2 = kierunek pierwszego kroku najkrótszej drogi, 3 = jak 2
+i pamięć odwiedzonych sąsiednich pól) przyjmuje jedną lub
 kilka wartości. Domyślnie warianty to wszystkie kombinacje
 (siatka). Z --ofat pierwsza wartość każdego parametru tworzy wariant bazowy, a każda
 pozostała wartość daje wariant różniący się od bazowego tylko tym jednym parametrem
@@ -100,10 +101,11 @@ def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1], local_obs: int = 
              **rewards) -> MineEnv:
     """'losowa' = nowa kopalnia w każdym epizodzie (z widokiem otoczenia albo z podpowiedzią)."""
     obs_mode = "hint" if hint_obs else "local" if local_obs or name == "losowa" else "state"
-    kind = "path" if hint_obs == 2 else "compass"
+    kind, memory = "path" if hint_obs >= 2 else "compass", hint_obs == 3
     if name == "losowa":
-        return MineEnv(random_maps=True, obs_mode=obs_mode, hint_kind=kind, oil_bins=oil_bins, **rewards)
-    return MineEnv(name, obs_mode=obs_mode, hint_kind=kind, oil_bins=oil_bins, **rewards)
+        return MineEnv(random_maps=True, obs_mode=obs_mode, hint_kind=kind, hint_memory=memory,
+                       oil_bins=oil_bins, **rewards)
+    return MineEnv(name, obs_mode=obs_mode, hint_kind=kind, hint_memory=memory, oil_bins=oil_bins, **rewards)
 
 
 def train_env(job: dict) -> MineEnv:
@@ -251,9 +253,10 @@ def main() -> int:
                         help="premia za eksplorację β/√N(s,a) w treningu (0 = wyłączona)")
     parser.add_argument("--local-obs", type=int, nargs="+", default=[PARAMS["local_obs"][1]], choices=[0, 1],
                         help="1 = obserwacja z widokiem otoczenia 5×5 także na stałej mapie")
-    parser.add_argument("--hint-obs", type=int, nargs="+", default=[PARAMS["hint_obs"][1]], choices=[0, 1, 2],
+    parser.add_argument("--hint-obs", type=int, nargs="+", default=[PARAMS["hint_obs"][1]], choices=[0, 1, 2, 3],
                         help="obserwacja z podpowiedzią narratora: 1 = kierunek celu na przełaj, "
-                             "2 = kierunek pierwszego kroku najkrótszej drogi")
+                             "2 = kierunek pierwszego kroku najkrótszej drogi, 3 = jak 2 i pamięć "
+                             "odwiedzonych sąsiednich pól")
     parser.add_argument("--ofat", action="store_true",
                         help="warianty „jeden czynnik naraz” wokół pierwszych wartości zamiast siatki")
     parser.add_argument("--eval-every", type=int, default=500, help="co ile epizodów walidacja")

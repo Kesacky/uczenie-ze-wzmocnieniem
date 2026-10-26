@@ -1279,6 +1279,17 @@ Obserwacje:
   koniec treningu (wariant „droga”, Q-learning: $-15$ pkt po 10 tys., $25$ pkt po
   70 tys., $33$ pkt po 100 tys. epizodów). Dłuższy trening prawdopodobnie poprawiłby
   wynik; tego nie sprawdzono.
+  \item Agent z narratorem często chodzi tam i z powrotem między dwoma polami:
+  w 81\% epizodów oceny wraca do odwiedzonego już stanu gry (średnio 32 razy na
+  epizod). Student zauważył to w podglądzie gry. Odtworzenie tej gry krok po kroku
+  pokazało przyczynę. Obserwacja nie zawiera pozycji ani historii epizodu, więc na
+  dwóch sąsiednich polach agent dostaje za każdym razem te same dwie obserwacje,
+  a polityka zachłanna wybiera w nich ruchy prowadzące do siebie nawzajem. Pętla
+  trwa, dopóki nie zmieni się przedział oleju. Ruchy te mają wartości bliskie
+  początkowemu $Q_0=30$ (np. $30{,}5$ wobec $30{,}4$), czyli są słabo nauczone.
+  W odtworzonej grze agent na polu pod wyjściem miał dla wyjścia $Q=25{,}7$,
+  a dla nieprzetestowanych ruchów nadal $Q_0=30$, więc zamiast wyjść z ładunkiem
+  12 pkt krążył przez ponad 50 kroków, aż zginął w zawale.
   \item SARSA jest na mapach losowych gorsza od Q-learningu o ok. 6 pkt (droga)
   i ok. 3 pkt (kompas).
   \item Agent map losowych z narratorem „droga” przenosi się nierówno na mapy stałe:
@@ -1294,6 +1305,65 @@ Obserwacje:
   Zwykle wychodzi z nich szybko prawie bez ładunku. Taki agent widział w treningu
   tylko obserwacje jednej kopalni.
 \end{itemize}
+\textbf{Wariant z pamięcią odwiedzin} (26.10.2026). Aby agent mógł odróżnić powrót
+od nowego miejsca, dodano trzeci wariant (\texttt{--hint-obs 3}): obserwacja „droga”
+i 4 bity mówiące, czy sąsiednie pole (góra, dół, lewo, prawo) było już odwiedzone
+w tej grze. Pozostałe ustawienia jak wyżej: 10 ziaren, 100 tys. epizodów,
+Q-learning i SARSA (\texttt{results/\allowbreak train/\allowbreak narrator\_pamiec/},
+20 uruchomień; ocena krzyżowa w
+\texttt{results/\allowbreak train/\allowbreak narrator\_pamiec\_cross/}). Pilotaż
+(2 ziarna, 20 tys. epizodów, wyniki niezachowane) nie rozstrzygnął niczego, bo po
+20 tys. epizodów żaden wariant jeszcze się nie uczył.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+wariant (mapy losowe) & zwrot & wyjścia & zawały & brak oleju & stany & krążenie \\
+\midrule
+droga, Q-learning & $30{,}9\pm1{,}6$ & 50\% & 20\% & 30\% & 96 tys. & 77\% \\
+droga + pamięć, Q-learning & $37{,}6\pm1{,}3$ & 52\% & 22\% & 26\% & 202 tys. & 74\% \\
+droga, SARSA & $25{,}1\pm1{,}1$ & 44\% & 24\% & 33\% & 102 tys. & -- \\
+droga + pamięć, SARSA & $32{,}6\pm1{,}3$ & 47\% & 24\% & 29\% & 215 tys. & -- \\
+\bottomrule
+\end{tabular}
+\end{center}
+Zwrot: średnia $\pm$ odchylenie po 10 ziarnach (1000 epizodów oceny na nowych
+kopalniach). Krążenie: odsetek epizodów, w których ten sam stan gry wystąpił co
+najmniej 3 razy; policzone skryptem \texttt{scripts/\allowbreak oscillation.py} dla modeli Q-learningu (10 ziaren po 300
+kopalni oceny), bo licznik pętli z ewaluacji liczy też zwykłe powroty tą samą drogą.
+
+Obserwacje:
+\begin{itemize}
+  \item Pamięć poprawiła wynik o ok. 7 pkt w obu algorytmach. Różnica jest kilka razy
+  większa od rozrzutu między ziarnami. Krzywa uczenia (rys.~\ref{fig:pamiec}) rośnie
+  jeszcze wyraźnie pod koniec: walidacja Q-learningu wzrosła z 32 do 43 pkt między
+  70 a 100 tys. epizodów. Nadal jest to mniej niż heurystyka ($61{,}7$).
+  \item Krążenia pamięć prawie nie usunęła: 74\% epizodów wobec 77\%, średnio 27
+  zamiast 32 kroków w krążeniu. Prawdopodobna przyczyna: bit pamięci odróżnia tylko
+  pierwszą wizytę. Gdy agent przejdzie między dwoma polami raz, oba są już
+  odwiedzone i dalsze przejścia znów dają te same obserwacje. Do usunięcia krążenia
+  potrzebna byłaby bogatsza pamięć (np. liczba odwiedzin) albo dłuższy trening, który
+  zmniejszy liczbę słabo nauczonych obserwacji. Tego nie sprawdzono.
+  \item W grze, w której student zauważył krążenie, agent z pamięcią (ten sam numer
+  ziarna) wyszedł z kopalni z ładunkiem 48 pkt (wynik $57{,}1$) zamiast zginąć
+  w zawale z ładunkiem 12 pkt ($-15{,}7$). To jedna gra, a nie miara średnia.
+  \item Tablica jest ok. 2 razy większa (ok. 200 tys. stanów), trening trwa podobnie
+  (ok. 14--15 minut na proces).
+  \item Ocena na mapach stałych pozostaje nierówna (Q-learning: stabilna $36{,}8$,
+  krucha $-3{,}0$, głęboka $46{,}1$, zawał korytarza $-11{,}0$), z dużym rozrzutem
+  między ziarnami na mapie stabilnej i głębokiej.
+\end{itemize}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{../results/train/narrator_pamiec/curves.png}
+\caption{Przebieg uczenia na mapach losowych z narratorem „droga” i pamięcią
+odwiedzin (\texttt{ho3}): średni zwrot walidacji zachłannej na stałym zestawie 100
+kopalni losowych. Linia: średnia po 10 ziarnach, pasmo: $\pm$ odchylenie
+standardowe. Linia przerywana: heurystyka progowa na mapach losowych.}\label{fig:pamiec}
+\end{figure}
+
 Wynik pokazuje, że w tym zadaniu ograniczeniem metody tablicowej na mapach losowych
 była przede wszystkim obserwacja: po zastąpieniu widoku otoczenia zwięzłą
 podpowiedzią ta sama metoda zaczęła uogólniać na nowe kopalnie. Przewaga pochodzi
@@ -1330,7 +1400,8 @@ zachowania agenta (sekcja \ref{sec:kara_zawal}). Agent tablicowy nie uogólnia n
 nowe kopalnie: uczony na mapach losowych nie nauczył się grać, a uczony na mapie
 stałej wychodzi z innej kopalni prawie bez ładunku (sekcja \ref{sec:losowe}).
 Z podpowiedzią narratora agent tablicowy uczy się grać na nowych kopalniach, ale
-osiąga ok. połowę wyniku heurystyki, a podpowiedź „droga” wykonuje za agenta
+osiąga 50--60\% wyniku heurystyki (z pamięcią odwiedzin $37{,}6$ pkt), często krąży
+między polami, a podpowiedź „droga” wykonuje za agenta
 nawigację, więc wynik nie jest wprost porównywalny z agentem bez podpowiedzi
 (sekcja \ref{sec:narrator}). Trening z narratorem nie był jeszcze zbieżny po 100 tys.
 epizodów. Nie sprawdzono aproksymacji funkcji Q (np. DQN). Wyniki sprzed 24.10.2026 oceniano według zasad w wersji 2
@@ -1396,6 +1467,12 @@ python scripts/cross_eval.py --runs narrator_stale narrator_losowe
     --out results/train/narrator
 python scripts/plot_training.py --name narrator_losowe
     --variants q30_n100000_ho1 q30_n100000_ho2
+python scripts/train.py --maps losowa --seeds 10 --episodes 100000
+    --hint-obs 3 --workers 8 --name narrator_pamiec
+python scripts/cross_eval.py --runs narrator_pamiec
+    --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa
+    --variants q30_n100000_ho3 --workers 8
+    --out results/train/narrator_pamiec_cross
 \end{verbatim}
 Wyniki trafiają do \texttt{results/train/nazwa/}. Tablice Q
 (\texttt{models/*.pkl}) nie są przechowywane w repozytorium, bo odtwarza je

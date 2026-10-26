@@ -1,0 +1,21 @@
+[Komunikaty w trakcie pracy]
+Dodaję do obserwacji narratora pamięć odwiedzonych pól i testy. Potem zrobię krótki pilotaż.
+
+Pilotaż przeszedł. Po 20 tys. epizodów oba warianty są jeszcze na początku nauki (ok. −2 do −7 pkt), tak jak wcześniej. Pamięć zwiększa tablicę ok. 1,8 raza (110 tys. stanów zamiast 60 tys.), więc RAM wystarczy. Uruchamiam pełny trening.
+
+[Odpowiedź]
+Eksperyment ruszył w tle.
+
+**Co zmieniłem**
+- Narrator ma nowy wariant **„droga + pamięć”** (`--hint-obs 3`). Do obserwacji dochodzą 4 bity: czy pole wyżej, niżej, po lewej i po prawej było już odwiedzone w tej grze. Reszta obserwacji, Q-learning i SARSA są bez zmian.
+- Podgląd obsługuje ten wariant (`--obs-mode hint --hint-kind path --hint-memory`).
+- Nowy test sprawdza, że pamięć zaznacza odwiedzone pola i czyści się w nowej grze. Wszystkie 209 testów przechodzi.
+
+**Pilotaż** (2 ziarna, 20 tys. epizodów; wyniki nie są końcowe i katalog usunąłem): po 20 tys. epizodów żaden wariant jeszcze się nie nauczył. Obecny narrator miał ok. −2 pkt, a ten z pamięcią ok. −5 pkt, przy różnicy między ziarnami ±3. Agenci krążyli w obu wariantach (96–97% gier). Tak było też wcześniej, bo agent zaczyna się uczyć dopiero po ok. 30 tys. epizodów. Pilotaż potwierdził tylko, że trening działa i mieści się w pamięci.
+
+**Co się teraz liczy**
+1. Mapy losowe, narrator z pamięcią, Q-learning i SARSA, 10 ziaren, 100 tys. epizodów: 20 uruchomień, ok. 1 godziny.
+2. Ocena krzyżowa na 4 mapach stałych i nowych kopalniach losowych.
+3. Wykres krzywych uczenia.
+
+Ustawienia są takie same jak przy obecnym narratorze, więc wynik porównamy wprost z 30,8 pkt i 81% gier z pętlą. Gdy skończy, sprawdzę wyniki, obejrzę tę samą grę, w której agent krążył, i dopiszę wszystko do raportu.

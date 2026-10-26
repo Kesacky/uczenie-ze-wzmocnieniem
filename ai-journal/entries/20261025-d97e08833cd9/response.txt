@@ -1,0 +1,20 @@
+[Komunikat w trakcie pracy]
+Wybrałem najlepsze modele i uruchamiam podgląd gry. Okna będą się otwierać po kolei.
+
+[Odpowiedź]
+Okno gry powinno być już otwarte. Agenci grają po kolei, każdy w osobnym oknie. Kolejne otwiera się, gdy poprzednie skończy grać:
+
+| kolejność | mapa | agent | wynik w ocenie (1000 gier) |
+|---|---|---|---|
+| 1 | stabilna | Q-learning, ziarno 0 | 56,8 |
+| 2 | krucha | Q-learning, ziarno 0 | 46,4 |
+| 3 | głęboka | Q-learning, ziarno 1 | 103,2 |
+| 4 | zawał korytarza | Q-learning, ziarno 3 | 58,3 |
+| 5 | losowe kopalnie | Q-learning z narratorem „droga”, ziarno 8 | 33,0 |
+
+Na mapach stałych każdy agent rozegra 3 gry, a na kopalniach losowych 5 gier, za każdym razem na nowej kopalni. Agentów na mapach stałych wziąłem z konfiguracji końcowej (kara za krok −0,25, bez zapętleń). Spośród 10 ziaren wybrałem to z najlepszym wynikiem. To pojedyncze najlepsze modele, więc są lepsze od średniej z raportu: na mapie głębokiej średnia to ok. 84, a ten agent osiąga 103.
+
+Sterowanie: `Spacja` pauza, `+`/`-` tempo, zamknięcie okna przechodzi do następnego agenta.
+
+Pojedynczego agenta można też uruchomić samodzielnie, np. na mapie głębokiej:
+`python scripts/watch.py --map m3_gleboka --agent results/train/kara_krok/models/m3_gleboka_q_learning_q30_ae0.01_n100000_rs-0.25_s1.pkl`

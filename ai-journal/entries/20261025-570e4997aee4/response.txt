@@ -1,0 +1,16 @@
+**Tak, to agent do map losowych**: Q-learning z narratorem „droga” (ziarno 8), ostatni z pięciu w podglądzie. Agenci map stałych (pierwsze cztery okna) się nie zapętlają: w ocenie mają 0% pętli i w podglądzie każdy wyszedł z kopalni.
+
+**Sam dłuższy trening nie wystarczy.** Problem ma dwie warstwy:
+1. **Słabo nauczone wartości.** Dłuższy trening by to poprawił, bo krzywa jeszcze rosła.
+2. **Agent nie wie, gdzie jest ani gdzie już był.** Dwa różne miejsca w kopalni mogą wyglądać dla niego identycznie, a agent na tę samą obserwację zawsze odpowiada tym samym ruchem. Nawet idealnie wytrenowana tablica może więc w takiej sytuacji krążyć. Tego dłuższy trening nie naprawi, bo brakuje informacji w obserwacji, a nie danych do nauki.
+
+**Proponuję na jutro:**
+1. Dodać do obserwacji narratora **pamięć odwiedzin**: przy każdym z 4 sąsiednich pól informację „byłem już tu w tej grze”. Agent zobaczy wtedy, że wraca, i może się nauczyć, że to się nie opłaca. Narrator i Q-learning zostają bez zmian, dochodzi tylko ta jedna informacja.
+2. Wytrenować ten wariant tak samo jak obecny (100 tys. epizodów, 10 ziaren). Wtedy porównanie z obecnym wynikiem 30,8 pkt jest uczciwe, bo zmienia się tylko jedna rzecz.
+3. Jeśli krzywa nadal będzie rosła, dołożyć dłuższy trening już dla lepszego wariantu.
+
+Czas: zmiana w kodzie z testami jest krótka, a trening na mapach losowych (Q-learning i SARSA) z oceną to ok. 1 godzina.
+
+Ryzyko: tablica stanów urośnie, bo każde pole ma teraz dodatkową informację. Nie umiem z góry powiedzieć, o ile. Jeśli urośnie za bardzo, agent będzie się uczył wolniej. Sprawdzę to krótkim pilotażem przed pełnym treningiem, tak jak przy narratorze.
+
+Przypomnienie: dopisek o pętlach w raporcie (sekcja 8.9) jest na razie tylko lokalnie. Mogę go wysłać od razu albo razem z jutrzejszymi zmianami.
