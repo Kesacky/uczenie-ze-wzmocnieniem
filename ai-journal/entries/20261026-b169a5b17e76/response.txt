@@ -1,0 +1,48 @@
+[Komunikat w trakcie pracy]
+Zbieram fakty z raportu do analizy. Dla hipotezy H2 policzyłem jeszcze odsetek zawałów w treningu.
+
+[Odpowiedź]
+**GitHub:** wszystko z poprzednich kroków już tam jest (ostatni commit 351e652, lokalna gałąź zgodna z `origin/main`). Ta rozmowa trafi do dziennika i wyślę ją razem z następną zmianą.
+
+**Analiza: jak proponuję ją zrobić**
+Sekcja „Analiza i wnioski” ma zawierać *Twoje* wnioski. Prowadzący będzie o nie pytał na obronie, a sekcja AI musi uczciwie mówić, kto co napisał. Dlatego nie piszę jej za Ciebie. Poniżej masz fakty do każdej hipotezy i pytania. Odpowiedz krótko, nawet w punktach i bez polskich znaków. Ja złożę to w tekst raportu, zachowując Twoje wnioski, i wskażę, gdzie coś nie zgadza się z danymi.
+
+**H1. RL lepszy od heurystyki, zwłaszcza tam, gdzie opłaca się inna kolejność wydobycia lub stempel**
+- Konfiguracja końcowa (Q-learning):
+  - krucha: 46,4 wobec 14,6 (+32);
+  - głęboka: 84,4 wobec 79,5 (+5);
+  - stabilna: 56,8 wobec 62,8 (−6);
+  - zawał korytarza: 57,4 wobec 71,7 (−14).
+- Agenci RL mają mniej zawałów, ale wynoszą mniej złóż: grają bezpieczniej.
+- ❓ *Czy H1 się potwierdziła? Twoim zdaniem częściowo czy wcale? Dlaczego RL wygrywa akurat na mapie kruchej, a przegrywa na mapie zawału korytarza? Podpowiedź: co heurystyka robi źle na mapie kruchej, a co RL na mapie zawału korytarza.*
+
+**H2. SARSA w treningu ma mniej zawałów niż Q-learning, kosztem mniejszego ładunku**
+- Zawały w treningu (średnio z całego treningu, kara za krok −0,25): stabilna 5,7% (Q) / 6,8% (SARSA), krucha 25,7 / 27,4, głęboka 10,9 / 8,9, zawał korytarza 8,6 / 8,6. Mniej zawałów SARSA ma tylko na mapie głębokiej.
+- Ocena na mapie głębokiej: SARSA 4,4% zawałów i ładunek 59,9 pkt, Q-learning 7,1% i 67,0 pkt. Tu kierunek zgadza się z H2.
+- SARSA uczy się wolniej, ale ma mniejszy rozrzut między ziarnami.
+- ❓ *Czy H2 się potwierdziła? Dlaczego różnica jest widoczna tylko na mapie głębokiej? Pomyśl, na której mapie są najdłuższe korytarze z ryzykiem zawału.*
+
+**H3. Wyższa kara za zawał daje płytsze kopanie i mniej zawałów**
+- Przy karze −5, −10 i −20 agent zawsze schodzi na dno (głębokość ok. 9). Zawały maleją bardzo słabo, w granicach rozrzutu.
+- ❓ *Dlaczego kara prawie nic nie zmienia? Raport podaje hipotezę, że kryształy na dnie są warte więcej niż oczekiwany koszt zawału. Zgadzasz się? Jak można by to sprawdzić?*
+
+**H4. Agent mapy stałej nie przenosi się na nowe kopalnie, agent map losowych uogólnia**
+- Agent mapy stałej jest dobry na swojej mapie, a na innej mapie ma ok. −3 pkt. Część pierwsza się potwierdziła.
+- Agent map losowych z widokiem 5×5 nie nauczył się grać (−17,6 pkt, 2,2 mln stanów). Część druga się nie potwierdziła.
+- Z narratorem (Twój pomysł) agent tablicowy uogólnia: 56,6 pkt wobec 61,7 heurystyki. Narrator wykonuje jednak za niego nawigację, a agent nadal krąży.
+- ❓ *Co według Ciebie było główną przeszkodą: algorytm czy obserwacja? Czy wynik z narratorem to „uczciwe” uogólnienie? Co dalej: DQN czy lepsza obserwacja?*
+
+**Pytania ogólne (do wniosków końcowych)**
+- ❓ *Która zmiana dała najwięcej w całym projekcie? Kandydaci: optymistyczne Q₀, maskowanie akcji, malejące α, kara za krok, narrator.*
+- ❓ *Co było największym zaskoczeniem?*
+- ❓ *Czy RL to dobre narzędzie do tej gry, skoro prosta heurystyka jest blisko lub lepsza?*
+
+**Ryzyko utraty punktów, które widzę:** w planie raportu (sekcja „Planowane wykresy i tabele”) są pozycje, których chyba nie zrobiliśmy:
+- krzywe odsetka zawałów w trakcie treningu;
+- wykres zależności zawałów i ładunku od kary;
+- zestawienie przyczyn porażek;
+- nagrania epizodów.
+
+Mapa cieplna jest. Mogę te wykresy dorobić (dane są w CSV, to krótka praca) albo zmienić plan i opisać, co zastąpiło te pozycje. Polecam dorobić dwa wykresy i tabelę przyczyn porażek.
+
+Mam zacząć od tych wykresów, a Ty w tym czasie odpowiesz na pytania?
