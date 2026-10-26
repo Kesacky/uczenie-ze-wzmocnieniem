@@ -2,7 +2,7 @@
 Zbieram fakty z raportu do analizy. Dla hipotezy H2 policzyłem jeszcze odsetek zawałów w treningu.
 
 [Odpowiedź]
-**GitHub:** wszystko z poprzednich kroków już tam jest (ostatni commit 351e652, lokalna gałąź zgodna z `origin/main`). Ta rozmowa trafi do dziennika i wyślę ją razem z następną zmianą.
+**GitHub:** wszystko z poprzednich kroków już tam jest (ostatni commit 351e652, lokalna gałąź zgodna z `origin/main`). Wpis z tej rozmowy w dzienniku AI też jest już wysłany.
 
 **Analiza: jak proponuję ją zrobić**
 Sekcja „Analiza i wnioski” ma zawierać *Twoje* wnioski. Prowadzący będzie o nie pytał na obronie, a sekcja AI musi uczciwie mówić, kto co napisał. Dlatego nie piszę jej za Ciebie. Poniżej masz fakty do każdej hipotezy i pytania. Odpowiedz krótko, nawet w punktach i bez polskich znaków. Ja złożę to w tekst raportu, zachowując Twoje wnioski, i wskażę, gdzie coś nie zgadza się z danymi.

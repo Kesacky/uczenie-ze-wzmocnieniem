@@ -1,6 +1,6 @@
 {
   "date": "2026-10-26",
-  "tool": "Codex",
+  "tool": "Claude Code",
   "model": "claude-opus-5-5",
   "purpose": "Test, czy krążenie najlepszego agenta kosztuje punkty (losowe ruchy przy ocenie)",
   "scope": "Skrypt scripts/eval_epsilon.py, ocena 10 modeli, opis w raporcie i sekcji AI, commit",

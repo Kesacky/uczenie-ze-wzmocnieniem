@@ -1,6 +1,6 @@
 {
   "date": "2026-10-26",
-  "tool": "Codex",
+  "tool": "Claude Code",
   "model": "claude-opus-5-5",
   "purpose": "Wyniki dłuższego treningu narratora z pamięcią i wariantu z licznikiem odwiedzin",
   "scope": "Analiza 40 treningów, ocena krzyżowa, pomiar krążenia, opis w raporcie, README, etapach i sekcji AI, commit",

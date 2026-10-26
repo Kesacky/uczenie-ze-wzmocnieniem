@@ -1,6 +1,6 @@
 {
   "date": "2026-10-26",
-  "tool": "Codex",
+  "tool": "Claude Code",
   "model": "claude-opus-5-5",
   "purpose": "Streszczenie wyników najlepszego agenta z narratorem",
   "scope": "Objaśnienie wyników z plików summary.csv i cross_summary.csv, bez zmian w kodzie",

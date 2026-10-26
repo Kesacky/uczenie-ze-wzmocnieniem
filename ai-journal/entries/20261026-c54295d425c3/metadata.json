@@ -1,6 +1,6 @@
 {
   "date": "2026-10-26",
-  "tool": "Codex",
+  "tool": "Claude Code",
   "model": "claude-opus-5-5",
   "purpose": "Wybór następnego kroku: dalszy trening z karą za krążenie czy przejście do analizy",
   "scope": "Ocena pomysłu studenta (kara za ponowne odwiedziny), rekomendacja kolejności prac, bez zmian w kodzie",
