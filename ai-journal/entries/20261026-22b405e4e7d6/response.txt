@@ -1,0 +1,9 @@
+Cel przyjęty. Najpierw dodam wariant z licznikiem odwiedzin (0, 1 albo 2 i więcej razy), żeby oba treningi poszły jednym ciągiem:
+
+1. narrator z pamięcią, 300 tys. epizodów (ok. 2,5 h);
+2. narrator z licznikiem odwiedzin, 100 tys. epizodów (ok. 1 h).
+
+Potem ocena krzyżowa i opis w raporcie.
+
+[Komunikat]
+Wariant z licznikiem odwiedzin jest gotowy (`--hint-obs 4`, z testem; wszystkie 210 testów przechodzi). Modele z pamięcią (ho3) działają bez zmian. Treningi ruszyły w tle jednym ciągiem: najpierw 300 tys. epizodów z pamięcią, potem 100 tys. z licznikiem, na końcu ocena krzyżowa i wykresy. Szacuję łącznie ok. 3–3,5 godziny.

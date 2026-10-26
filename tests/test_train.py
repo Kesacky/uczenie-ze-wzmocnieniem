@@ -132,7 +132,7 @@ def test_local_obs_and_cross_evaluation(tmp_path):
     from train import make_env
     assert make_env("m1_stabilna").obs_mode == "state"
     assert make_env("losowa", hint_obs=2).hint_kind == "path" and make_env("m2_krucha", hint_obs=1).obs_mode == "hint"
-    assert make_env("losowa", hint_obs=3).hint_memory and not make_env("losowa", hint_obs=2).hint_memory
+    assert [make_env("losowa", hint_obs=h).hint_memory for h in (2, 3, 4)] == [0, 1, 2]
     assert make_env("m1_stabilna", local_obs=1).observation_space.shape == make_env("losowa").observation_space.shape
     out = tmp_path / "train"
     subprocess.run([sys.executable, str(ROOT / "scripts" / "train.py"), "--maps", "m1_stabilna", "--algos", "sarsa",
@@ -152,3 +152,11 @@ def test_local_obs_and_cross_evaluation(tmp_path):
     summary = rows(tmp_path / "cross" / "cross_summary.csv")
     assert {(r["target"], r["seeds"]) for r in summary} == {("m2_krucha", "2"), ("losowa", "2")}
     assert len(rows(tmp_path / "cross" / "cross_runs.csv")) == 2 * 2
+
+
+def test_train_seeds_stay_disjoint_from_evaluation():
+    from scripts.train import VALID_SEED, train_seed_base
+    assert train_seed_base(3, 100_000) == 300_000                      # dotychczasowe ziarna
+    ranges = [(train_seed_base(s, 300_000), train_seed_base(s, 300_000) + 300_000) for s in range(10)]
+    assert all(a[1] <= b[0] for a, b in zip(ranges, ranges[1:]))       # ziarna rozłączne
+    assert ranges[0][0] > max(VALID_SEED, 1_000_000 + 1000)            # i rozłączne z oceną

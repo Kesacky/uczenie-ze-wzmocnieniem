@@ -1344,7 +1344,8 @@ Obserwacje:
   pierwszą wizytę. Gdy agent przejdzie między dwoma polami raz, oba są już
   odwiedzone i dalsze przejścia znów dają te same obserwacje. Do usunięcia krążenia
   potrzebna byłaby bogatsza pamięć (np. liczba odwiedzin) albo dłuższy trening, który
-  zmniejszy liczbę słabo nauczonych obserwacji. Tego nie sprawdzono.
+  zmniejszy liczbę słabo nauczonych obserwacji. Obie drogi sprawdzono w kolejnym
+  akapicie.
   \item W grze, w której student zauważył krążenie, agent z pamięcią (ten sam numer
   ziarna) wyszedł z kopalni z ładunkiem 48 pkt (wynik $57{,}1$) zamiast zginąć
   w zawale z ładunkiem 12 pkt ($-15{,}7$). To jedna gra, a nie miara średnia.
@@ -1362,6 +1363,77 @@ Obserwacje:
 odwiedzin (\texttt{ho3}): średni zwrot walidacji zachłannej na stałym zestawie 100
 kopalni losowych. Linia: średnia po 10 ziarnach, pasmo: $\pm$ odchylenie
 standardowe. Linia przerywana: heurystyka progowa na mapach losowych.}\label{fig:pamiec}
+\end{figure}
+
+\textbf{Dłuższy trening i licznik odwiedzin} (26.10.2026). Sprawdzono obie drogi
+z poprzedniego akapitu, każdą w 20 uruchomieniach (10 ziaren, Q-learning i SARSA):
+wariant z pamięcią trenowany 300 tys. epizodów
+(\texttt{results/\allowbreak train/\allowbreak narrator\_pamiec\_300k/}) oraz czwarty
+wariant obserwacji (\texttt{--hint-obs 4}), w którym zamiast bitu jest liczba wejść na
+sąsiednie pole w przedziałach 0 / 1 / 2 i więcej, trenowany 100 tys. epizodów
+(\texttt{results/\allowbreak train/\allowbreak narrator\_licznik/}). Ocena krzyżowa
+obu wariantów jest w
+\texttt{results/\allowbreak train/\allowbreak narrator\_dalsze\_cross/}. Harmonogramy
+$\varepsilon$ i $\alpha$ skalują się z liczbą epizodów, więc trening 300 tys. epizodów
+nie jest przedłużeniem treningu 100 tys., tylko wolniejszym przejściem od eksploracji
+do eksploatacji. Treningi dłuższe niż 100 tys. epizodów używają osobnego zakresu ziaren
+map ($10^7 + 10^6\cdot\text{ziarno} + i$), rozłącznego z mapami walidacji i oceny.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+wariant (mapy losowe) & zwrot & wyjścia & zawały & brak oleju & stany & krążenie \\
+\midrule
+pamięć, 100 tys., Q-learning & $37{,}6\pm1{,}3$ & 52\% & 22\% & 26\% & 202 tys. & 74\% \\
+pamięć, 300 tys., Q-learning & $56{,}6\pm0{,}5$ & 75\% & 16\% & 9\% & 281 tys. & 56\% \\
+licznik, 100 tys., Q-learning & $27{,}6\pm2{,}1$ & 42\% & 24\% & 34\% & 447 tys. & 80\% \\
+pamięć, 100 tys., SARSA & $32{,}6\pm1{,}3$ & 47\% & 24\% & 29\% & 215 tys. & -- \\
+pamięć, 300 tys., SARSA & $52{,}7\pm1{,}3$ & 71\% & 16\% & 12\% & 310 tys. & -- \\
+licznik, 100 tys., SARSA & $23{,}2\pm1{,}7$ & 37\% & 26\% & 37\% & 471 tys. & -- \\
+\midrule
+heurystyka progowa & $61{,}7$ & 87\% & 13\% & 0\% & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{center}
+Oznaczenia jak w poprzedniej tabeli. Krążenie zmierzono tym samym skryptem
+\texttt{scripts/\allowbreak oscillation.py}.
+
+Obserwacje:
+\begin{itemize}
+  \item Dłuższy trening dał największą poprawę: Q-learning $56{,}6$ pkt (z $37{,}6$),
+  SARSA $52{,}7$ pkt (z $32{,}6$), przy rozrzucie między ziarnami 0,5--1,3 pkt. To nadal
+  mniej niż heurystyka progowa ($61{,}7$), ale różnica zmalała do ok. 5 pkt dla
+  Q-learningu. Walidacja Q-learningu wyrównała się na ok. 60 pkt od ok. 260 tys.
+  epizodów (rys.~\ref{fig:pamiec300}), więc dalsze wydłużanie przy tych ustawieniach
+  dałoby już niewiele.
+  \item Krążenie zmalało z 74\% do 56\% epizodów, a liczba kroków w krążeniu z 27 do 14.
+  Dłuższy trening zmniejszył więc krążenie bardziej niż sama zmiana obserwacji.
+  Krążenie nie zniknęło.
+  \item Licznik odwiedzin po 100 tys. epizodów był gorszy niż bit pamięci ($27{,}6$
+  wobec $37{,}6$ pkt; krążenie 80\%). Tablica jest ponad 2 razy większa (ok. 450 tys.
+  stanów), więc przy tej samej liczbie epizodów każdy stan jest rzadziej odwiedzany.
+  Krzywa licznika rośnie jeszcze na końcu treningu (walidacja z 25 do 32 pkt w ostatnich
+  20 tys. epizodów), więc nie wiadomo, czy przy dłuższym treningu licznik wyprzedziłby
+  bit. Tego nie sprawdzono.
+  \item W grze z podglądu, w której student zauważył krążenie, model po 300 tys.
+  epizodów (ziarno 8) wyszedł z ładunkiem 69 pkt (wynik $83{,}8$), a model z licznikiem
+  z ładunkiem 39 pkt ($46{,}8$). To nadal pojedyncza gra.
+  \item Na mapach stałych Q-learning po 300 tys. epizodów osiąga: stabilna $55{,}9$,
+  krucha $-2{,}8$, głęboka $69{,}7$ (duży rozrzut między ziarnami), zawał korytarza
+  $13{,}5$ (bardzo duży rozrzut; 7 z 10 modeli wychodzi z kopalni w mniej niż połowie gier).
+  Wszystkie są niższe niż heurystyka progowa ($62{,}8$; $14{,}6$; $79{,}5$; $71{,}7$).
+  \item Trening 300 tys. epizodów trwał ok. 43 minut na proces (8 procesów
+  równolegle), licznik 100 tys. ok. 16 minut.
+\end{itemize}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{../results/train/narrator_pamiec_300k/curves.png}
+\caption{Przebieg uczenia z narratorem „droga” i pamięcią odwiedzin (\texttt{ho3})
+przy treningu 300 tys. epizodów: średni zwrot walidacji zachłannej na stałym zestawie
+100 kopalni losowych. Linia: średnia po 10 ziarnach, pasmo: $\pm$ odchylenie
+standardowe. Linia przerywana: heurystyka progowa na mapach losowych.}\label{fig:pamiec300}
 \end{figure}
 
 Wynik pokazuje, że w tym zadaniu ograniczeniem metody tablicowej na mapach losowych
@@ -1400,11 +1472,12 @@ zachowania agenta (sekcja \ref{sec:kara_zawal}). Agent tablicowy nie uogólnia n
 nowe kopalnie: uczony na mapach losowych nie nauczył się grać, a uczony na mapie
 stałej wychodzi z innej kopalni prawie bez ładunku (sekcja \ref{sec:losowe}).
 Z podpowiedzią narratora agent tablicowy uczy się grać na nowych kopalniach, ale
-osiąga 50--60\% wyniku heurystyki (z pamięcią odwiedzin $37{,}6$ pkt), często krąży
-między polami, a podpowiedź „droga” wykonuje za agenta
+nie dorównuje heurystyce (najlepszy wariant: pamięć odwiedzin i 300 tys. epizodów,
+$56{,}6$ wobec $61{,}7$ pkt), nadal krąży między polami w ok. połowie gier, a podpowiedź
+„droga” wykonuje za agenta
 nawigację, więc wynik nie jest wprost porównywalny z agentem bez podpowiedzi
-(sekcja \ref{sec:narrator}). Trening z narratorem nie był jeszcze zbieżny po 100 tys.
-epizodów. Nie sprawdzono aproksymacji funkcji Q (np. DQN). Wyniki sprzed 24.10.2026 oceniano według zasad w wersji 2
+(sekcja \ref{sec:narrator}). Licznik odwiedzin powiększa tablicę ponad 2 razy i po
+100 tys. epizodów był gorszy niż bit pamięci; nie sprawdzono go przy dłuższym treningu. Nie sprawdzono aproksymacji funkcji Q (np. DQN). Wyniki sprzed 24.10.2026 oceniano według zasad w wersji 2
 i nie są wprost porównywalne z późniejszymi.
 Wariant z losową mapą jest częściowo obserwowalny (agent widzi tylko otoczenie
 $5\times 5$). Model zawału jest umowny i nie odwzorowuje rzeczywistej mechaniki
@@ -1473,6 +1546,15 @@ python scripts/cross_eval.py --runs narrator_pamiec
     --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa
     --variants q30_n100000_ho3 --workers 8
     --out results/train/narrator_pamiec_cross
+python scripts/train.py --maps losowa --seeds 10 --episodes 300000
+    --hint-obs 3 --workers 8 --name narrator_pamiec_300k
+python scripts/train.py --maps losowa --seeds 10 --episodes 100000
+    --hint-obs 4 --workers 8 --name narrator_licznik
+python scripts/cross_eval.py --runs narrator_pamiec_300k narrator_licznik
+    --targets m1_stabilna m2_krucha m3_gleboka m4_zawal_korytarza losowa
+    --variants q30_n300000_ho3 q30_n100000_ho4 --workers 8
+    --out results/train/narrator_dalsze_cross
+python scripts/oscillation.py
 \end{verbatim}
 Wyniki trafiają do \texttt{results/train/nazwa/}. Tablice Q
 (\texttt{models/*.pkl}) nie są przechowywane w repozytorium, bo odtwarza je

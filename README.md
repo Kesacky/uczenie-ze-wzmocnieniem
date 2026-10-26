@@ -22,7 +22,9 @@ Dodatkowy eksperyment 4 (pomysł studenta): obserwacja z podpowiedzią „narrat
 i odległość do najbliższego złoża i do wyjścia zamiast widoku otoczenia). Z kierunkiem
 pierwszego kroku najkrótszej drogi Q-learning na nowych kopalniach zdobywa 30,8 pkt,
 z samym kierunkiem „na przełaj” 5,2 pkt, a z dodatkową pamięcią odwiedzonych pól 37,6 pkt
-(agent nadal często krąży między polami).
+(agent nadal często krąży między polami). Ten sam wariant trenowany 300 tys. epizodów osiąga
+56,6 pkt (heurystyka 61,7) i krąży rzadziej; licznik odwiedzin zamiast bitu pamięci dał po
+100 tys. epizodów 27,6 pkt.
 
 Repozytorium: https://github.com/Kesacky/uczenie-ze-wzmocnieniem
 
@@ -144,6 +146,10 @@ python scripts/plot_training.py --name narrator_losowe --variants q30_n100000_ho
 python scripts/watch.py --random --obs-mode hint --hint-kind path --agent results/train/narrator_losowe/models/losowa_q_learning_q30_n100000_ho2_s0.pkl
 python scripts/train.py --maps losowa --seeds 10 --episodes 100000 --hint-obs 3 --workers 8 --name narrator_pamiec
 python scripts/watch.py --random --obs-mode hint --hint-kind path --hint-memory --agent results/train/narrator_pamiec/models/losowa_q_learning_q30_n100000_ho3_s8.pkl
+python scripts/train.py --maps losowa --seeds 10 --episodes 300000 --hint-obs 3 --workers 8 --name narrator_pamiec_300k
+python scripts/train.py --maps losowa --seeds 10 --episodes 100000 --hint-obs 4 --workers 8 --name narrator_licznik
+python scripts/watch.py --random --obs-mode hint --hint-kind path --hint-memory 1 --agent results/train/narrator_pamiec_300k/models/losowa_q_learning_q30_n300000_ho3_s8.pkl
+python scripts/watch.py --random --obs-mode hint --hint-kind path --hint-memory 2 --agent results/train/narrator_licznik/models/losowa_q_learning_q30_n100000_ho4_s8.pkl
 ```
 
 Przegląd hiperparametrów: każdy z `--q-init`, `--alpha`, `--gamma`, `--eps-decay`,

@@ -1,0 +1,43 @@
+[Komunikaty w trakcie pracy]
+Ukończono 16 z 20 długich treningów. Wyniki są dużo lepsze niż po 100 tys. epizodów: Q-learning ok. 56–57 pkt, SARSA ok. 50–55 pkt, a agent wychodzi z kopalni w ok. 70–75% gier. Dla porównania heurystyka progowa ma 61,7 pkt. Ostatnie 4 uruchomienia skończą się ok. 15:55. Potem ruszy wariant z licznikiem odwiedzin. Koniec wszystkiego przewiduję ok. 17:00.
+
+Wszystkie treningi się skończyły. Teraz analizuję wyniki i za chwilę dopiszę je do raportu.
+
+Dopisuję do raportu wyniki dłuższego treningu i wariantu z licznikiem odwiedzin.
+
+Raport jest uzupełniony i się kompiluje, testy przechodzą. Zapisuję dziennik i robię commit.
+
+[Odpowiedź]
+Oba treningi są skończone (40 uruchomień, 13:40–16:39), opisane w raporcie i wysłane na GitHub.
+
+**Wyniki na nowych kopalniach losowych** (10 ziaren, 1000 gier oceny na model):
+
+| wariant | Q-learning | SARSA | wyjścia z kopalni (Q) | gry z krążeniem (Q) |
+|---|---|---|---|---|
+| pamięć, 100 tys. epizodów (wcześniej) | 37,6 ± 1,3 | 32,6 ± 1,3 | 52% | 74% |
+| **pamięć, 300 tys. epizodów** | **56,6 ± 0,5** | **52,7 ± 1,3** | 75% | 56% |
+| licznik odwiedzin, 100 tys. | 27,6 ± 2,1 | 23,2 ± 1,7 | 42% | 80% |
+| heurystyka progowa | 61,7 | | 87% | |
+
+**Co z tego wynika**
+- **Dłuższy trening dał najwięcej: +19 pkt.** Q-learning jest już tylko ok. 5 pkt za heurystyką. Krzywa walidacji wypłaszcza się na ok. 60 pkt od ok. 260 tys. epizodów, więc jeszcze dłuższy trening z tymi ustawieniami dałby niewiele.
+- **Krążenie zmalało, ale nie zniknęło:** z 74% do 56% gier, średnio 14 zamiast 27 ruchów w kółko.
+- **Licznik odwiedzin wypadł gorzej niż zwykły bit pamięci.** Tablica urosła do ok. 450 tys. stanów, więc przy 100 tys. epizodów każdy stan jest rzadziej odwiedzany. Krzywa jeszcze rosła, więc nie wiadomo, jak licznik wypadłby przy dłuższym treningu.
+- **Gra z podglądu** (ta z krążeniem): model po 300 tys. epizodów wychodzi z ładunkiem 69 pkt (wynik 83,8) zamiast zginąć w zawale. To jedna gra.
+- **Na mapach stałych** model 300 tys. nadal ustępuje heurystyce: stabilna 55,9 (heurystyka 62,8), krucha −2,8 (14,6), głęboka 69,7 (79,5), zawał korytarza 13,5 (71,7).
+- Uwaga do obrony: harmonogramy ε i α skalują się z liczbą epizodów, więc 300 tys. to wolniejsze przejście od eksploracji do eksploatacji, a nie dokładnie „dłuższe” 100 tys.
+
+**Co zrobiłem**
+- **Kod:** wariant z licznikiem odwiedzin (`--hint-obs 4`, `--hint-memory 2` w podglądzie). Dodałem też osobny zakres ziaren map dla treningów dłuższych niż 100 tys. epizodów, żeby mapy treningowe nie pokryły się z mapami oceny. Do obu zmian są testy, przechodzi 211 testów.
+- **Pomiar krążenia:** rozszerzyłem `scripts/oscillation.py` o nowe modele.
+- **Dokumenty:** w raporcie, w sekcji o narratorze, jest nowa tabela, wykres i obserwacje. Uzupełniłem też ograniczenia i instrukcję uruchomienia, README, `docs/etapy.md` oraz sekcję AI. Raport się kompiluje.
+- **Commit i wysyłka na GitHub.** Modele `.pkl` (ok. 2,5 GB) zostały lokalnie, bo są ignorowane przez Git.
+
+Nowego treningu nie uruchomiłem. Następny sensowny (licznik odwiedzin na 300 tys. epizodów) trwałby ok. 2,5 h, a to wykracza poza Twoje okno 3–4 h.
+
+**Do Twojej decyzji / weryfikacji**
+- Przejrzyj nowe wyniki w sekcji o narratorze. Sekcja AI zaznacza, że nie zostały jeszcze przez Ciebie sprawdzone.
+- Ewentualny następny krok: licznik odwiedzin na 300 tys. epizodów. To rozstrzygnie, czy licznik pomaga, gdy ma dość danych.
+
+Podgląd najlepszego agenta:
+`python scripts/watch.py --random --obs-mode hint --hint-kind path --hint-memory 1 --agent results/train/narrator_pamiec_300k/models/losowa_q_learning_q30_n300000_ho3_s8.pkl`

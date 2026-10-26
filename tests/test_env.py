@@ -535,4 +535,19 @@ def test_hint_memory_marks_visited_neighbours():
     obs, *_ = env.step(RIGHT)            # z powrotem na S: odwiedzone pole po lewej
     assert obs[13:].tolist() == [0, 0, 1, 0]
     env.reset(seed=0)                    # nowy epizod czyści pamięć
-    assert env.visited == {env.pos}
+    assert env.visited == {env.pos: 1}
+
+
+def test_hint_memory_counts_visits():
+    env, obs, _ = make(**SAFE, obs_mode="hint", hint_kind="path", hint_memory=2)
+    assert env.observation_space.nvec[13:].tolist() == [3, 3, 3, 3]
+    env.step(LEFT)
+    obs, *_ = env.step(RIGHT)            # S odwiedzone 2 razy, pole po lewej raz
+    assert obs[13:].tolist() == [0, 0, 1, 0]
+    obs, *_ = env.step(LEFT)
+    assert obs[13:].tolist() == [0, 0, 0, 2]
+    env.step(RIGHT)
+    obs, *_ = env.step(LEFT)             # trzecie wejście na S: przedział 2+
+    assert obs[13:].tolist() == [0, 0, 0, 2]
+    with pytest.raises(ValueError):
+        MineEnv(parse_map(TINY, "test"), obs_mode="hint", hint_memory=3)

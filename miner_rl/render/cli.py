@@ -57,8 +57,9 @@ def parser(description, agent=False, scale='auto'):
     p.add_argument('--obs-mode', choices=['state', 'local', 'hint'], default='state')
     p.add_argument('--hint-kind', choices=['compass', 'path'], default='compass',
                    help='Podpowiedź narratora przy --obs-mode hint (ho1 = compass, ho2 i ho3 = path)')
-    p.add_argument('--hint-memory', action='store_true',
-                   help='Pamięć odwiedzonych sąsiednich pól w obserwacji narratora (modele ho3)')
+    p.add_argument('--hint-memory', type=int, nargs='?', const=1, default=0, choices=[0, 1, 2],
+                   help='Pamięć sąsiednich pól w obserwacji narratora: 1 = odwiedzone (modele ho3), '
+                        '2 = liczba wejść 0/1/2+ (modele ho4)')
     p.add_argument('--view-radius', type=positive, default=2)
     p.add_argument('--oil-bins', type=int, default=None,
                    help='Przedziały oleju w obserwacji (jak przy treningu agenta; domyślnie z konfiguracji)')
@@ -80,7 +81,7 @@ def create(args):
     env = MineEnv(args.map or 'm1_stabilna', random_maps=args.random,
                   obs_mode=args.obs_mode, view_radius=args.view_radius,
                   hint_kind=getattr(args, 'hint_kind', 'compass'),
-                  hint_memory=getattr(args, 'hint_memory', False), **overrides)
+                  hint_memory=getattr(args, 'hint_memory', 0), **overrides)
     renderer = Renderer(env, scale=resolve_scale(args.scale, env.width, env.height),
                         use_textures=not args.no_textures, lamp=not args.no_lamp)
     if args.random:

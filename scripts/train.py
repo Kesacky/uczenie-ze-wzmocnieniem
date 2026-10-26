@@ -7,7 +7,7 @@ oraz parametry środowiska (--oil-bins: przedziały oleju w obserwacji; --reward
 maskowanie akcji niedozwolonych; --bonus: premia za eksplorację; --local-obs: obserwacja
 z widokiem otoczenia także na stałej mapie; --hint-obs: obserwacja z podpowiedzią narratora,
 1 = kierunek celu na przełaj, 2 = kierunek pierwszego kroku najkrótszej drogi, 3 = jak 2
-i pamięć odwiedzonych sąsiednich pól) przyjmuje jedną lub
+i pamięć odwiedzonych sąsiednich pól, 4 = jak 2 i liczba wejść na sąsiednie pola 0/1/2+) przyjmuje jedną lub
 kilka wartości. Domyślnie warianty to wszystkie kombinacje
 (siatka). Z --ofat pierwsza wartość każdego parametru tworzy wariant bazowy, a każda
 pozostała wartość daje wariant różniący się od bazowego tylko tym jednym parametrem
@@ -79,6 +79,9 @@ from miner_rl.env import MineEnv  # noqa: E402
 
 ALGOS = {"q_learning": QLearningAgent, "sarsa": SarsaAgent}
 TRAIN_SEED_STRIDE = 100_000
+# Treningi dłuższe niż TRAIN_SEED_STRIDE dostają osobny zakres ziaren, rozłączny z walidacją
+# (VALID_SEED) i ewaluacją końcową (od 1 000 000); krótsze zachowują dotychczasowe ziarna.
+LONG_SEED_BASE, LONG_SEED_STRIDE = 10_000_000, 1_000_000
 VALID_SEED = 2_000_000
 EVAL_FIELDS = ["phase", "map", "agent", "param", "episode", "seed", "return", "length", "reason",
                "collected", "collected_value", "lost_value", "collapsed", "max_depth", "repeats"]
@@ -97,11 +100,18 @@ PARAMS = {"q_init": ("q", 30.0), "alpha": ("a", 0.1), "alpha_end": ("ae", 0.01),
           "bonus": ("b", 0.0), "local_obs": ("lo", 0), "hint_obs": ("ho", 0)}
 
 
+def train_seed_base(seed: int, episodes: int) -> int:
+    """Pierwsze ziarno epizodów treningu danego uruchomienia."""
+    if episodes <= TRAIN_SEED_STRIDE:
+        return seed * TRAIN_SEED_STRIDE
+    return LONG_SEED_BASE + seed * LONG_SEED_STRIDE
+
+
 def make_env(name: str, oil_bins: int = PARAMS["oil_bins"][1], local_obs: int = 0, hint_obs: int = 0,
              **rewards) -> MineEnv:
     """'losowa' = nowa kopalnia w każdym epizodzie (z widokiem otoczenia albo z podpowiedzią)."""
     obs_mode = "hint" if hint_obs else "local" if local_obs or name == "losowa" else "state"
-    kind, memory = "path" if hint_obs >= 2 else "compass", hint_obs == 3
+    kind, memory = "path" if hint_obs >= 2 else "compass", max(0, hint_obs - 2)
     if name == "losowa":
         return MineEnv(random_maps=True, obs_mode=obs_mode, hint_kind=kind, hint_memory=memory,
                        oil_bins=oil_bins, **rewards)
@@ -175,7 +185,7 @@ def run(job: dict) -> dict:
         epsilon=EpsilonSchedule(job["eps_start"], job["eps_end"], int(job["eps_decay"] * episodes)),
         alpha_schedule=EpsilonSchedule(job["alpha"], job["alpha_end"], episodes) if job["alpha_end"] > 0 else None,
         seed=job["seed"])
-    train_seed = job["seed"] * TRAIN_SEED_STRIDE
+    train_seed = train_seed_base(job["seed"], episodes)
     start = time.perf_counter()
     curve, window = [], []
     best = {"return": -np.inf, "episode": 0, "q": None}
@@ -253,10 +263,10 @@ def main() -> int:
                         help="premia za eksplorację β/√N(s,a) w treningu (0 = wyłączona)")
     parser.add_argument("--local-obs", type=int, nargs="+", default=[PARAMS["local_obs"][1]], choices=[0, 1],
                         help="1 = obserwacja z widokiem otoczenia 5×5 także na stałej mapie")
-    parser.add_argument("--hint-obs", type=int, nargs="+", default=[PARAMS["hint_obs"][1]], choices=[0, 1, 2, 3],
+    parser.add_argument("--hint-obs", type=int, nargs="+", default=[PARAMS["hint_obs"][1]], choices=[0, 1, 2, 3, 4],
                         help="obserwacja z podpowiedzią narratora: 1 = kierunek celu na przełaj, "
                              "2 = kierunek pierwszego kroku najkrótszej drogi, 3 = jak 2 i pamięć "
-                             "odwiedzonych sąsiednich pól")
+                             "odwiedzonych sąsiednich pól, 4 = jak 2 i liczba wejść 0/1/2+")
     parser.add_argument("--ofat", action="store_true",
                         help="warianty „jeden czynnik naraz” wokół pierwszych wartości zamiast siatki")
     parser.add_argument("--eval-every", type=int, default=500, help="co ile epizodów walidacja")
@@ -267,8 +277,8 @@ def main() -> int:
     parser.add_argument("--name", default="pilot", help="podkatalog w results/train/")
     parser.add_argument("--out", type=Path, default=ROOT / "results" / "train")
     args = parser.parse_args()
-    if max(args.episodes) > TRAIN_SEED_STRIDE:
-        parser.error(f"--episodes może wynosić najwyżej {TRAIN_SEED_STRIDE} (rozłączność ziaren)")
+    if max(args.episodes) > LONG_SEED_STRIDE:
+        parser.error(f"--episodes może wynosić najwyżej {LONG_SEED_STRIDE} (rozłączność ziaren)")
 
     values = {k: getattr(args, k) for k in PARAMS}
     variants = make_variants(values, args.ofat)
@@ -283,7 +293,8 @@ def main() -> int:
     # najdłuższe uruchomienia najpierw, żeby procesy kończyły się mniej więcej razem
     jobs.sort(key=lambda j: -j["episodes"])
     config = {"args": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
-              "variants": variants, "train_seed": f"seed * {TRAIN_SEED_STRIDE} + epizod",
+              "variants": variants, "train_seed": f"seed * {TRAIN_SEED_STRIDE} + epizod (do {TRAIN_SEED_STRIDE} epizodów), "
+                                f"inaczej {LONG_SEED_BASE} + seed * {LONG_SEED_STRIDE} + epizod",
               "valid_seed": VALID_SEED, "game_config": {m: make_env(m).config.to_dict() for m in args.maps}}
     (out / "config.json").write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
 
