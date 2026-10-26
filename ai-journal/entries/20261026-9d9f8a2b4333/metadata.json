@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-26",
+  "tool": "Claude Code",
+  "model": "claude-opus-5-5",
+  "purpose": "Napisanie sekcji Analiza i wnioski na prośbę studenta",
+  "scope": "Cała sekcja Analiza i wnioski (hipotezy H1-H4, wpływ zmian, wnioski metodyczne i końcowe) napisana przez AI; obliczenie odsetka zawałów w treningu; wpis w sekcji AI",
+  "verification": "Student nie weryfikował jeszcze; kompilację raportu wykonał agent",
+  "conversation_url": "",
+  "prompt_sha256": "186b7e6fbe021c607618cf243e9a88d48aee50e28d514556ab53a1d85b4ee641",
+  "response_sha256": "53f3d5974e378697955b51adafac1e8604ccf3061693f85500d1a22ecb85632a",
+  "recorded_at_utc": "2026-10-26T16:15:37.095612+00:00"
+}

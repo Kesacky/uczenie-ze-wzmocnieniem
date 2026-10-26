@@ -1,0 +1,25 @@
+[Komunikat w trakcie pracy]
+Sekcja wniosków jest w raporcie i raport się kompiluje. Zapisuję zmiany w dzienniku i wysyłam je na GitHub.
+
+[Odpowiedź]
+Sekcja „Analiza i wnioski” jest napisana, raport się kompiluje, zmiany są na GitHubie.
+
+**Co jest w sekcji**
+- **H1 (RL lepszy od heurystyki): potwierdzona częściowo.** RL wygrywa tam, gdzie sztywna reguła heurystyki jest wyraźnie zła. Na mapie kruchej heurystyka ginie w 71% gier, a agent nauczył się wcześniej wracać. Na mapie stabilnej i zawału korytarza RL gra zbyt ostrożnie: ma mniej zawałów, ale wynosi mniej. Prawdopodobna przyczyna to kara za krok w treningu.
+- **H2 (SARSA bezpieczniejsza): nie potwierdzona ogólnie.** Zawały w treningu są prawie równe. Wyjątek to mapa głęboka: tam SARSA jest ostrożniejsza, zgodnie z teorią metod on-policy (jak w zadaniu Cliff Walking).
+- **H3 (kara za zawał): nie potwierdzona.** Kara od −5 do −20 jest za mała wobec wartości kryształów na dnie.
+- **H4 (uogólnianie): potwierdzona w pierwszej części.** Uogólnienie dała dopiero zmiana obserwacji (narrator), czyli przeszkodą była obserwacja, a nie algorytm. Zastrzeżenie: narrator wyznacza drogę za agenta.
+- **Co poprawiło wyniki:** eksploracja i stabilizacja treningu (Q₀, maskowanie, malejące α, kara za krok) dały więcej niż wybór między Q-learningiem a SARSA. Ważny był też projekt obserwacji i długość treningu.
+- **Wnioski metodyczne:** 3 ziarna wprowadzały w błąd, potrzebne było 10. Sam średni zwrot nie wystarcza: pętlę na mapie głębokiej i krążenie wychwyciły dopiero Twoje obserwacje z podglądu gry.
+- **Wniosek końcowy** i kierunki dalszej pracy: DQN, kształtowanie nagrody oparte na potencjale.
+
+**Ważne do obrony.** Na początku sekcji i w sekcji „Wsparcie AI” jest jawnie zapisane, że wnioski zredagowało AI na Twoją prośbę i że nie zostały jeszcze przez Ciebie sprawdzone. Tak wymaga regulamin (P00 §9). Prowadzący może jednak pytać o każdy z tych wniosków, a za pomoc AI, której nie rozumiesz, grozi ponowna obrona fragmentu. Przeczytaj sekcję i zmień to, z czym się nie zgadzasz. Wtedy zaktualizuję wpis w sekcji AI.
+
+**Kilka pytań, które dodadzą Twój własny wkład** (wystarczą krótkie odpowiedzi):
+1. Co było dla Ciebie największym zaskoczeniem w wynikach?
+2. Czy zgadzasz się, że wynik z narratorem nie jest uczciwym porównaniem z heurystyką? Czy uważasz inaczej?
+3. Gdyby było więcej czasu, co warto sprawdzić najpierw: DQN, karę za krążenie czy coś innego?
+
+**Co jeszcze zostało**
+- W sekcji „Ograniczenia” nadal jest znacznik „Do uzupełnienia”, choć sama treść już tam jest. Mogę go usunąć po krótkim przejrzeniu.
+- Wykresy z planu, których brakuje: krzywe zawałów w treningu, zależność od kary i tabela przyczyn porażek. Mogę je dorobić.

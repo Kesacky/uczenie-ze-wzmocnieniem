@@ -1491,9 +1491,109 @@ pasmo: $\pm$ odchylenie standardowe. Linia przerywana: heurystyka progowa na map
 losowych.}\label{fig:narrator}
 \end{figure}
 
-\section{Analiza i wnioski}
-\doUzupelnienia{interpretacja faktycznych wyników, odpowiedzi na hipotezy,
-co poprawia lub pogarsza wyniki oraz własne wnioski studenta.}
+\section{Analiza i wnioski}\label{sec:wnioski}
+Sekcję zredagował asystent AI na prośbę studenta na podstawie wyników z sekcji
+\ref{sec:glowny}--\ref{sec:narrator} (zob. sekcja \ref{sec:ai}). Liczby dotyczą
+konfiguracji końcowej (sekcja \ref{sec:stabil}), o ile nie napisano inaczej.
+
+\subsection{Odpowiedzi na hipotezy}
+\textbf{H1 (RL lepszy od heurystyki) --- potwierdzona częściowo.} Agenci RL wygrywają
+z heurystyką na mapie kruchej ($46{,}4$ wobec $14{,}6$ pkt) i głębokiej (Q-learning
+$84{,}4$ wobec $79{,}5$), a przegrywają na mapie stabilnej ($56{,}8$ wobec $62{,}8$)
+i zawału korytarza ($57{,}4$ wobec $71{,}7$). Na mapie kruchej heurystyka trzyma się
+sztywnej reguły „wydobądź wszystko” i ginie w 71\% gier. Agent RL nauczył się, że na
+tej mapie lepiej wcześniej wrócić: wychodzi w 78\% gier i wynosi średnio $37{,}5$ pkt
+ładunku wobec $13{,}9$ u heurystyki. Na mapach stabilnej i zawału korytarza jest
+odwrotnie: agent RL gra ostrożniej (zawały 4--6\% wobec 17--19\% u heurystyki), ale
+wynosi mniej ($46{,}2$--$46{,}7$ pkt wobec $52{,}1$--$58{,}5$). Przy zasadach w wersji 3
+ta ostrożność się nie opłaca, bo nagroda za wydobycie jest wypłacana także po zawale.
+Prawdopodobną przyczyną jest kara za krok w treningu ($-0{,}25$ zamiast $-0{,}1$), która
+zmniejsza opłacalność dalekich złóż, oraz niepełne nauczenie rzadkich stanów w głębi
+kopalni. Tej przyczyny nie rozdzielono osobnym eksperymentem. Przewaga RL pojawia się
+więc tam, gdzie stała reguła heurystyki jest wyraźnie zła, a nie tam, gdzie --- jak
+zakładano --- opłaca się inna kolejność wydobycia lub stempel.
+
+\textbf{H2 (SARSA bezpieczniejsza w treningu) --- nie potwierdzona w ogólnej postaci.}
+Średni odsetek zawałów w całym treningu jest prawie taki sam dla obu algorytmów
+(Q-learning / SARSA: stabilna 5,7 / 6,8\%, krucha 25,7 / 27,4\%, zawał korytarza
+8,6 / 8,6\%). Wyjątkiem jest mapa głęboka: SARSA ma mniej zawałów w treningu
+(8,9 wobec 10,9\%) i w ocenie (4,4 wobec 7,1\%), a wynosi mniej ($59{,}9$ wobec
+$67{,}0$ pkt). Jest to zachowanie opisane w literaturze dla SARSA \cite{sutton}: metoda
+on-policy uwzględnia w wartościach losowe ruchy eksploracji, więc unika miejsc,
+w których pomyłka jest kosztowna. Na mapie głębokiej takich miejsc jest najwięcej, bo
+droga do kryształów jest długa i prowadzi przez korytarze z ryzykiem zawału. Na
+pozostałych mapach oba algorytmy uczą się praktycznie tej samej polityki. SARSA uczy
+się wolniej, ale ma mniejszy rozrzut między ziarnami.
+
+\textbf{H3 (wyższa kara za zawał daje płytsze kopanie) --- nie potwierdzona.} Przy
+karze $-5$, $-10$ i $-20$ agent zawsze schodzi na dno kopalni, a odsetek zawałów
+maleje przy karze $-20$ o 0,4--1,3 pkt proc., w granicach rozrzutu między ziarnami.
+Kara w tym zakresie jest mała wobec wartości kryształów na dnie (kilkadziesiąt pkt)
+pomnożonej przez niewielkie ryzyko zawału na pojedynczym polu. Sprawdzenie tego
+wyjaśnienia wymagałoby kar rzędu $-50$ do $-100$ albo mapy z mniej cennymi złożami
+na dnie.
+
+\textbf{H4 (mapa stała a losowa) --- potwierdzona w pierwszej części.} Agent uczony
+na mapie stałej jest dobry tylko na niej (na innych mapach ok. $-3$ pkt). Agent
+tablicowy uczony na mapach losowych z widokiem otoczenia $5\times5$ nie nauczył się
+grać ($-17{,}6$ pkt, 2,2 mln stanów w tablicy). Uogólnienie pojawiło się dopiero po
+zmianie obserwacji (eksperyment 4): z podpowiedzią narratora, pamięcią odwiedzin
+i 300 tys. epizodów agent osiąga na nowych kopalniach $56{,}6$ pkt, czyli 92\%
+wyniku heurystyki. Przeszkodą była więc przede wszystkim obserwacja, a nie sam
+algorytm: tablica Q nie uogólnia między obserwacjami, więc obserwacja musi być na tyle
+zwięzła, aby te same sytuacje powtarzały się na różnych kopalniach. Wynik ten nie jest
+jednak w pełni porównywalny z heurystyką ani z agentem bez narratora, ponieważ
+narrator wyznacza za agenta najkrótszą drogę.
+
+\subsection{Co poprawiło, a co pogorszyło wyniki}
+\begin{itemize}
+  \item \textbf{Eksploracja i stabilność treningu miały większy wpływ niż wybór
+  algorytmu.} Bez optymistycznej inicjalizacji ($Q_0$) agenci uczyli się
+  natychmiastowego wyjścia z kopalni (sekcja \ref{sec:pilot}). Maskowanie akcji
+  niedozwolonych usunęło pętle na ruchach w skałę. Malejące $\alpha$ usunęło nieudane
+  uruchomienia (wcześniej 4 z 80), a kara za krok w treningu --- pętle w rzadko
+  odwiedzanych stanach. Różnica między Q-learningiem a SARSA jest w konfiguracji
+  końcowej mniejsza niż efekt każdej z tych zmian.
+  \item \textbf{Projekt obserwacji zdecydował o uogólnianiu.} Ta sama metoda
+  tablicowa daje $-17{,}6$ pkt z widokiem otoczenia i $56{,}6$ pkt z podpowiedzią
+  narratora i pamięcią odwiedzin. Bogatsza pamięć (licznik odwiedzin) pogorszyła
+  wynik przy tej samej liczbie epizodów, bo tablica urosła ponad 2 razy: każda nowa
+  informacja w obserwacji kosztuje dane treningowe.
+  \item \textbf{Długość treningu ma znaczenie przy dużych tablicach.} Wydłużenie
+  treningu z 100 do 300 tys. epizodów podniosło wynik z narratorem z $37{,}6$ do
+  $56{,}6$ pkt i zmniejszyło krążenie (z 74 do 56\% gier).
+  \item \textbf{Kształtowanie nagrody zmienia zadanie.} Nagroda za wydobycie
+  wypłacana także po zawale sprawia, że opłaca się ryzykować (heurystyka na mapie
+  kruchej ginie w 71\% gier, a i tak jest to jej najlepszy wariant). Kara za krok
+  w treningu usuwa pętle, ale prawdopodobnie czyni agenta zbyt ostrożnym na mapach
+  stabilnej i zawału korytarza.
+\end{itemize}
+
+\subsection{Wnioski metodyczne}
+\begin{itemize}
+  \item \textbf{Liczba ziaren.} Trzy ziarna dały zbyt optymistyczny obraz (SARSA na
+  mapie stabilnej $54{,}9$ pkt przy 3 ziarnach wobec $39{,}8$ przy 10) i nie ujawniły
+  nieudanych uruchomień. Dopiero 10 ziaren pozwoliło ocenić stabilność metody.
+  \item \textbf{Średni zwrot nie wystarcza.} Najwyższy wynik na mapie głębokiej
+  ($95{,}3$ pkt) okazał się artefaktem zapętlonej polityki, a krążenie agenta
+  z narratorem było widoczne dopiero w podglądzie gry. Oba problemy zauważył student,
+  oglądając grę agenta. Dlatego wprowadzono miary zachowania (odsetek pętli i krążenia,
+  przyczyny zakończenia epizodu) obok średniego zwrotu.
+  \item \textbf{Rozdzielenie danych.} Walidacja, ocena końcowa i trening używają
+  rozłącznych ziaren map, więc wyniki na mapach losowych mierzą działanie na
+  kopalniach niewidzianych w treningu.
+\end{itemize}
+
+\subsection{Wniosek końcowy}
+W tej grze tablicowe RL nauczyło się skutecznych strategii na mapach stałych
+i w dwóch przypadkach przewyższyło ręcznie dobraną heurystykę, która zna całą mapę.
+Najwięcej zyskuje tam, gdzie prosta reguła jest wyraźnie zła (mapa krucha). Tam,
+gdzie reguła „zbierz wszystko i wróć” jest bliska optymalnej, heurystyka pozostaje
+lepsza. Metoda tablicowa nie przenosi się jednak na nowe kopalnie bez starannie
+zaprojektowanej, zwięzłej obserwacji. Naturalnym następnym krokiem byłaby
+aproksymacja funkcji Q (np. DQN), która uogólnia między podobnymi obserwacjami bez
+podpowiedzi narratora, oraz kształtowanie nagrody oparte na potencjale, które nie
+zmienia optymalnej strategii. Tych kierunków nie sprawdzono.
 
 \section{Ograniczenia rozwiązania}
 W konfiguracji końcowej agenci RL przewyższają heurystykę na mapie kruchej
